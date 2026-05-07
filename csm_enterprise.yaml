@@ -1,0 +1,126 @@
+metrics:
+  departments_row_count:
+    compute: COUNT(*)
+    sources:
+    - departments
+    label: Total Departments
+  employees_row_count:
+    compute: COUNT(*)
+    sources:
+    - employees
+    label: Total Employees
+  projects_row_count:
+    compute: COUNT(*)
+    sources:
+    - projects
+    label: Total Projects
+  tasks_row_count:
+    compute: COUNT(*)
+    sources:
+    - tasks
+    label: Total Tasks
+  employees_per_department:
+    compute: COUNT(DISTINCT employees.id)
+    sources:
+    - employees
+    - departments
+    label: Employees per Department
+  projects_per_department:
+    compute: COUNT(DISTINCT projects.id)
+    sources:
+    - projects
+    - departments
+    label: Projects per Department
+  tasks_per_employee:
+    compute: COUNT(DISTINCT tasks.id)
+    sources:
+    - tasks
+    - employees
+    label: Tasks per Employee
+  tasks_per_project:
+    compute: COUNT(DISTINCT tasks.id)
+    sources:
+    - tasks
+    - projects
+    label: Tasks per Project
+dimensions:
+  departments_dept_name:
+    source: departments
+    column: dept_name
+    type: string
+    label: Dept Name
+    sample_values:
+    - Engineering
+    - Marketing
+    - HR
+  employees_emp_name:
+    source: employees
+    column: emp_name
+    type: string
+    label: Emp Name
+    sample_values:
+    - Alice
+    - Bob
+    - Charlie
+    - David
+  employees_dept_id:
+    source: employees
+    column: dept_id
+    type: number
+    label: Dept Id
+    fk: departments.dept_id
+  projects_project_name:
+    source: projects
+    column: project_name
+    type: string
+    label: Project Name
+    sample_values:
+    - Website Revamp
+    - Ad Campaign
+    - Hiring Drive
+  projects_dept_id:
+    source: projects
+    column: dept_id
+    type: number
+    label: Dept Id
+    fk: departments.dept_id
+  tasks_task_name:
+    source: tasks
+    column: task_name
+    type: string
+    label: Task Name
+    sample_values:
+    - Design Backend
+    - Frontend UI
+    - Social Media Ads
+    - Interview Candidates
+    - Database Optimization
+  tasks_emp_id:
+    source: tasks
+    column: emp_id
+    type: number
+    label: Emp Id
+    fk: employees.emp_id
+  tasks_project_id:
+    source: tasks
+    column: project_id
+    type: number
+    label: Project Id
+    fk: projects.project_id
+relationships:
+  employees_to_departments:
+    from: employees
+    to: departments
+    join: employees.dept_id = departments.dept_id
+  projects_to_departments:
+    from: projects
+    to: departments
+    join: projects.dept_id = departments.dept_id
+  tasks_to_employees:
+    from: tasks
+    to: employees
+    join: tasks.emp_id = employees.emp_id
+  tasks_to_projects:
+    from: tasks
+    to: projects
+    join: tasks.project_id = projects.project_id
