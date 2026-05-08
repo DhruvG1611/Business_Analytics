@@ -1,146 +1,146 @@
 metrics:
   departments_row_count:
-  - Number of Departments
-  - Department Count
-  - Total Departments
-  - Departmental Count
+    - Number of Departments
+    - Department Count
+    - Total Departments
+    - Departmental Count
   employees_row_count:
-  - Number of Employees
-  - Employee Count
-  - Total Employees
-  - Staffing Level
+    - Number of Employees
+    - Employee Count
+    - Total Employees
+    - Staffing Level
   projects_row_count:
-  - Number of Projects
-  - Project Count
-  - Total Projects
-  - Initiative Count
+    - Number of Projects
+    - Project Count
+    - Total Projects
+    - Initiative Count
   tasks_row_count:
-  - Number of Tasks
-  - Task Count
-  - Total Tasks
-  - Job Count
+    - Number of Tasks
+    - Task Count
+    - Total Tasks
+    - Job Count
   employees_per_department:
-  - Employees per Department
-  - Staffing Ratio
-  - Departmental Headcount
-  - Employee Distribution
+    - Employees per Department
+    - Staffing Ratio
+    - Departmental Headcount
+    - Employee Distribution
   projects_per_department:
-  - Projects per Department
-  - Initiative Allocation
-  - Departmental Portfolio
-  - Project Distribution
+    - Projects per Department
+    - Initiative Allocation
+    - Departmental Portfolio
+    - Project Distribution
   tasks_per_employee:
-  - Tasks per Employee
-  - Workload Assessment
-  - Employee Task Load
-  - Job Assignment
+    - Tasks per Employee
+    - Workload Assessment
+    - Employee Task Load
+    - Job Assignment
   tasks_per_project:
-  - Tasks per Project
-  - Project Task Count
-  - Initiative Scope
-  - Job Breakdown
+    - Tasks per Project
+    - Project Task Count
+    - Initiative Scope
+    - Job Breakdown
 dimensions:
   departments_dept_name:
-  - Department Name
-  - Department Title
-  - Team Label
-  - Unit Identifier
+    - Department Name
+    - Department Title
+    - Team Label
+    - Unit Identifier
   employees_emp_name:
-  - Employee Name
-  - Staff Member
-  - Personnel Record
-  - Individual Identifier
+    - Employee Name
+    - Staff Member
+    - Personnel Record
+    - Individual Identifier
   employees_dept_id:
-  - Department ID
-  - Team Assignment
-  - Unit Reference
-  - Departmental Link
+    - Department ID
+    - Team Assignment
+    - Unit Reference
+    - Departmental Link
   projects_project_name:
-  - Project Name
-  - Initiative Title
-  - Task Label
-  - Program Identifier
+    - Project Name
+    - Initiative Title
+    - Task Label
+    - Program Identifier
   projects_dept_id:
-  - Department ID
-  - Team Allocation
-  - Unit Reference
-  - Departmental Link
+    - Department ID
+    - Team Allocation
+    - Unit Reference
+    - Departmental Link
   tasks_task_name:
-  - Task Name
-  - Job Title
-  - Activity Label
-  - Assignment Identifier
+    - Task Name
+    - Job Title
+    - Activity Label
+    - Assignment Identifier
   tasks_emp_id:
-  - Employee ID
-  - Staff Member
-  - Personnel Record
-  - Individual Identifier
+    - Employee ID
+    - Staff Member
+    - Personnel Record
+    - Individual Identifier
   tasks_project_id:
-  - Project ID
-  - Initiative Reference
-  - Program Identifier
-  - Task Link
+    - Project ID
+    - Initiative Reference
+    - Program Identifier
+    - Task Link
 ontology:
   entities:
     departments:
       description: A department is a team or unit within an organization.
       synonyms:
-      - Team
-      - Unit
-      - Departmental Group
-      - Business Function
+        - Team
+        - Unit
+        - Departmental Group
+        - Business Function
     employees:
       description: An employee is a staff member working for the organization.
       synonyms:
-      - Staff Member
-      - Personnel Record
-      - Individual Identifier
+        - Staff Member
+        - Personnel Record
+        - Individual Identifier
   relationships:
-  - statement: A department can have many employees.
-    from: departments
-    to: employees
-    cardinality: many_to_one
-    natural_language:
-    - Which employees are part of this department?
-    - What is the employee count for this department?
-  - statement: An employee belongs to one department.
-    from: employees
-    to: departments
-    cardinality: one_to_one
-    natural_language:
-    - Who is assigned to which department?
-    - Which department does this employee belong to?
-  - statement: A project can have many tasks.
-    from: projects
-    to: tasks
-    cardinality: many_to_one
-    natural_language:
-    - What are the tasks associated with this project?
-    - How many tasks are part of this project?
-  - statement: A task is assigned to one employee.
-    from: tasks
-    to: employees
-    cardinality: one_to_one
-    natural_language:
-    - Who is responsible for completing this task?
-    - Which employee is assigned to this task?
+    - statement: A department can have many employees.
+      from: departments
+      to: employees
+      cardinality: many_to_one
+      natural_language:
+        - Which employees are part of this department?
+        - What is the employee count for this department?
+    - statement: An employee belongs to one department.
+      from: employees
+      to: departments
+      cardinality: one_to_one
+      natural_language:
+        - Who is assigned to which department?
+        - Which department does this employee belong to?
+    - statement: A project can have many tasks.
+      from: projects
+      to: tasks
+      cardinality: many_to_one
+      natural_language:
+        - What are the tasks associated with this project?
+        - How many tasks are part of this project?
+    - statement: A task is assigned to one employee.
+      from: tasks
+      to: employees
+      cardinality: one_to_one
+      natural_language:
+        - Who is responsible for completing this task?
+        - Which employee is assigned to this task?
   intent_patterns:
-  - pattern: What is the {employees_per_department} in Department {departments_dept_name}?
-    metric: employees_per_department
-    dimensions:
-    - departments_dept_name
-  - pattern: How many {tasks_task_name} are there per {projects_project_name}?
-    metric: tasks_row_count
-    dimensions:
-    - projects_project_name
-  - pattern: What is the total {employees_row_count} in all Departments?
-    metric: employees_row_count
-    dimensions: null
-  - pattern: Which Department has the most {tasks_task_name}?
-    metric: tasks_row_count
-    dimensions:
-    - departments_dept_name
-  - pattern: Who has the most {tasks_per_employee}?
-    metric: tasks_per_employee
-    dimensions:
-    - employees_emp_name
+    - pattern: What is the {employees_per_department} in Department {departments_dept_name}?
+      metric: employees_per_department
+      dimensions:
+        - departments_dept_name
+    - pattern: How many {tasks_task_name} are there per {projects_project_name}?
+      metric: tasks_row_count
+      dimensions:
+        - projects_project_name
+    - pattern: What is the total {employees_row_count} in all Departments?
+      metric: employees_row_count
+      dimensions: null
+    - pattern: Which Department has the most {tasks_task_name}?
+      metric: tasks_row_count
+      dimensions:
+        - departments_dept_name
+    - pattern: Who has the most {tasks_per_employee}?
+      metric: tasks_per_employee
+      dimensions:
+        - employees_emp_name
