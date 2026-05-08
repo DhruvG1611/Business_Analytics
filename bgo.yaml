@@ -1,760 +1,715 @@
 metrics:
-  # ── Basic row counts ────────────────────────────────────────────────────
   departments_row_count:
-    - department count
-    - number of departments
-    - department tally
-    - department total
-    - department quantity
-    - how many departments
-
+  - department count
+  - number of departments
+  - department tally
+  - department total
+  - department quantity
+  - how many departments
   employee_skills_row_count:
-    - skill count per employee
-    - employee skills tally
-    - skill quantity per employee
-    - employee skill total
-    - employee skill count
-    - how many employee skills
-
+  - skill count per employee
+  - employee skills tally
+  - skill quantity per employee
+  - employee skill total
+  - employee skill count
+  - how many employee skills
   employees_row_count:
-    - employee count
-    - number of employees
-    - employee tally
-    - employee total
-    - employee quantity
-    - how many employees
-    - staff count
-    - headcount
-
+  - employee count
+  - number of employees
+  - employee tally
+  - employee total
+  - employee quantity
+  - how many employees
+  - staff count
+  - headcount
   projects_row_count:
-    - project count
-    - number of projects
-    - project tally
-    - project total
-    - project quantity
-    - how many projects
-
+  - project count
+  - number of projects
+  - project tally
+  - project total
+  - project quantity
+  - how many projects
   skills_row_count:
-    - skill count
-    - number of skills
-    - skill tally
-    - skill total
-    - skill quantity
-    - how many skills
-
+  - skill count
+  - number of skills
+  - skill tally
+  - skill total
+  - skill quantity
+  - how many skills
   task_logs_row_count:
-    - log count
-    - number of logs
-    - log tally
-    - log total
-    - log quantity
-    - how many logs
-    - how many task logs
-
+  - log count
+  - number of logs
+  - log tally
+  - log total
+  - log quantity
+  - how many logs
+  - how many task logs
   tasks_row_count:
-    - task count
-    - number of tasks
-    - task tally
-    - task total
-    - task quantity
-    - how many tasks
-
-  # ── Relational counts ───────────────────────────────────────────────────
+  - task count
+  - number of tasks
+  - task tally
+  - task total
+  - task quantity
+  - how many tasks
   departments_per_employee:
-    - department per employee ratio
-    - employee department count
-    - department employee tally
-
+  - department per employee ratio
+  - employee department count
+  - department employee tally
   projects_per_department:
-    - project per department ratio
-    - department project count
-    - projects in department
-    - how many projects per department
-
+  - project per department ratio
+  - department project count
+  - projects in department
+  - how many projects per department
   employee_skills_per_employee:
-    - skill per employee ratio
-    - employee skills count
-    - skills per employee
-    - number of skills per employee
-    - how many skills does each employee have
-    - skill breadth
-
+  - skill per employee ratio
+  - employee skills count
+  - skills per employee
+  - number of skills per employee
+  - how many skills does each employee have
+  - skill breadth
   employee_skills_per_skill:
-    - employee per skill ratio
-    - skill employee count
-    - how many employees have each skill
-    - employees with skill
-
+  - employee per skill ratio
+  - skill employee count
+  - how many employees have each skill
+  - employees with skill
   tasks_per_employee:
-    - task per employee ratio
-    - employee task count
-    - tasks assigned per employee
-    - how many tasks per employee
-    - workload per employee
-    - task workload
-
+  - task per employee ratio
+  - employee task count
+  - tasks assigned per employee
+  - how many tasks per employee
+  - workload per employee
+  - task workload
   tasks_per_project:
-    - task per project ratio
-    - project task count
-    - tasks in project
-    - how many tasks per project
-
+  - task per project ratio
+  - project task count
+  - tasks in project
+  - how many tasks per project
   task_logs_per_task:
-    - log per task ratio
-    - task log count
-    - logs per task
-    - how many logs per task
-
-  # ── Skill / proficiency metrics ─────────────────────────────────────────
+  - log per task ratio
+  - task log count
+  - logs per task
+  - how many logs per task
   avg_proficiency_per_employee:
-    - average proficiency per employee
-    - mean skill level per employee
-    - average skill score
-    - avg skill rating per employee
-    - mean proficiency
-    - skill quality per employee
-    - average expertise
-
+  - average proficiency per employee
+  - mean skill level per employee
+  - average skill score
+  - avg skill rating per employee
+  - mean proficiency
+  - skill quality per employee
+  - average expertise
   total_proficiency_per_employee:
-    - total proficiency per employee
-    - sum of skills per employee
-    - overall skill score
-    - combined proficiency
-    - cumulative skill level
-    - most skilled employee
-    - who is the most skilled
-    - top skilled employee
-    - best employee by skills
-    - highest skill score
-    - skill champion
-    - skill leader
-    - most talented employee
-    - best skilled
-    - top performer by skill
-    - skill ranking
-
+  - total proficiency per employee
+  - sum of skills per employee
+  - overall skill score
+  - combined proficiency
+  - cumulative skill level
+  - most skilled employee
+  - who is the most skilled
+  - top skilled employee
+  - best employee by skills
+  - highest skill score
+  - skill champion
+  - skill leader
+  - most talented employee
+  - best skilled
+  - top performer by skill
+  - skill ranking
   max_proficiency_per_employee:
-    - peak proficiency per employee
-    - highest single skill score
-    - best skill per employee
-    - maximum skill rating
-    - top skill level
-
+  - peak proficiency per employee
+  - highest single skill score
+  - best skill per employee
+  - maximum skill rating
+  - top skill level
   avg_proficiency_per_skill:
-    - average proficiency per skill
-    - mean skill rating
-    - how hard is each skill
-    - skill difficulty average
-    - proficiency by skill
-
+  - average proficiency per skill
+  - mean skill rating
+  - how hard is each skill
+  - skill difficulty average
+  - proficiency by skill
   avg_proficiency_per_department:
-    - average proficiency per department
-    - department skill level
-    - mean skills by department
-    - department expertise average
-    - most skilled department
-    - best department by skill
-
-  # ── Task-completion / efficiency metrics ────────────────────────────────
+  - average proficiency per department
+  - department skill level
+  - mean skills by department
+  - department expertise average
+  - most skilled department
+  - best department by skill
   done_tasks_per_employee:
-    - completed tasks per employee
-    - finished tasks per employee
-    - tasks done by employee
-    - how many tasks completed per employee
-    - tasks closed per employee
-
+  - completed tasks per employee
+  - finished tasks per employee
+  - tasks done by employee
+  - how many tasks completed per employee
+  - tasks closed per employee
   completion_rate_per_employee:
-    - completion rate per employee
-    - task completion rate
-    - efficiency per employee
-    - most efficient employee
-    - who is the most efficient
-    - top performer
-    - best performer
-    - highest completion rate
-    - productivity rate
-    - task success rate
-    - employee productivity
-    - work efficiency
-    - employee efficiency
-    - who gets things done
-    - best at completing tasks
-    - most productive employee
-    - highest productivity
-    - performance rate
-    - output rate
-    - delivery rate
-    - task delivery rate
-    - fastest employee
-    - most reliable employee
-
+  - completion rate per employee
+  - task completion rate
+  - efficiency per employee
+  - most efficient employee
+  - who is the most efficient
+  - top performer
+  - best performer
+  - highest completion rate
+  - productivity rate
+  - task success rate
+  - employee productivity
+  - work efficiency
+  - employee efficiency
+  - who gets things done
+  - best at completing tasks
+  - most productive employee
+  - highest productivity
+  - performance rate
+  - output rate
+  - delivery rate
+  - task delivery rate
+  - fastest employee
+  - most reliable employee
   pending_tasks_per_employee:
-    - pending tasks per employee
-    - open tasks per employee
-    - unfinished tasks per employee
-    - tasks not done per employee
-    - backlog per employee
-
+  - pending tasks per employee
+  - open tasks per employee
+  - unfinished tasks per employee
+  - tasks not done per employee
+  - backlog per employee
   blocked_tasks_per_employee:
-    - blocked tasks per employee
-    - tasks blocked per employee
-    - how many tasks are blocked per employee
-    - blockers per employee
-
+  - blocked tasks per employee
+  - tasks blocked per employee
+  - how many tasks are blocked per employee
+  - blockers per employee
   task_log_activity_per_employee:
-    - activity per employee
-    - task log activity
-    - work activity per employee
-    - total events per employee
-    - log volume per employee
-    - most active employee
-    - busiest employee
-
+  - activity per employee
+  - task log activity
+  - work activity per employee
+  - total events per employee
+  - log volume per employee
+  - most active employee
+  - busiest employee
   avg_logs_per_task_per_employee:
-    - average logs per task per employee
-    - task iteration rate
-    - work iterations per task
-    - task complexity per employee
-
-  # ── Project-level metrics ───────────────────────────────────────────────
+  - average logs per task per employee
+  - task iteration rate
+  - work iterations per task
+  - task complexity per employee
   active_projects_per_department:
-    - active projects per department
-    - ongoing projects by department
-    - how many active projects per department
-    - current projects per department
-
+  - active projects per department
+  - ongoing projects by department
+  - how many active projects per department
+  - current projects per department
   completed_projects_per_department:
-    - completed projects per department
-    - finished projects per department
-    - projects done by department
-
+  - completed projects per department
+  - finished projects per department
+  - projects done by department
   tasks_done_per_project:
-    - completed tasks per project
-    - finished tasks in project
-    - tasks done in project
-    - how many tasks are done per project
-
+  - completed tasks per project
+  - finished tasks in project
+  - tasks done in project
+  - how many tasks are done per project
   completion_rate_per_project:
-    - project completion rate
-    - project progress
-    - how complete is the project
-    - project task completion rate
-    - project delivery rate
-
-  # ── Cross-entity / leaderboard metrics ─────────────────────────────────
+  - project completion rate
+  - project progress
+  - how complete is the project
+  - project task completion rate
+  - project delivery rate
   skill_diversity_per_department:
-    - skill diversity per department
-    - distinct skills per department
-    - skill variety in department
-    - how many different skills in department
-    - department skill breadth
-
+  - skill diversity per department
+  - distinct skills per department
+  - skill variety in department
+  - how many different skills in department
+  - department skill breadth
   employees_with_skill_per_department:
-    - skilled employees per department
-    - how many skilled employees in department
-    - employees with skills per department
-
+  - skilled employees per department
+  - how many skilled employees in department
+  - employees with skills per department
+  total_proficiency_per_project:
+  - most skilled project team
+  - which project has the most skilled people
+  - project with highest skill
+  - most talented project team
+  - best skilled project
+  - highest skill score per project
+  - total skill per project
+  - project skill total
+  - which project has the best team
+  - most capable project team
+  - project skill strength
+  - skill power per project
+  - which project has the most skilled people working on it
+  - project with most talent
+  - highest combined skill project
+  avg_proficiency_per_project:
+  - average skill per project
+  - mean skill level per project
+  - project skill average
+  - most skilled project on average
+  - highest average skill project
+  - project proficiency average
+  distinct_skills_per_project:
+  - skill diversity per project
+  - distinct skills per project
+  - how many skills per project
+  - skill variety in project
+  - project skill breadth
+  - most diverse skill set per project
+  skilled_employees_per_project:
+  - skilled employees per project
+  - how many skilled people per project
+  - employees with skills per project
+  - staffed project skill count
 dimensions:
   departments_id:
-    - department ID
-    - department identifier
-    - department key
-
+  - department ID
+  - department identifier
+  - department key
   departments_dept_name:
-    - department name
-    - department title
-    - department label
-    - department designation
-    - dept name
-    - team name
-    - division name
-
+  - department name
+  - department title
+  - department label
+  - department designation
+  - dept name
+  - team name
+  - division name
   departments_manager_id:
-    - manager ID
-    - manager identifier
-    - department manager
-
+  - manager ID
+  - manager identifier
+  - department manager
   employee_skills_employee_id:
-    - employee ID in skills
-    - skilled employee identifier
-
+  - employee ID in skills
+  - skilled employee identifier
   employee_skills_skill_id:
-    - skill ID
-    - skill identifier
-    - skill key
-
+  - skill ID
+  - skill identifier
+  - skill key
   employee_skills_proficiency:
-    - proficiency level
-    - skill level
-    - expertise measure
-    - skill rating
-    - skill score
-    - proficiency score
-
+  - proficiency level
+  - skill level
+  - expertise measure
+  - skill rating
+  - skill score
+  - proficiency score
   employees_id:
-    - employee ID
-    - employee identifier
-    - employee key
-    - staff ID
-    - worker ID
-
+  - employee ID
+  - employee identifier
+  - employee key
+  - staff ID
+  - worker ID
   employees_emp_name:
-    - employee name
-    - employee title
-    - employee label
-    - staff name
-    - worker name
-    - person name
-    - who
-    - which employee
-
+  - employee name
+  - employee title
+  - employee label
+  - staff name
+  - worker name
+  - person name
+  - who
+  - which employee
   employees_emp_role:
-    - employee role
-    - job title
-    - position
-    - employee position
-    - job function
-    - role
-
+  - employee role
+  - job title
+  - position
+  - employee position
+  - job function
+  - role
   employees_dept_id:
-    - employee department ID
-    - dept ID on employee
-
+  - employee department ID
+  - dept ID on employee
   employees_manager_id:
-    - employee manager ID
-    - reports to
-    - direct manager
-
+  - employee manager ID
+  - reports to
+  - direct manager
   projects_id:
-    - project ID
-    - project identifier
-    - project key
-
+  - project ID
+  - project identifier
+  - project key
   projects_project_name:
-    - project name
-    - project title
-    - project label
-
+  - project name
+  - project title
+  - project label
   projects_status:
-    - project status
-    - project state
-    - project phase
-    - project condition
-
+  - project status
+  - project state
+  - project phase
+  - project condition
   projects_dept_id:
-    - project department ID
-    - department of project
-
+  - project department ID
+  - department of project
   skills_id:
-    - skill ID
-    - skill identifier
-    - skill key
-
+  - skill ID
+  - skill identifier
+  - skill key
   skills_skill_name:
-    - skill name
-    - skill title
-    - skill label
-    - technology name
-    - tool name
-
+  - skill name
+  - skill title
+  - skill label
+  - technology name
+  - tool name
   skills_category:
-    - skill category
-    - skill type
-    - skill classification
-    - skill group
-    - skill domain
-
+  - skill category
+  - skill type
+  - skill classification
+  - skill group
+  - skill domain
   task_logs_id:
-    - log ID
-    - log identifier
-    - log key
-
+  - log ID
+  - log identifier
+  - log key
   task_logs_task_id:
-    - task ID in log
-    - logged task ID
-
+  - task ID in log
+  - logged task ID
   task_logs_action:
-    - log action
-    - log event
-    - log activity
-    - what happened
-
+  - log action
+  - log event
+  - log activity
+  - what happened
   task_logs_logged_at:
-    - log timestamp
-    - log date
-    - log time
-    - when logged
-
+  - log timestamp
+  - log date
+  - log time
+  - when logged
   tasks_id:
-    - task ID
-    - task identifier
-    - task key
-
+  - task ID
+  - task identifier
+  - task key
   tasks_task_name:
-    - task name
-    - task title
-    - task label
-
+  - task name
+  - task title
+  - task label
   tasks_task_status:
-    - task status
-    - task state
-    - task phase
-    - completion status
-    - done status
-
+  - task status
+  - task state
+  - task phase
+  - completion status
+  - done status
   tasks_project_id:
-    - project ID on task
-    - task project ID
-
+  - project ID on task
+  - task project ID
   tasks_assigned_to:
-    - assigned employee ID
-    - task assignee ID
-    - who is assigned
-
+  - assigned employee ID
+  - task assignee ID
+  - who is assigned
 ontology:
   entities:
     departments:
-      description: An organisational unit within the company grouping employees and projects.
+      description: An organisational unit within the company grouping employees and
+        projects.
       synonyms:
-        - department
-        - org unit
-        - team
-        - section
-        - division
-        - group
-
+      - department
+      - org unit
+      - team
+      - section
+      - division
+      - group
     employees:
-      description: An individual who works for the company, belongs to a department, and is assigned tasks.
+      description: An individual who works for the company, belongs to a department,
+        and is assigned tasks.
       synonyms:
-        - employee
-        - staff member
-        - personnel
-        - worker
-        - associate
-        - team member
-        - person
-        - individual
-
+      - employee
+      - staff member
+      - personnel
+      - worker
+      - associate
+      - team member
+      - person
+      - individual
     skills:
-      description: A technical or professional capability that employees can possess at varying proficiency levels.
+      description: A technical or professional capability that employees can possess
+        at varying proficiency levels.
       synonyms:
-        - skill
-        - capability
-        - competency
-        - expertise
-        - technology
-        - tool
-        - ability
-
+      - skill
+      - capability
+      - competency
+      - expertise
+      - technology
+      - tool
+      - ability
     projects:
       description: A scoped body of work owned by a department, containing many tasks.
       synonyms:
-        - project
-        - initiative
-        - programme
-        - workstream
-        - engagement
-
+      - project
+      - initiative
+      - programme
+      - workstream
+      - engagement
     tasks:
-      description: A unit of work within a project, assigned to an employee, with a status lifecycle.
+      description: A unit of work within a project, assigned to an employee, with
+        a status lifecycle.
       synonyms:
-        - task
-        - ticket
-        - item
-        - work item
-        - action item
-        - job
-        - assignment
-        - deliverable
-
+      - task
+      - ticket
+      - item
+      - work item
+      - action item
+      - job
+      - assignment
+      - deliverable
     task_logs:
       description: An audit/activity log entry recording an event on a task.
       synonyms:
-        - task log
-        - log entry
-        - activity log
-        - audit log
-        - event log
-        - history entry
-
+      - task log
+      - log entry
+      - activity log
+      - audit log
+      - event log
+      - history entry
   relationships:
-    - statement: A department has many employees.
-      from: departments
-      to: employees
-      cardinality: one_to_many
-      natural_language:
-        - a department typically has multiple employees
-        - employees belong to a department
-
-    - statement: An employee belongs to one department.
-      from: employees
-      to: departments
-      cardinality: many_to_one
-      natural_language:
-        - an employee is usually assigned to one department
-
-    - statement: An employee can have many skills at varying proficiency levels.
-      from: employees
-      to: employee_skills
-      cardinality: one_to_many
-      natural_language:
-        - employees hold multiple skills
-        - a person can know many technologies
-
-    - statement: A skill can be held by many employees.
-      from: skills
-      to: employee_skills
-      cardinality: one_to_many
-      natural_language:
-        - many employees can share the same skill
-        - a technology can be known by multiple people
-
-    - statement: A department owns many projects.
-      from: departments
-      to: projects
-      cardinality: one_to_many
-      natural_language:
-        - projects are owned by departments
-        - a department runs multiple projects
-
-    - statement: A project has many tasks.
-      from: projects
-      to: tasks
-      cardinality: one_to_many
-      natural_language:
-        - a project contains many tasks
-        - tasks belong to a project
-
-    - statement: An employee is assigned many tasks.
-      from: employees
-      to: tasks
-      cardinality: one_to_many
-      natural_language:
-        - an employee can be assigned multiple tasks
-        - tasks are assigned to employees
-
-    - statement: A task has many log entries.
-      from: tasks
-      to: task_logs
-      cardinality: one_to_many
-      natural_language:
-        - every status change generates a log entry
-        - task history is captured in task_logs
-
+  - statement: A department has many employees.
+    from: departments
+    to: employees
+    cardinality: one_to_many
+    natural_language:
+    - a department typically has multiple employees
+    - employees belong to a department
+  - statement: An employee belongs to one department.
+    from: employees
+    to: departments
+    cardinality: many_to_one
+    natural_language:
+    - an employee is usually assigned to one department
+  - statement: An employee can have many skills at varying proficiency levels.
+    from: employees
+    to: employee_skills
+    cardinality: one_to_many
+    natural_language:
+    - employees hold multiple skills
+    - a person can know many technologies
+  - statement: A skill can be held by many employees.
+    from: skills
+    to: employee_skills
+    cardinality: one_to_many
+    natural_language:
+    - many employees can share the same skill
+    - a technology can be known by multiple people
+  - statement: A department owns many projects.
+    from: departments
+    to: projects
+    cardinality: one_to_many
+    natural_language:
+    - projects are owned by departments
+    - a department runs multiple projects
+  - statement: A project has many tasks.
+    from: projects
+    to: tasks
+    cardinality: one_to_many
+    natural_language:
+    - a project contains many tasks
+    - tasks belong to a project
+  - statement: An employee is assigned many tasks.
+    from: employees
+    to: tasks
+    cardinality: one_to_many
+    natural_language:
+    - an employee can be assigned multiple tasks
+    - tasks are assigned to employees
+  - statement: A task has many log entries.
+    from: tasks
+    to: task_logs
+    cardinality: one_to_many
+    natural_language:
+    - every status change generates a log entry
+    - task history is captured in task_logs
 intent_patterns:
-  # ── Skill / talent queries ──────────────────────────────────────────────
-  - pattern: "Who is the most skilled employee?"
-    metric: total_proficiency_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-    limit: 1
-
-  - pattern: "Which employee has the highest average skill proficiency?"
-    metric: avg_proficiency_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-    limit: 1
-
-  - pattern: "Rank employees by total skill score"
-    metric: total_proficiency_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-
-  - pattern: "Which employee knows the most skills?"
-    metric: employee_skills_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-    limit: 1
-
-  - pattern: "Top 5 most skilled employees"
-    metric: total_proficiency_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-    limit: 5
-
-  - pattern: "Most skilled employees by department"
-    metric: total_proficiency_per_employee
-    dimensions:
-      - departments_dept_name
-      - employees_emp_name
-    sort: desc
-
-  - pattern: "Which department has the highest average skill level?"
-    metric: avg_proficiency_per_department
-    dimensions:
-      - departments_dept_name
-    sort: desc
-    limit: 1
-
-  # ── Efficiency / productivity queries ───────────────────────────────────
-  - pattern: "Who is the most efficient employee?"
-    metric: completion_rate_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-    limit: 1
-
-  - pattern: "Which employee has the highest task completion rate?"
-    metric: completion_rate_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-    limit: 1
-
-  - pattern: "Rank employees by productivity"
-    metric: completion_rate_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-
-  - pattern: "Who completes the most tasks?"
-    metric: done_tasks_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-    limit: 1
-
-  - pattern: "Top 5 most efficient employees"
-    metric: completion_rate_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-    limit: 5
-
-  - pattern: "Most efficient employee per department"
-    metric: completion_rate_per_employee
-    dimensions:
-      - departments_dept_name
-      - employees_emp_name
-    sort: desc
-
-  - pattern: "Who has the most blocked tasks?"
-    metric: blocked_tasks_per_employee
-    dimensions:
-      - employees_emp_name
-    filters:
-      - field: tasks_task_status
-        operator: equals
-        values:
-          - blocked
-    sort: desc
-    limit: 1
-
-  - pattern: "Which employee has the most pending work?"
-    metric: pending_tasks_per_employee
-    dimensions:
-      - employees_emp_name
-    filters:
-      - field: tasks_task_status
-        operator: equals
-        values:
-          - pending
-    sort: desc
-    limit: 1
-
-  - pattern: "Which project has the highest completion rate?"
-    metric: completion_rate_per_project
-    dimensions:
-      - projects_project_name
-    sort: desc
-    limit: 1
-
-  # ── Activity / workload queries ─────────────────────────────────────────
-  - pattern: "Who is the busiest employee?"
-    metric: task_log_activity_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-    limit: 1
-
-  - pattern: "Which employee has the heaviest workload?"
-    metric: tasks_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-    limit: 1
-
-  - pattern: "Employee workload ranking"
-    metric: tasks_per_employee
-    dimensions:
-      - employees_emp_name
-    sort: desc
-
-  # ── Skill breadth / diversity queries ───────────────────────────────────
-  - pattern: "Which department has the most skill diversity?"
-    metric: skill_diversity_per_department
-    dimensions:
-      - departments_dept_name
-    sort: desc
-    limit: 1
-
-  - pattern: "Skill diversity by department"
-    metric: skill_diversity_per_department
-    dimensions:
-      - departments_dept_name
-    sort: desc
-
-  # ── List / display queries ──────────────────────────────────────────────
-  - pattern: "list all departments"
-    metric: departments_row_count
-    mode: list
-    dimensions:
-      - departments_id
-      - departments_dept_name
-
-  - pattern: "list all employees"
-    metric: employees_row_count
-    mode: list
-    dimensions:
-      - employees_id
-      - employees_emp_name
-
-  - pattern: "list all projects"
-    metric: projects_row_count
-    mode: list
-    dimensions:
-      - projects_id
-      - projects_project_name
-
-  - pattern: "list all task_logs"
-    metric: task_logs_row_count
-    mode: list
-    dimensions:
-      - task_logs_id
-      - task_logs_action
-
-  - pattern: "list all tasks"
-    metric: tasks_row_count
-    mode: list
-    dimensions:
-      - tasks_id
-      - tasks_task_name
-
-  # ── Basic aggregate queries ─────────────────────────────────────────────
-  - pattern: "What is the total count of all tasks?"
-    metric: tasks_row_count
-    dimensions:
-      - tasks_task_name
-
-  - pattern: "List all projects in a specific department."
-    metric: projects_row_count
-    mode: list
-    dimensions:
-      - projects_project_name
-      - departments_dept_name
-
-  - pattern: "What is the total count of skills per employee?"
-    metric: employee_skills_per_employee
-    dimensions:
-      - employees_emp_name
-
-  - pattern: "What is the total count of tasks per project?"
-    metric: tasks_per_project
-    dimensions:
-      - projects_project_name
-      - tasks_task_status
+- pattern: Who is the most skilled employee?
+  metric: total_proficiency_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+  limit: 1
+- pattern: Which employee has the highest average skill proficiency?
+  metric: avg_proficiency_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+  limit: 1
+- pattern: Rank employees by total skill score
+  metric: total_proficiency_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+- pattern: Which employee knows the most skills?
+  metric: employee_skills_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+  limit: 1
+- pattern: Top 5 most skilled employees
+  metric: total_proficiency_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+  limit: 5
+- pattern: Most skilled employees by department
+  metric: total_proficiency_per_employee
+  dimensions:
+  - departments_dept_name
+  - employees_emp_name
+  sort: desc
+- pattern: Which department has the highest average skill level?
+  metric: avg_proficiency_per_department
+  dimensions:
+  - departments_dept_name
+  sort: desc
+  limit: 1
+- pattern: Who is the most efficient employee?
+  metric: completion_rate_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+  limit: 1
+- pattern: Which employee has the highest task completion rate?
+  metric: completion_rate_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+  limit: 1
+- pattern: Rank employees by productivity
+  metric: completion_rate_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+- pattern: Who completes the most tasks?
+  metric: done_tasks_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+  limit: 1
+- pattern: Top 5 most efficient employees
+  metric: completion_rate_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+  limit: 5
+- pattern: Most efficient employee per department
+  metric: completion_rate_per_employee
+  dimensions:
+  - departments_dept_name
+  - employees_emp_name
+  sort: desc
+- pattern: Who has the most blocked tasks?
+  metric: blocked_tasks_per_employee
+  dimensions:
+  - employees_emp_name
+  filters:
+  - field: tasks_task_status
+    operator: equals
+    values:
+    - blocked
+  sort: desc
+  limit: 1
+- pattern: Which employee has the most pending work?
+  metric: pending_tasks_per_employee
+  dimensions:
+  - employees_emp_name
+  filters:
+  - field: tasks_task_status
+    operator: equals
+    values:
+    - pending
+  sort: desc
+  limit: 1
+- pattern: Which project has the highest completion rate?
+  metric: completion_rate_per_project
+  dimensions:
+  - projects_project_name
+  sort: desc
+  limit: 1
+- pattern: Who is the busiest employee?
+  metric: task_log_activity_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+  limit: 1
+- pattern: Which employee has the heaviest workload?
+  metric: tasks_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+  limit: 1
+- pattern: Employee workload ranking
+  metric: tasks_per_employee
+  dimensions:
+  - employees_emp_name
+  sort: desc
+- pattern: Which department has the most skill diversity?
+  metric: skill_diversity_per_department
+  dimensions:
+  - departments_dept_name
+  sort: desc
+  limit: 1
+- pattern: Skill diversity by department
+  metric: skill_diversity_per_department
+  dimensions:
+  - departments_dept_name
+  sort: desc
+- pattern: list all departments
+  metric: departments_row_count
+  mode: list
+  dimensions:
+  - departments_id
+  - departments_dept_name
+- pattern: list all employees
+  metric: employees_row_count
+  mode: list
+  dimensions:
+  - employees_id
+  - employees_emp_name
+- pattern: list all projects
+  metric: projects_row_count
+  mode: list
+  dimensions:
+  - projects_id
+  - projects_project_name
+- pattern: list all task_logs
+  metric: task_logs_row_count
+  mode: list
+  dimensions:
+  - task_logs_id
+  - task_logs_action
+- pattern: list all tasks
+  metric: tasks_row_count
+  mode: list
+  dimensions:
+  - tasks_id
+  - tasks_task_name
+- pattern: What is the total count of all tasks?
+  metric: tasks_row_count
+  dimensions:
+  - tasks_task_name
+- pattern: List all projects in a specific department.
+  metric: projects_row_count
+  mode: list
+  dimensions:
+  - projects_project_name
+  - departments_dept_name
+- pattern: What is the total count of skills per employee?
+  metric: employee_skills_per_employee
+  dimensions:
+  - employees_emp_name
+- pattern: What is the total count of tasks per project?
+  metric: tasks_per_project
+  dimensions:
+  - projects_project_name
+  - tasks_task_status
+- pattern: Which project has the most skilled people working on it?
+  metric: total_proficiency_per_project
+  dimensions:
+  - projects_project_name
+  sort: desc
+  limit: 1
+- pattern: Rank projects by team skill level
+  metric: total_proficiency_per_project
+  dimensions:
+  - projects_project_name
+  sort: desc
+- pattern: Which project has the highest average skill proficiency?
+  metric: avg_proficiency_per_project
+  dimensions:
+  - projects_project_name
+  sort: desc
+  limit: 1
+- pattern: Which project has the most skill diversity?
+  metric: distinct_skills_per_project
+  dimensions:
+  - projects_project_name
+  sort: desc
+  limit: 1
+- pattern: Which project has the most skilled team?
+  metric: total_proficiency_per_project
+  dimensions:
+  - projects_project_name
+  sort: desc
+  limit: 1

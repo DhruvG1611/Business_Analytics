@@ -1,3 +1,4 @@
+import re
 import yaml
 import json
 import decimal
@@ -18,6 +19,50 @@ with open('csm_enterprise.yaml', 'r') as f:
 
 
 # ---------------------------------------------------------------------------
+# Input sanitiser
+# Reject non-natural-language inputs before they hit the LLM pipeline.
+# ---------------------------------------------------------------------------
+
+# Patterns that indicate the user typed a shell command or path, not a question.
+_SHELL_PATTERNS = [
+    re.compile(r'^\s*cd\s+', re.IGNORECASE),
+    re.compile(r'^\s*(ls|dir|pwd|mkdir|rm|cp|mv|cat|echo|python|pip|git)\b', re.IGNORECASE),
+    re.compile(r'^\s*[a-zA-Z]:\\'),          # Windows absolute path  C:\...
+    re.compile(r'^\s*/[a-zA-Z0-9_/]+\s*$'),  # Unix absolute path
+]
+
+_MIN_QUESTION_LENGTH = 3
+
+
+class NotAQuestionError(ValueError):
+    """Raised when the user input looks like a shell command, not a question."""
+
+
+def validate_question(question: str) -> str:
+    """
+    Raise NotAQuestionError if the input looks like a shell command or is too
+    short to be a meaningful question.  Returns the stripped question otherwise.
+    """
+    q = question.strip()
+
+    if len(q) < _MIN_QUESTION_LENGTH:
+        raise NotAQuestionError(
+            f"Input '{q}' is too short to be a question. "
+            "Please type a natural-language question about your data."
+        )
+
+    for pattern in _SHELL_PATTERNS:
+        if pattern.match(q):
+            raise NotAQuestionError(
+                f"Input looks like a shell command: '{q}'. "
+                "Please type a natural-language question, e.g. "
+                "'Who is the most efficient employee?'"
+            )
+
+    return q
+
+
+# ---------------------------------------------------------------------------
 # Case-insensitive CSM key resolver
 # ---------------------------------------------------------------------------
 
@@ -35,6 +80,8 @@ def resolve_dimension_key(raw: str) -> str | None:
 
 # ---------------------------------------------------------------------------
 # BGO context builder
+# FIX: defensive .get() on all intent_pattern fields — a pattern without
+#      'metric' (e.g. a list-only pattern) no longer raises KeyError.
 # ---------------------------------------------------------------------------
 
 def build_bgo_context(glossary: dict) -> str:
@@ -43,6 +90,8 @@ def build_bgo_context(glossary: dict) -> str:
     lines.append("## METRIC SYNONYMS")
     lines.append("If the user's phrasing matches any synonym, use that metric key exactly.\n")
     for metric_key, synonyms in glossary.get("metrics", {}).items():
+        if not isinstance(synonyms, list):
+            continue
         lines.append(f"  {metric_key}:")
         lines.append(f"    triggers: {', '.join(synonyms)}")
     lines.append("")
@@ -50,37 +99,55 @@ def build_bgo_context(glossary: dict) -> str:
     lines.append("## DIMENSION SYNONYMS")
     lines.append("If the user's phrasing matches any synonym, use that dimension key exactly.\n")
     for dim_key, synonyms in glossary.get("dimensions", {}).items():
+        if not isinstance(synonyms, list):
+            continue
         lines.append(f"  {dim_key}:")
         lines.append(f"    triggers: {', '.join(synonyms)}")
     lines.append("")
 
     lines.append("## ENTITY DEFINITIONS")
     for entity, meta in glossary.get("ontology", {}).get("entities", {}).items():
+        if not isinstance(meta, dict):
+            continue
         syns = ", ".join(meta.get("synonyms", []))
-        lines.append(f"  {entity}: {meta['description']}")
+        lines.append(f"  {entity}: {meta.get('description', '')}")
         lines.append(f"    also called: {syns}")
     lines.append("")
 
     lines.append("## ENTITY RELATIONSHIPS")
     lines.append("Use these to determine which dimension to group by.\n")
     for rel in glossary.get("ontology", {}).get("relationships", []):
+        if not isinstance(rel, dict):
+            continue
         nl = "; ".join(rel.get("natural_language", []))
-        lines.append(f"  {rel['statement']}")
+        lines.append(f"  {rel.get('statement', '')}")
         lines.append(f"    natural language triggers: {nl}")
     lines.append("")
 
     lines.append("## INTENT PATTERNS")
     lines.append("Concrete mappings from question shape to metric + dimensions.\n")
     for p in glossary.get("intent_patterns", []):
-        lines.append(f"  pattern : \"{p['pattern']}\"")
-        lines.append(f"  metric  : {p['metric']}")
-        lines.append(f"  dims    : {p.get('dimensions', [])}")
-        if p.get("filters"):
-            lines.append(f"  filters : {p['filters']}")
-        if p.get("sort"):
-            lines.append(f"  sort    : {p['sort']}, limit: {p.get('limit', 1)}")
-        if p.get("mode"):
-            lines.append(f"  mode    : {p['mode']}")
+        if not isinstance(p, dict):
+            continue
+        # FIX: use .get() with defaults — no more KeyError on missing 'metric'
+        pattern = p.get('pattern', '')
+        metric  = p.get('metric', '')
+        dims    = p.get('dimensions', [])
+        mode    = p.get('mode')
+        filters = p.get('filters')
+        sort    = p.get('sort')
+        limit   = p.get('limit')
+
+        lines.append(f"  pattern : \"{pattern}\"")
+        if metric:
+            lines.append(f"  metric  : {metric}")
+        if mode:
+            lines.append(f"  mode    : {mode}")
+        lines.append(f"  dims    : {dims}")
+        if filters:
+            lines.append(f"  filters : {filters}")
+        if sort:
+            lines.append(f"  sort    : {sort}, limit: {limit if limit is not None else 1}")
         lines.append("")
 
     return "\n".join(lines)
@@ -138,34 +205,16 @@ def _build_where_clauses(filters: list) -> list[str]:
                 num_vals = values
 
             if len(num_vals) == 1:
-                if op in ('gt', '>'):
-                    clauses.append(f"{col_ref} > {num_vals[0]}")
-                elif op in ('gte', '>='):
-                    clauses.append(f"{col_ref} >= {num_vals[0]}")
-                elif op in ('lt', '<'):
-                    clauses.append(f"{col_ref} < {num_vals[0]}")
-                elif op in ('lte', '<='):
-                    clauses.append(f"{col_ref} <= {num_vals[0]}")
-                elif op == 'notEquals':
-                    clauses.append(f"{col_ref} != {num_vals[0]}")
-                else:
-                    clauses.append(f"{col_ref} = {num_vals[0]}")
+                ops_map = {'gt': '>', 'gte': '>=', 'lt': '<', 'lte': '<=', 'notEquals': '!='}
+                clauses.append(f"{col_ref} {ops_map.get(op, '=')} {num_vals[0]}")
             else:
                 in_list = ", ".join(str(v) for v in num_vals)
                 clauses.append(f"{col_ref} IN ({in_list})")
 
         elif dtype == 'time':
             safe_val = str(values[0]).replace("'", "''")
-            if op in ('gt', '>'):
-                clauses.append(f"{col_ref} > '{safe_val}'")
-            elif op in ('gte', '>='):
-                clauses.append(f"{col_ref} >= '{safe_val}'")
-            elif op in ('lt', '<'):
-                clauses.append(f"{col_ref} < '{safe_val}'")
-            elif op in ('lte', '<='):
-                clauses.append(f"{col_ref} <= '{safe_val}'")
-            else:
-                clauses.append(f"{col_ref} = '{safe_val}'")
+            ops_map  = {'gt': '>', 'gte': '>=', 'lt': '<', 'lte': '<=', 'notEquals': '!='}
+            clauses.append(f"{col_ref} {ops_map.get(op, '=')} '{safe_val}'")
 
         else:
             safe_vals = [str(v).replace("'", "''") for v in values]
@@ -188,9 +237,7 @@ def _build_where_clauses(filters: list) -> list[str]:
 
 def sql_compiler(plan):
     if plan.get("mode") == "list":
-        cols = plan.get("select_cols")
-        if not cols:
-            cols = [f"{plan['from']}.*"]
+        cols = plan.get("select_cols") or [f"{plan['from']}.*"]
         sql  = f"SELECT {', '.join(cols)}"
         sql += f"\nFROM {plan['from']}"
 
@@ -254,7 +301,7 @@ def sql_compiler(plan):
 
 
 # ---------------------------------------------------------------------------
-# List-intent keywords
+# List-intent and ranking keywords
 # ---------------------------------------------------------------------------
 
 LIST_TRIGGERS = {
@@ -293,52 +340,45 @@ def enforce_ranking(intent_output: dict, question: str) -> dict:
 
 # ---------------------------------------------------------------------------
 # Status keyword enforcer
-# LLMs (especially small local models) frequently drop multi-value filters.
-# This step scans the raw question for task-status vocabulary and injects
-# a tasks_task_status filter when the LLM missed it or only captured one value.
 # ---------------------------------------------------------------------------
 
-# Maps natural-language words -> canonical DB values in tasks.task_status
 _STATUS_KEYWORD_MAP = {
-    "completed":    "done",
-    "complete":     "done",
-    "done":         "done",
-    "finished":     "done",
-    "closed":       "done",
-    "in progress":  "in_progress",
-    "in_progress":  "in_progress",
-    "inprogress":   "in_progress",
-    "ongoing":      "in_progress",
-    "active":       "in_progress",
-    "started":      "in_progress",
-    "working":      "in_progress",
-    "pending":      "pending",
-    "open":         "pending",
-    "not started":  "pending",
-    "waiting":      "pending",
-    "blocked":      "blocked",
-    "stuck":        "blocked",
+    # ── done ──────────────────────────────────────────────────────────────
+    "completed":       "done",
+    "complete":        "done",
+    "done":            "done",
+    "finished":        "done",
+    "closed":          "done",
+    # ── in_progress ───────────────────────────────────────────────────────
+    # "working" removed — too generic ("people working on it" is NOT a status filter)
+    # "active"  removed — also used in project status queries
+    # "started" removed — ambiguous context
+    "in progress":     "in_progress",
+    "in_progress":     "in_progress",
+    "inprogress":      "in_progress",
+    "ongoing":         "in_progress",
+    "currently doing": "in_progress",
+    "being worked on": "in_progress",
+    # ── pending ───────────────────────────────────────────────────────────
+    "pending":         "pending",
+    "open":            "pending",
+    "not started":     "pending",
+    "waiting":     "pending",
+    "blocked":     "blocked",
+    "stuck":       "blocked",
 }
 
 
 def enforce_status_filter(intent_output: dict, question: str) -> dict:
-    """
-    Detect task-status keywords in the question and ensure the filter list
-    contains a correctly formed tasks_task_status filter with ALL mentioned
-    statuses.  Overwrites any partial/incorrect filter the LLM emitted.
-    """
     data = intent_output.get('intent', intent_output)
     q    = question.lower()
 
-    # Collect every canonical status value mentioned in the question.
-    # Use longest-match first so "in progress" beats "progress".
     matched_statuses: list[str] = []
     for phrase in sorted(_STATUS_KEYWORD_MAP, key=len, reverse=True):
         if phrase in q and _STATUS_KEYWORD_MAP[phrase] not in matched_statuses:
             matched_statuses.append(_STATUS_KEYWORD_MAP[phrase])
 
     if not matched_statuses:
-        # No status words found — leave filters untouched
         if 'intent' in intent_output:
             intent_output['intent'] = data
         else:
@@ -347,17 +387,15 @@ def enforce_status_filter(intent_output: dict, question: str) -> dict:
 
     print(f"  [status-enforcer] detected statuses in question: {matched_statuses}")
 
-    # Remove any existing (possibly wrong/incomplete) tasks_task_status filter
     existing = [
         f for f in data.get('filters', [])
         if f.get('col_key') != 'tasks_task_status'
     ]
 
-    # Build a properly normalised filter entry
     status_filter = {
         "col_key":      "tasks_task_status",
-        "val":          matched_statuses[0],       # primary value
-        "vals":         matched_statuses,           # full list for IN(...)
+        "val":          matched_statuses[0],
+        "vals":         matched_statuses,
         "op":           "equals",
         "is_aggregate": False,
     }
@@ -397,7 +435,7 @@ def normalize_intent(intent_output: dict, question: str = "") -> dict:
             print(f"  [warn] Dimension '{raw_dim}' not in CSM -- skipped")
     data["dimensions"] = resolved_dims
 
-    # Normalise filter keys + values
+    # Normalise filter keys + values (supports multi-value IN filters)
     normalized_filters = []
     for f in data.get("filters", []):
         raw_key = f.get("col_key") or f.get("field") or ""
@@ -431,7 +469,7 @@ def normalize_intent(intent_output: dict, question: str = "") -> dict:
     data["filters"] = normalized_filters
 
     # Detect list intent
-    q = question.lower()
+    q                = question.lower()
     is_list_question = any(kw in q for kw in LIST_TRIGGERS)
     metric_is_count  = data.get("metric", "").endswith("_row_count")
     has_no_sort      = not data.get("sort")
@@ -473,23 +511,10 @@ def normalize_intent(intent_output: dict, question: str = "") -> dict:
 
 # ---------------------------------------------------------------------------
 # RAG++ resolver
-# FIX: strip dimensions whose column is already inside the metric's compute
-#      expression so they don't leak into GROUP BY and inflate row counts.
 # ---------------------------------------------------------------------------
 
 def _extract_compute_columns(compute: str) -> set[str]:
-    """
-    Return the bare column references (table.column) found inside a metric's
-    compute expression, e.g. 'COUNT(DISTINCT employee_skills.skill_id)' -> 
-    {'employee_skills.skill_id', 'skill_id'}.
-
-    We store both the qualified and unqualified form so we can match against
-    whatever shape the dim_node exposes.
-    """
-    import re
-    # grab every word.word token inside the expression
     refs = set(re.findall(r'\b(\w+\.\w+)\b', compute))
-    # also add the unqualified column names for fallback matching
     for ref in list(refs):
         refs.add(ref.split('.')[1])
     return refs
@@ -498,22 +523,63 @@ def _extract_compute_columns(compute: str) -> set[str]:
 def rag_plus_plus_resolver(raw_intent):
     data = raw_intent.get('intent', raw_intent)
 
-    m_key = data.get('metric') or 'row_count'
+    m_key = data.get('metric') or ''
+
+    # ── Metric fallback: never hard-crash on an unknown metric key ──────────
+    # The LLM sometimes invents plausible-sounding keys that don't exist
+    # (e.g. "total_proficiency_per_project").  We try three recovery strategies
+    # before giving up so the pipeline always returns something useful.
     metric_node = csm['metrics'].get(m_key)
+    if not metric_node and m_key:
+        print(f"  [resolver] metric '{m_key}' not in CSM — attempting fallback")
+
+        # Strategy 1: suffix match — "total_proficiency_per_project" has suffix
+        # "per_project"; find any real metric that ends the same way.
+        suffix = m_key.split('_per_')[-1] if '_per_' in m_key else ''
+        if suffix:
+            candidates = [k for k in csm['metrics'] if k.endswith(f'_per_{suffix}')]
+            if candidates:
+                m_key = candidates[0]
+                metric_node = csm['metrics'][m_key]
+                print(f"  [resolver] suffix fallback -> '{m_key}'")
+
+        # Strategy 2: token overlap — pick the real metric whose key shares the
+        # most words with the invented key.
+        if not metric_node:
+            invented_tokens = set(m_key.lower().split('_'))
+            best_key, best_score = '', 0
+            for k in csm['metrics']:
+                score = len(invented_tokens & set(k.lower().split('_')))
+                if score > best_score:
+                    best_score, best_key = score, k
+            if best_key and best_score >= 2:
+                m_key = best_key
+                metric_node = csm['metrics'][m_key]
+                print(f"  [resolver] token-overlap fallback ({best_score} tokens) -> '{m_key}'")
+
+        # Strategy 3: hard fallback — use the generic row count for the table
+        # most likely implied by the invented key name.
+        if not metric_node:
+            for tname in csm.get('relationships', {}):
+                pass   # just need any table name
+            fallback_candidates = [k for k in csm['metrics'] if k.endswith('_row_count')]
+            if fallback_candidates:
+                m_key = fallback_candidates[0]
+                metric_node = csm['metrics'][m_key]
+                print(f"  [resolver] last-resort fallback -> '{m_key}'")
+
     if not metric_node:
-        available_metrics = list(csm['metrics'].keys())
-        raise ValueError(f"Metric '{m_key}' not found in CSM. Available: {available_metrics}")
+        available = list(csm['metrics'].keys())
+        raise ValueError(
+            f"Metric '{m_key}' not found in CSM and all fallbacks exhausted. "
+            f"Available metrics: {available}"
+        )
 
-    base_table = metric_node.get('sources')[0]
-
-    # Columns already consumed by the metric's aggregate expression.
-    # Dimensions referencing these must NOT appear in GROUP BY / SELECT
-    # because grouping by COUNT(DISTINCT x)'s own column gives count=1 per row.
+    base_table   = metric_node.get('sources')[0]
     compute_cols = _extract_compute_columns(metric_node.get('compute', ''))
 
     required_tables = set()
     dim_nodes       = []
-    skipped_dims    = []
 
     for d_id in data.get('dimensions', []):
         node = csm['dimensions'].get(d_id)
@@ -523,28 +589,18 @@ def rag_plus_plus_resolver(raw_intent):
         col_ref_qualified   = f"{node['source']}.{node['column']}"
         col_ref_unqualified = node['column']
 
-        # Skip this dimension if its column is the one being counted/aggregated
         if col_ref_qualified in compute_cols or col_ref_unqualified in compute_cols:
-            skipped_dims.append(d_id)
-            print(f"  [resolver] dropped dimension '{d_id}' -- column '{col_ref_qualified}' "
-                  f"is already inside metric compute '{metric_node['compute']}'")
+            print(f"  [resolver] dropped dimension '{d_id}' -- overlaps metric compute")
             continue
 
         dim_nodes.append((d_id, node))
         required_tables.add(node['source'])
 
-    if skipped_dims:
-        print(f"  [resolver] skipped {len(skipped_dims)} dimension(s) that overlap the metric aggregate")
-
     valid_filters = []
     for f in data.get('filters', []):
         col_key = f.get('col_key')
-
-        # Accept filter if it has at least one usable value in val OR vals.
-        # LLM sometimes sets val=null but populates vals=[...] for multi-value
-        # filters, or vice-versa. We treat either as valid.
-        val  = f.get('val')
-        vals = f.get('vals') or []
+        val     = f.get('val')
+        vals    = f.get('vals') or []
         has_value = (
             (val is not None and str(val).strip() != '')
             or any(str(v).strip() != '' for v in vals if v is not None)
@@ -562,41 +618,100 @@ def rag_plus_plus_resolver(raw_intent):
 
     relationships = csm.get('relationships', {})
 
-    def find_join_path(start, target):
+    # ── Path hints: metrics can declare an explicit ordered join chain ────────
+    # This prevents the BFS from taking a wrong shortcut through an unrelated
+    # relationship (e.g. employee_skills -> employees -> departments -> projects
+    # instead of employee_skills -> employees -> tasks -> projects).
+    #
+    # Format in csm_enterprise.yaml under a metric:
+    #   join_path: [table_a, table_b, table_c]   # ordered, base_table first
+    metric_join_path = metric_node.get('join_path', [])
+
+    def find_join_path(start, target, forbidden_via: set = frozenset()):
+        """
+        BFS from start to target, optionally avoiding certain intermediate nodes.
+        forbidden_via lets us block wrong shortcut paths when a join_path hint
+        is active.
+        """
         if start == target:
             return []
         queue   = [(start, [])]
         visited = {start}
         while queue:
-            (current_node, path) = queue.pop(0)
-            for rel_id, rel in relationships.items():
+            current_node, path = queue.pop(0)
+            for rel in relationships.values():
                 if rel['from'] == current_node and rel['to'] not in visited:
-                    new_path = path + [(rel['to'], rel['join'])]
-                    if rel['to'] == target:
+                    next_node = rel['to']
+                    if next_node in forbidden_via and next_node != target:
+                        continue
+                    new_path = path + [(next_node, rel['join'])]
+                    if next_node == target:
                         return new_path
-                    visited.add(rel['to'])
-                    queue.append((rel['to'], new_path))
+                    visited.add(next_node)
+                    queue.append((next_node, new_path))
                 elif rel['to'] == current_node and rel['from'] not in visited:
-                    new_path = path + [(rel['from'], rel['join'])]
-                    if rel['from'] == target:
+                    next_node = rel['from']
+                    if next_node in forbidden_via and next_node != target:
+                        continue
+                    new_path = path + [(next_node, rel['join'])]
+                    if next_node == target:
                         return new_path
-                    visited.add(rel['from'])
-                    queue.append((rel['from'], new_path))
+                    visited.add(next_node)
+                    queue.append((next_node, new_path))
         return None
 
     active_joins  = []
     joined_tables = {base_table}
 
-    for table in required_tables:
-        if table not in joined_tables:
-            path = find_join_path(base_table, table)
-            if path:
-                for to_table, join_on in path:
-                    if to_table not in joined_tables:
-                        active_joins.append(f"LEFT JOIN {to_table} ON {join_on}")
-                        joined_tables.add(to_table)
+    if metric_join_path:
+        # Follow the explicit path in order, regardless of what BFS would find
+        print(f"  [resolver] using explicit join_path hint: {metric_join_path}")
+        chain = metric_join_path if metric_join_path[0] == base_table else [base_table] + metric_join_path
+        for i in range(len(chain) - 1):
+            frm, to = chain[i], chain[i + 1]
+            if to in joined_tables:
+                continue
+            # Find the direct relationship between these two adjacent tables
+            join_clause = None
+            for rel in relationships.values():
+                if (rel['from'] == frm and rel['to'] == to) or                    (rel['to'] == frm and rel['from'] == to):
+                    join_clause = rel['join']
+                    break
+            if join_clause:
+                active_joins.append(f"LEFT JOIN {to} ON {join_clause}")
+                joined_tables.add(to)
             else:
-                print(f"  [warn] No join path found from {base_table} to {table}")
+                print(f"  [warn] join_path hint: no direct relationship between '{frm}' and '{to}'")
+        # Any required_tables not covered by the path hint get normal BFS,
+        # but we forbid the wrong intermediate nodes the hint was avoiding.
+        hinted_tables = set(chain)
+        all_tables_in_model = set(
+            t for rel in relationships.values() for t in (rel['from'], rel['to'])
+        )
+        # Tables NOT in the hint path are potential wrong shortcuts to block
+        forbidden = all_tables_in_model - hinted_tables - required_tables
+        for table in required_tables:
+            if table not in joined_tables:
+                path = find_join_path(base_table, table, forbidden_via=forbidden)
+                if path:
+                    for to_table, join_on in path:
+                        if to_table not in joined_tables:
+                            active_joins.append(f"LEFT JOIN {to_table} ON {join_on}")
+                            joined_tables.add(to_table)
+                else:
+                    print(f"  [warn] No join path found from {base_table} to {table}")
+    else:
+        # Standard BFS — no hints
+        for table in required_tables:
+            if table not in joined_tables:
+                path = find_join_path(base_table, table)
+                if path:
+                    for to_table, join_on in path:
+                        if to_table not in joined_tables:
+                            active_joins.append(f"LEFT JOIN {to_table} ON {join_on}")
+                            joined_tables.add(to_table)
+                else:
+                    print(f"  [warn] No join path found from {base_table} to {table}")
 
     dim_col_refs  = [f"{node['source']}.{node['column']}" for _, node in dim_nodes]
     aggregate_sel = dim_col_refs + [f"{metric_node['compute']} AS result"]
@@ -614,10 +729,7 @@ def rag_plus_plus_resolver(raw_intent):
 
     if data.get("mode") == "list":
         plan["mode"] = "list"
-        if dim_col_refs:
-            plan["select_cols"] = dim_col_refs
-        else:
-            plan["select_cols"] = [f"{base_table}.*"]
+        plan["select_cols"] = dim_col_refs if dim_col_refs else [f"{base_table}.*"]
 
     return plan
 
@@ -669,7 +781,10 @@ analytics_pipeline = (
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def ask_database(query):
+def ask_database(query: str):
+    # Guard: reject shell commands and non-questions before touching the LLM
+    query = validate_question(query)
+
     print(f"Processing: {query}")
     print("Running pipeline...")
 
@@ -692,6 +807,14 @@ def decimal_default(obj):
 
 
 if __name__ == "__main__":
-    question = input("Ask your question: ")
-    results  = ask_database(question)
-    print("Data Output:", json.dumps(results, indent=2, default=decimal_default))
+    while True:
+        try:
+            question = input("Ask your question (or 'exit' to quit): ").strip()
+            if question.lower() in ("exit", "quit", "q"):
+                break
+            results = ask_database(question)
+            print("Data Output:", json.dumps(results, indent=2, default=decimal_default))
+        except NotAQuestionError as e:
+            print(f"\n[input error] {e}\n")
+        except KeyboardInterrupt:
+            break

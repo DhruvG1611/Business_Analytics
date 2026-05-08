@@ -190,6 +190,83 @@ def build_csm(schema: dict) -> dict:
                 "label":   f"{child.title()} per {parent.rstrip('s').title()}",
             }
 
+    # ── Auto-generate join_path hints for every multi-source metric ──────────
+    # This ensures the BFS resolver always traverses tables in the exact order
+    # the metric was designed for, preventing wrong-shortcut bugs where a
+    # shorter but semantically incorrect path exists (e.g. going through
+    # departments instead of tasks to reach projects).
+    #
+    # Algorithm: for each metric whose sources list has 2+ tables, find the
+    # shortest BFS path that visits ALL sources in dependency order, starting
+    # from sources[0].  The resulting ordered table list becomes join_path.
+    _rel_graph = {}
+    for rel in relationships.values():
+        _rel_graph.setdefault(rel["from"], set()).add(rel["to"])
+        _rel_graph.setdefault(rel["to"],  set()).add(rel["from"])
+
+    def _bfs_path(start: str, targets: list[str]) -> list[str]:
+        """
+        Return an ordered path [start, t1, t2, ...] that visits all targets
+        using BFS from start, visiting targets in the order they first appear
+        as reachable.  Each hop is to the nearest unvisited target.
+        """
+        path     = [start]
+        visited  = {start}
+        current  = start
+        remaining = list(targets)  # preserve order preference
+
+        while remaining:
+            # BFS from current to find the nearest remaining target
+            queue    = [(current, [current])]
+            bfs_seen = {current}
+            found    = None
+
+            while queue and not found:
+                node, node_path = queue.pop(0)
+                for neighbour in _rel_graph.get(node, []):
+                    if neighbour in bfs_seen:
+                        continue
+                    bfs_seen.add(neighbour)
+                    full_path = node_path + [neighbour]
+                    if neighbour in remaining:
+                        found = (neighbour, full_path)
+                        break
+                    queue.append((neighbour, full_path))
+
+            if not found:
+                break   # unreachable — leave path incomplete
+
+            target_node, sub_path = found
+            # Add the intermediate hops (excluding start which is already in path)
+            for hop in sub_path[1:]:
+                if hop not in visited:
+                    path.append(hop)
+                    visited.add(hop)
+
+            remaining.remove(target_node)
+            current = target_node
+
+        return path
+
+    for m_key, m_val in metrics.items():
+        sources = m_val.get("sources", [])
+        if len(sources) < 2:
+            # Single-source metrics need no join — no hint required
+            continue
+        base    = sources[0]
+        targets = [s for s in sources[1:] if s != base]
+        path    = _bfs_path(base, targets)
+        if len(path) > 1:
+            m_val["join_path"] = path
+            # Also update sources to match the actual traversal order so they
+            # are consistent with join_path
+            ordered_sources = [t for t in path if t in set(sources)]
+            # add any sources that weren't reachable (shouldn't happen but safe)
+            for s in sources:
+                if s not in ordered_sources:
+                    ordered_sources.append(s)
+            m_val["sources"] = ordered_sources
+
     return {"metrics": metrics, "dimensions": dimensions, "relationships": relationships}
 
 
