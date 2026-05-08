@@ -1,0 +1,630 @@
+version: "1"
+# ============================================================
+# AXON DSL v1  —  Analytics eXpression ONtology
+# ============================================================
+# Compiles to SQL via axon_compiler.py
+# Used by connector.py as the single source of truth.
+# ============================================================
+
+# ─────────────────────────────────────────────────────────────
+# SOURCES
+# ─────────────────────────────────────────────────────────────
+sources:
+  employees:
+    table: employees
+    pk: id
+    aliases:
+      manager: employees # self-join alias for manager hierarchy
+
+  tasks:
+    table: tasks
+    pk: id
+
+  projects:
+    table: projects
+    pk: id
+
+  departments:
+    table: departments
+    pk: id
+
+  task_logs:
+    table: task_logs
+    pk: id
+
+  skills:
+    table: skills
+    pk: id
+
+  employee_skills:
+    table: employee_skills
+    pk: [employee_id, skill_id]
+
+# ─────────────────────────────────────────────────────────────
+# RELATIONSHIPS
+# ─────────────────────────────────────────────────────────────
+relationships:
+  task_to_employee:
+    from: tasks
+    to: employees
+    "on": "tasks.assigned_to = employees.id"
+    type: many_to_one
+    join: LEFT
+
+  task_to_project:
+    from: tasks
+    to: projects
+    "on": "tasks.project_id = projects.id"
+    type: many_to_one
+    join: LEFT
+
+  project_to_department:
+    from: projects
+    to: departments
+    "on": "projects.dept_id = departments.id"
+    type: many_to_one
+    join: LEFT
+
+  employee_to_department:
+    from: employees
+    to: departments
+    "on": "employees.dept_id = departments.id"
+    type: many_to_one
+    join: LEFT
+
+  employee_self_manager:
+    from: employees
+    to: employees
+    via_alias: manager
+    "on": "employees.manager_id = manager.id"
+    type: many_to_one
+    join: LEFT
+
+  employee_skills_to_employee:
+    from: employee_skills
+    to: employees
+    "on": "employee_skills.employee_id = employees.id"
+    type: many_to_one
+    join: INNER
+
+  employee_skills_to_skill:
+    from: employee_skills
+    to: skills
+    "on": "employee_skills.skill_id = skills.id"
+    type: many_to_one
+    join: LEFT
+
+  task_log_to_task:
+    from: task_logs
+    to: tasks
+    "on": "task_logs.task_id = tasks.id"
+    type: many_to_one
+    join: LEFT
+
+# ─────────────────────────────────────────────────────────────
+# DIMENSIONS
+# ─────────────────────────────────────────────────────────────
+dimensions:
+  # ── employees ──────────────────────────────────────────────
+  employee_id:
+    source: employees
+    column: id
+    type: id
+    label: "Employee ID"
+    synonyms: [employee id, emp id, staff id, worker id]
+
+  employee_name:
+    source: employees
+    column: emp_name
+    type: string
+    label: "Employee Name"
+    operators: [equals, contains, notEquals]
+    synonyms: [employee name, name, emp name, worker name, staff name, person]
+
+  employee_role:
+    source: employees
+    column: emp_role
+    type: string
+    label: "Employee Role"
+    operators: [equals, contains, notEquals]
+    synonyms: [role, job title, position, title, designation]
+
+  manager_id:
+    source: employees
+    column: manager_id
+    type: id
+    label: "Manager ID"
+    nullable: true
+    synonyms: [manager id, supervisor id, reports to]
+
+  # ── departments ────────────────────────────────────────────
+  department_id:
+    source: departments
+    column: id
+    type: id
+    label: "Department ID"
+    synonyms: [department id, dept id, team id]
+
+  department_name:
+    source: departments
+    column: dept_name
+    type: string
+    label: "Department Name"
+    operators: [equals, contains]
+    synonyms: [department, dept, team, group, division, unit]
+
+  # ── tasks ──────────────────────────────────────────────────
+  task_id:
+    source: tasks
+    column: id
+    type: id
+    label: "Task ID"
+    synonyms: [task id, ticket id, issue id]
+
+  task_name:
+    source: tasks
+    column: task_name
+    type: string
+    label: "Task Name"
+    operators: [equals, contains]
+    synonyms: [task name, task title, task, ticket, issue]
+
+  task_status:
+    source: tasks
+    column: task_status
+    type: enum
+    label: "Task Status"
+    values: [pending, in_progress, done, blocked]
+    operators: [equals, notEquals, in, notIn]
+    synonyms: [status, task status, state, task state]
+
+  # ── projects ───────────────────────────────────────────────
+  project_id:
+    source: projects
+    column: id
+    type: id
+    label: "Project ID"
+    synonyms: [project id, proj id]
+
+  project_name:
+    source: projects
+    column: project_name
+    type: string
+    label: "Project Name"
+    operators: [equals, contains]
+    synonyms: [project, project name, initiative]
+
+  project_status:
+    source: projects
+    column: status
+    type: enum
+    label: "Project Status"
+    values: [active, on_hold, completed]
+    operators: [equals, notEquals, in]
+    synonyms: [project status, project state]
+
+  # ── task_logs ──────────────────────────────────────────────
+  log_id:
+    source: task_logs
+    column: id
+    type: id
+    label: "Log ID"
+    synonyms: [log id, entry id, audit id]
+
+  logged_at:
+    source: task_logs
+    column: logged_at
+    type: datetime
+    label: "Log Timestamp"
+    operators: [gt, gte, lt, lte, between, last_n_days]
+    synonyms: [logged at, log date, timestamp, when logged, log time]
+
+  # ── skills ─────────────────────────────────────────────────
+  skill_name:
+    source: skills
+    column: skill_name
+    type: string
+    label: "Skill Name"
+    operators: [equals, contains]
+    synonyms: [skill, skill name, competency, expertise, technology]
+
+  skill_category:
+    source: skills
+    column: category
+    type: string
+    label: "Skill Category"
+    operators: [equals, contains]
+    synonyms: [skill category, category, skill type, skill group]
+
+  proficiency:
+    source: employee_skills
+    column: proficiency
+    type: number
+    label: "Skill Proficiency (1-5)"
+    operators: [equals, gt, gte, lt, lte, between]
+    synonyms: [proficiency, skill level, level, rating, score]
+
+# ─────────────────────────────────────────────────────────────
+# MEASURES
+# ─────────────────────────────────────────────────────────────
+measures:
+  # ── Simple counts ──────────────────────────────────────────
+  total_employees:
+    type: count
+    source: employees
+    label: "Total Employees"
+    synonyms:
+      - how many employees
+      - headcount
+      - employee count
+      - staff count
+      - number of employees
+      - total staff
+      - workforce size
+
+  total_tasks:
+    type: count
+    source: tasks
+    label: "Total Tasks"
+    synonyms:
+      - how many tasks
+      - task count
+      - number of tasks
+      - total tasks
+      - tasks assigned
+
+  total_projects:
+    type: count
+    source: projects
+    label: "Total Projects"
+    synonyms:
+      - how many projects
+      - project count
+      - number of projects
+      - total projects
+
+  total_skills:
+    type: count
+    source: skills
+    label: "Total Skills"
+    synonyms:
+      - how many skills
+      - skill count
+      - number of skills
+
+  # ── Conditional counts ─────────────────────────────────────
+  tasks_done:
+    type: count
+    source: tasks
+    filter:
+      field: task_status
+      op: equals
+      val: done
+    label: "Completed Tasks"
+    synonyms:
+      - completed tasks
+      - finished tasks
+      - done tasks
+      - tasks completed
+      - tasks finished
+      - closed tasks
+      - resolved tasks
+
+  tasks_in_progress:
+    type: count
+    source: tasks
+    filter:
+      field: task_status
+      op: equals
+      val: in_progress
+    label: "Tasks In Progress"
+    synonyms:
+      - active tasks
+      - ongoing tasks
+      - tasks in progress
+      - work in progress
+      - wip
+
+  tasks_pending:
+    type: count
+    source: tasks
+    filter:
+      field: task_status
+      op: equals
+      val: pending
+    label: "Pending Tasks"
+    synonyms:
+      - pending tasks
+      - unstarted tasks
+      - not started tasks
+      - queued tasks
+
+  tasks_blocked:
+    type: count
+    source: tasks
+    filter:
+      field: task_status
+      op: equals
+      val: blocked
+    label: "Blocked Tasks"
+    synonyms:
+      - blocked tasks
+      - stuck tasks
+      - stalled tasks
+      - impeded tasks
+
+  # ── Ratio metrics ──────────────────────────────────────────
+  task_completion_rate:
+    type: ratio
+    numerator: tasks_done
+    denominator: total_tasks
+    multiply: 100
+    round: 1
+    label: "Task Completion Rate (%)"
+    synonyms:
+      - completion rate
+      - efficiency
+      - most efficient
+      - how productive
+      - best performer
+      - highest output
+      - top performer
+      - who finished the most
+      - performance rate
+      - productivity
+      - task efficiency
+      - completion percentage
+
+  task_block_rate:
+    type: ratio
+    numerator: tasks_blocked
+    denominator: total_tasks
+    multiply: 100
+    round: 1
+    label: "Block Rate (%)"
+    synonyms:
+      - block rate
+      - how blocked
+      - blocking rate
+      - most blocked
+      - obstruction rate
+
+  task_progress_rate:
+    type: ratio
+    numerator: tasks_in_progress
+    denominator: total_tasks
+    multiply: 100
+    round: 1
+    label: "Tasks In Progress Rate (%)"
+    synonyms:
+      - progress rate
+      - wip rate
+      - active rate
+
+  # ── Window / ranking measures ──────────────────────────────
+  employee_rank_by_completion:
+    type: window
+    function: RANK
+    order_by:
+      measure: task_completion_rate
+      direction: desc
+    partition_by: []
+    label: "Efficiency Rank"
+    synonyms:
+      - rank employees by efficiency
+      - employee ranking
+      - performance rank
+      - global rank
+      - overall rank
+
+  employee_rank_within_dept:
+    type: window
+    function: RANK
+    order_by:
+      measure: task_completion_rate
+      direction: desc
+    partition_by: [department_name]
+    label: "Efficiency Rank Within Department"
+    synonyms:
+      - rank within department
+      - department rank
+      - relative rank
+      - rank by department
+
+  # ── Composite / weighted scores ────────────────────────────
+  employee_performance_score:
+    type: composite
+    label: "Performance Score (0–100)"
+    synonyms:
+      - performance score
+      - overall performance
+      - best overall employee
+      - top employee
+      - who is the best
+      - highest performer
+      - overall score
+    formula:
+      - measure: task_completion_rate
+        weight: 0.6
+      - measure: tasks_done
+        weight: 0.4
+        normalize: true
+
+  # ── Subquery / threshold measures ─────────────────────────
+  avg_tasks_per_employee:
+    type: subquery
+    label: "Average Tasks Per Employee"
+    synonyms:
+      - average workload
+      - mean tasks
+      - typical task count
+      - average tasks per person
+    query:
+      select: "AVG(task_count)"
+      from:
+        subquery:
+          select: "assigned_to, COUNT(*) AS task_count"
+          from: tasks
+          group_by: [assigned_to]
+
+  employees_above_avg_tasks:
+    type: filtered_dimension
+    label: "Employees With Above-Average Workload"
+    synonyms:
+      - overloaded employees
+      - above average workload
+      - high workload employees
+      - employees with most tasks
+    base_measure: total_tasks
+    group_by: [employee_name]
+    having:
+      gt: avg_tasks_per_employee
+
+  # ── Time-series measures ───────────────────────────────────
+  task_log_count:
+    type: count
+    source: task_logs
+    label: "Task Log Entries"
+    synonyms:
+      - activity count
+      - log entries
+      - audit entries
+      - task activity
+
+  tasks_completed_last_30_days:
+    type: count
+    source: task_logs
+    filter:
+      field: logged_at
+      op: last_n_days
+      val: 30
+    label: "Tasks Logged (Last 30 Days)"
+    synonyms:
+      - recent activity
+      - last month activity
+      - tasks this month
+      - recent tasks
+      - last 30 days
+
+# ─────────────────────────────────────────────────────────────
+# RECIPES  — named multi-step query templates
+# ─────────────────────────────────────────────────────────────
+recipes:
+  employee_efficiency_report:
+    label: "Employee Efficiency Report"
+    synonyms:
+      - efficiency report
+      - who is most efficient
+      - rank employees by performance
+      - employee performance summary
+      - employee report
+    steps:
+      - id: base
+        select: [employee_name, employee_id]
+        measures: [total_tasks, tasks_done, task_completion_rate]
+        group_by: [employee_name, employee_id]
+
+      - id: ranked
+        from: base
+        select: ["*"]
+        measures: [employee_rank_by_completion]
+
+    output: ranked
+    default_sort:
+      field: employee_rank_by_completion
+      direction: asc
+
+  department_health_report:
+    label: "Department Health Report"
+    synonyms:
+      - department performance
+      - which department is best
+      - team health
+      - department summary
+      - department report
+      - best department
+    steps:
+      - id: base
+        select: [department_name]
+        measures:
+          [
+            total_employees,
+            total_tasks,
+            tasks_done,
+            task_completion_rate,
+            tasks_blocked,
+          ]
+        group_by: [department_name]
+
+    output: base
+    default_sort:
+      field: task_completion_rate
+      direction: desc
+
+  manager_span_of_control:
+    label: "Manager Span of Control"
+    synonyms:
+      - how many people does each manager manage
+      - manager headcount
+      - who manages the most people
+      - span of control
+      - manager direct reports
+    steps:
+      - id: base
+        source: employees
+        self_join:
+          alias: manager
+          "on": "employees.manager_id = manager.id"
+        select: ["manager.emp_name AS manager_name"]
+        measures: [total_employees]
+        group_by: ["manager.emp_name"]
+        having:
+          total_employees:
+            gte: 1
+
+    output: base
+    default_sort:
+      field: total_employees
+      direction: desc
+
+  skill_coverage_report:
+    label: "Skill Coverage Report"
+    synonyms:
+      - skill coverage
+      - who knows what
+      - employee skills breakdown
+      - skill distribution
+      - skills per employee
+    steps:
+      - id: base
+        select: [employee_name, skill_name, skill_category]
+        measures: [total_skills]
+        group_by: [employee_name, skill_name, skill_category]
+
+    output: base
+    default_sort:
+      field: skill_name
+      direction: asc
+
+  top_performers_by_department:
+    label: "Top Performers by Department"
+    synonyms:
+      - top performers per department
+      - best employee in each department
+      - department leaders
+      - who is best in each team
+    steps:
+      - id: base
+        select: [department_name, employee_name, employee_id]
+        measures: [total_tasks, tasks_done, task_completion_rate]
+        group_by: [department_name, employee_name, employee_id]
+
+      - id: ranked
+        from: base
+        select: ["*"]
+        measures: [employee_rank_within_dept]
+
+    output: ranked
+    default_sort:
+      field: employee_rank_within_dept
+      direction: asc

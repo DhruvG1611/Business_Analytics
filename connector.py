@@ -1,601 +1,364 @@
-import yaml
-import json
+"""
+connector.py  (AXON edition)
+----------------------------
+Replaces the flat-CSM connector with one backed by axon_compiler.py.
+
+What changed vs the original:
+  - CSM + BGO YAML replaced by a single axon.yaml
+  - sql_compiler() replaced by AxonCompiler.compile()
+  - Intent now carries: metric | recipe, dimensions, filters, sort, limit, mode
+  - Supports ratio / window / composite / subquery / filtered_dim / recipe queries
+  - LLM prompt is auto-generated from axon.yaml synonyms → no stale bgo.yaml drift
+  - enforce_ranking() and normalize_intent() are retained (simplified)
+
+Usage:
+    python connector.py
+    > Ask your question: who are the top 5 most efficient employees?
+"""
+
+from __future__ import annotations
+
 import decimal
+import json
+
 from sqlalchemy import create_engine, text
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableParallel, RunnableLambda, RunnablePassthrough
 
-
-yaml.safe_load(open('csm_enterprise.yaml'))
-yaml.safe_load(open('bgo.yaml'))
-
-with open('bgo.yaml', 'r') as f:
-    glossary = yaml.safe_load(f)
-with open('csm_enterprise.yaml', 'r') as f:
-    csm = yaml.safe_load(f)
+from axon_compiler import AxonCompiler
 
 
-# ---------------------------------------------------------------------------
-# Case-insensitive CSM key resolver
-# Builds a lowercase -> canonical key map once at startup so lookups are O(1)
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════
 
-_METRIC_KEY_MAP    = {k.lower(): k for k in csm.get('metrics', {}).keys()}
-_DIMENSION_KEY_MAP = {k.lower(): k for k in csm.get('dimensions', {}).keys()}
+DB_URL       = "mysql+pymysql://root:@localhost:3306/test"
+OLLAMA_MODEL = "llama3"
 
-
-def resolve_metric_key(raw: str) -> str | None:
-    """Return the canonical CSM metric key regardless of case, or None."""
-    return _METRIC_KEY_MAP.get(raw.lower()) if raw else None
+engine   = create_engine(DB_URL, future=True)
+compiler = AxonCompiler("axon.yaml")
+axon     = compiler.axon
 
 
-def resolve_dimension_key(raw: str) -> str | None:
-    """Return the canonical CSM dimension key regardless of case, or None."""
-    return _DIMENSION_KEY_MAP.get(raw.lower()) if raw else None
+# ═══════════════════════════════════════════════════════════════════════════
+# LLM DECOMPOSITION PROMPT  (auto-built from axon.yaml)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _build_prompt_template() -> str:
+    ctx = compiler.get_prompt_context()
+
+    recipe_examples = "\n".join(
+        f'  recipe "{k}": triggers: {", ".join(v.get("synonyms", [])[:4])}'
+        for k, v in axon.recipes.items()
+    )
+
+    measure_examples = "\n".join(
+        f'  measure "{k}": triggers: {", ".join(v.get("synonyms", [])[:4])}'
+        for k, v in axon.measures.items()
+    )
+
+    dim_examples = "\n".join(
+        f'  dimension "{k}": triggers: {", ".join(v.get("synonyms", [])[:3])}'
+        for k, v in axon.dimensions.items()
+    )
+
+    template = f"""You are a precise semantic parser for a business analytics system.
+Translate the user's question into a JSON intent object.
+
+AVAILABLE MEASURES (use key exactly as written):
+{", ".join(ctx["measure_keys"])}
+
+AVAILABLE DIMENSIONS (use key exactly as written):
+{", ".join(ctx["dimension_keys"])}
+
+AVAILABLE RECIPES (use key exactly as written):
+{", ".join(ctx["recipe_keys"])}
+
+SYNONYM GUIDE:
+{ctx["synonym_guide"]}
+
+RECIPES (use these for multi-step / report queries):
+{recipe_examples}
+
+MEASURE TRIGGERS:
+{measure_examples}
+
+DIMENSION TRIGGERS:
+{dim_examples}
+
+OUTPUT FORMAT — return ONLY valid JSON, no markdown, no explanation:
+{{
+  "intent": {{
+    "recipe":     "<recipe_key or null>",
+    "metric":     "<measure_key or null>",
+    "dimensions": ["<dimension_key>", ...],
+    "filters":    [{{"field": "<dimension_key>", "operator": "equals|contains|gt|gte|lt|lte|in|notIn|last_n_days", "values": ["<value>"]}}],
+    "sort":       "asc|desc|null",
+    "limit":      <integer or null>,
+    "mode":       "list|null"
+  }}
+}}
+
+RULES:
+1. If the question is a report / multi-step / ranking across all employees or departments, prefer a RECIPE.
+2. Use recipe OR metric — not both (recipe takes priority).
+3. mode="list" when the question uses: show, list, display, get, fetch, all, every.
+4. sort="desc" + limit=1 for: most, top, best, highest, largest, maximum.
+5. sort="asc"  + limit=1 for: least, lowest, fewest, smallest, minimum.
+6. dimensions: group-by fields. Only add when the user asks "by/per/for each <entity>".
+7. filters: ONLY when a specific value is mentioned (e.g. "in Engineering", "status = done").
+8. Return null (not the string "null") for unused fields.
+
+EXAMPLES:
+
+Q: "list all employees"
+A: {{"intent": {{"recipe": null, "metric": "total_employees", "dimensions": ["employee_name", "employee_id"], "filters": [], "sort": null, "limit": null, "mode": "list"}}}}
+
+Q: "how many tasks does each department have?"
+A: {{"intent": {{"recipe": null, "metric": "total_tasks", "dimensions": ["department_name"], "filters": [], "sort": null, "limit": null, "mode": null}}}}
+
+Q: "who are the top 3 most efficient employees?"
+A: {{"intent": {{"recipe": null, "metric": "task_completion_rate", "dimensions": ["employee_name"], "filters": [], "sort": "desc", "limit": 3, "mode": null}}}}
+
+Q: "show me completed tasks for each project"
+A: {{"intent": {{"recipe": null, "metric": "tasks_done", "dimensions": ["project_name"], "filters": [], "sort": null, "limit": null, "mode": null}}}}
+
+Q: "which department has the best performance?"
+A: {{"intent": {{"recipe": "department_health_report", "metric": null, "dimensions": [], "filters": [], "sort": "desc", "limit": 1, "mode": null}}}}
+
+Q: "give me an efficiency report for all employees"
+A: {{"intent": {{"recipe": "employee_efficiency_report", "metric": null, "dimensions": [], "filters": [], "sort": null, "limit": null, "mode": null}}}}
+
+Q: "who manages the most people?"
+A: {{"intent": {{"recipe": "manager_span_of_control", "metric": null, "dimensions": [], "filters": [], "sort": "desc", "limit": 1, "mode": null}}}}
+
+Q: "rank employees by completion rate within each department"
+A: {{"intent": {{"recipe": "top_performers_by_department", "metric": null, "dimensions": [], "filters": [], "sort": null, "limit": null, "mode": null}}}}
+
+Q: "how many blocked tasks does the Engineering department have?"
+A: {{"intent": {{"recipe": null, "metric": "tasks_blocked", "dimensions": ["department_name"], "filters": [{{"field": "department_name", "operator": "equals", "values": ["Engineering"]}}], "sort": null, "limit": null, "mode": null}}}}
+
+Q: "show tasks completed in the last 30 days"
+A: {{"intent": {{"recipe": null, "metric": "tasks_completed_last_30_days", "dimensions": [], "filters": [], "sort": null, "limit": null, "mode": null}}}}
+
+Q: "which employees have above average workload?"
+A: {{"intent": {{"recipe": null, "metric": "employees_above_avg_tasks", "dimensions": [], "filters": [], "sort": null, "limit": null, "mode": null}}}}
+
+Q: "overall performance score for each employee"
+A: {{"intent": {{"recipe": null, "metric": "employee_performance_score", "dimensions": ["employee_name"], "filters": [], "sort": "desc", "limit": null, "mode": null}}}}
+
+QUESTION: {{question}}
+RESPONSE:"""
+
+    return template
 
 
-# ---------------------------------------------------------------------------
-# BGO context builder
-# ---------------------------------------------------------------------------
+_PROMPT_TEMPLATE = _build_prompt_template()
 
-def build_bgo_context(glossary: dict) -> str:
-    lines = []
+llm = ChatOllama(model=OLLAMA_MODEL, temperature=0, format="json")
 
-    lines.append("## METRIC SYNONYMS")
-    lines.append("If the user's phrasing matches any synonym, use that metric key exactly.\n")
-    for metric_key, synonyms in glossary.get("metrics", {}).items():
-        lines.append(f"  {metric_key}:")
-        lines.append(f"    triggers: {', '.join(synonyms)}")
-    lines.append("")
-
-    lines.append("## DIMENSION SYNONYMS")
-    lines.append("If the user's phrasing matches any synonym, use that dimension key exactly.\n")
-    for dim_key, synonyms in glossary.get("dimensions", {}).items():
-        lines.append(f"  {dim_key}:")
-        lines.append(f"    triggers: {', '.join(synonyms)}")
-    lines.append("")
-
-    lines.append("## ENTITY DEFINITIONS")
-    for entity, meta in glossary.get("ontology", {}).get("entities", {}).items():
-        syns = ", ".join(meta.get("synonyms", []))
-        lines.append(f"  {entity}: {meta['description']}")
-        lines.append(f"    also called: {syns}")
-    lines.append("")
-
-    lines.append("## ENTITY RELATIONSHIPS")
-    lines.append("Use these to determine which dimension to group by.\n")
-    for rel in glossary.get("ontology", {}).get("relationships", []):
-        nl = "; ".join(rel.get("natural_language", []))
-        lines.append(f"  {rel['statement']}")
-        lines.append(f"    natural language triggers: {nl}")
-    lines.append("")
-
-    lines.append("## INTENT PATTERNS")
-    lines.append("Concrete mappings from question shape to metric + dimensions.\n")
-    for p in glossary.get("intent_patterns", []):
-        lines.append(f"  pattern : \"{p['pattern']}\"")
-        lines.append(f"  metric  : {p['metric']}")
-        lines.append(f"  dims    : {p.get('dimensions', [])}")
-        if p.get("filters"):
-            lines.append(f"  filters : {p['filters']}")
-        if p.get("sort"):
-            lines.append(f"  sort    : {p['sort']}, limit: {p.get('limit', 1)}")
-        if p.get("mode"):
-            lines.append(f"  mode    : {p['mode']}")
-        lines.append("")
-
-    return "\n".join(lines)
-
-
-engine = create_engine(
-    "mysql+pymysql://root:@localhost:3306/test",
-    future=True,
+decomposition_chain = (
+    ChatPromptTemplate.from_template(_PROMPT_TEMPLATE)
+    | llm
+    | JsonOutputParser()
 )
 
-llm = ChatOllama(model="llama3", temperature=0, format="json")
 
-# Load the prompt generated by generate_csm_bgo.py
-# Re-run generate_csm_bgo.py whenever the schema changes.
-with open("decomposition_prompt.txt", encoding="utf-8") as _f:
-    _PROMPT_TEMPLATE = _f.read()
+# ═══════════════════════════════════════════════════════════════════════════
+# RANKING ENFORCER
+# ═══════════════════════════════════════════════════════════════════════════
 
-decomposition_chain = ChatPromptTemplate.from_template(_PROMPT_TEMPLATE) | llm | JsonOutputParser()
-
-
-# ---------------------------------------------------------------------------
-# WHERE clause helper (shared between list and aggregate paths)
-# ---------------------------------------------------------------------------
-
-def _build_where_clauses(filters: list) -> list[str]:
-    """
-    Build SQL WHERE clause fragments from a list of filter dicts.
-
-    Operator selection by column dtype:
-      id / number  -> col = val          (bare integer, no quotes, no LIKE)
-      string       -> LOWER(col) LIKE LOWER('%val%')  for 'contains'
-                   -> LOWER(col) = LOWER('val')        for 'equals'
-      multi-value  -> col IN (v1, v2, …)
-
-    This prevents LOWER(employees.id) LIKE '11' on integer PK columns.
-    """
-    clauses = []
-    for f in filters:
-        if f.get("is_aggregate"):
-            continue
-
-        col_key  = f.get("col_key", "")
-        dim_node = csm['dimensions'].get(col_key)
-        if not dim_node:
-            print(f"  [warn] Filter key '{col_key}' not in CSM dimensions")
-            continue
-
-        col   = dim_node['column']
-        dtype = dim_node.get('type', 'string')   # id | number | time | string
-        col_ref = col if dim_node.get('is_time') else f"{dim_node['source']}.{col}"
-
-        # Support both single val and multi-value lists
-        raw_val  = f.get('val')
-        raw_vals = f.get('vals')          # optional multi-value list on filter
-        if raw_vals and isinstance(raw_vals, list) and len(raw_vals) > 1:
-            values = raw_vals
-        else:
-            values = [raw_val] if raw_val is not None else []
-
-        if not values:
-            continue
-
-        op = f.get('op', 'equals')
-
-        # ── Numeric / ID columns: use bare = or IN, never LIKE ──────────────
-        if dtype in ('id', 'number'):
-            try:
-                num_vals = [int(v) if str(v).isdigit() else float(v) for v in values]
-            except (ValueError, TypeError):
-                num_vals = values   # fallback: treat as string
-
-            if len(num_vals) == 1:
-                if op in ('gt', '>'):
-                    clauses.append(f"{col_ref} > {num_vals[0]}")
-                elif op in ('gte', '>='):
-                    clauses.append(f"{col_ref} >= {num_vals[0]}")
-                elif op in ('lt', '<'):
-                    clauses.append(f"{col_ref} < {num_vals[0]}")
-                elif op in ('lte', '<='):
-                    clauses.append(f"{col_ref} <= {num_vals[0]}")
-                elif op == 'notEquals':
-                    clauses.append(f"{col_ref} != {num_vals[0]}")
-                else:
-                    clauses.append(f"{col_ref} = {num_vals[0]}")
-            else:
-                in_list = ", ".join(str(v) for v in num_vals)
-                clauses.append(f"{col_ref} IN ({in_list})")
-
-        # ── Time columns: use bare = / range operators ───────────────────────
-        elif dtype == 'time':
-            safe_val = str(values[0]).replace("'", "''")
-            if op in ('gt', '>'):
-                clauses.append(f"{col_ref} > '{safe_val}'")
-            elif op in ('gte', '>='):
-                clauses.append(f"{col_ref} >= '{safe_val}'")
-            elif op in ('lt', '<'):
-                clauses.append(f"{col_ref} < '{safe_val}'")
-            elif op in ('lte', '<='):
-                clauses.append(f"{col_ref} <= '{safe_val}'")
-            else:
-                clauses.append(f"{col_ref} = '{safe_val}'")
-
-        # ── String columns: LIKE or IN ───────────────────────────────────────
-        else:
-            safe_vals = [str(v).replace("'", "''") for v in values]
-            if len(safe_vals) > 1:
-                # e.g. status IN ('done', 'in_progress')
-                in_list = ", ".join(f"'{v}'" for v in safe_vals)
-                in_parts = ', '.join(f"LOWER('{v}')" for v in safe_vals)
-                clauses.append(f"LOWER({col_ref}) IN ({in_parts})")
-            elif op == 'contains':
-                clauses.append(f"LOWER({col_ref}) LIKE LOWER('%{safe_vals[0]}%')")
-            elif op == 'notEquals':
-                clauses.append(f"LOWER({col_ref}) != LOWER('{safe_vals[0]}')")
-            else:
-                # equals (default)
-                clauses.append(f"LOWER({col_ref}) = LOWER('{safe_vals[0]}')")
-
-    return clauses
+RANKING_KEYWORDS = {
+    "desc": ["most", "highest", "top", "best", "costliest", "largest",
+             "maximum", "max", "biggest", "best performing"],
+    "asc":  ["least", "lowest", "cheapest", "smallest", "minimum", "min",
+             "fewest", "worst"],
+}
 
 
-# ---------------------------------------------------------------------------
-# SQL compiler
-# ---------------------------------------------------------------------------
-
-def sql_compiler(plan):
-    # ── LIST mode: SELECT specific columns, no aggregation ──────────────────
-    # Triggered when the LLM returns mode="list" (show/list/display/get queries).
-    if plan.get("mode") == "list":
-        cols = plan.get("select_cols")
-        if not cols:
-            cols = [f"{plan['from']}.*"]
-        sql  = f"SELECT {', '.join(cols)}"
-        sql += f"\nFROM {plan['from']}"
-
-        if plan.get("joins"):
-            sql += "\n" + "\n".join(plan["joins"])
-
-        where_clauses = _build_where_clauses(plan.get("filters", []))
-        if where_clauses:
-            sql += f"\nWHERE {' AND '.join(where_clauses)}"
-
-        if plan.get("sort") == "desc":
-            sql += f"\nORDER BY {cols[-1]} DESC"
-        elif plan.get("sort") == "asc":
-            sql += f"\nORDER BY {cols[-1]} ASC"
-
-        if plan.get("limit"):
-            sql += f"\nLIMIT {plan['limit']}"
-
-        return sql
-
-    # ── Aggregate mode (original path) ──────────────────────────────────────
-    select_items = plan.get('select', [])
-    if plan.get('group_by'):
-        sql = f"SELECT {', '.join(select_items)}"
+def enforce_ranking(intent_output: dict, question: str) -> dict:
+    data = intent_output.get("intent", intent_output)
+    q    = question.lower()
+    for direction, keywords in RANKING_KEYWORDS.items():
+        if any(kw in q for kw in keywords):
+            if not data.get("sort"):
+                data["sort"] = direction
+                print(f"  [enforcer] sort={direction}")
+            break
+    if "intent" in intent_output:
+        intent_output["intent"] = data
     else:
-        metric_part = [s for s in select_items if 'AS result' in s]
-        sql = f"SELECT {', '.join(metric_part)}"
-
-    sql += f"\nFROM {plan['from']}"
-
-    if plan.get('joins'):
-        sql += "\n" + "\n".join(plan['joins'])
-
-    where_filters = [f for f in plan.get('filters', []) if not f.get('is_aggregate')]
-    clauses = _build_where_clauses(where_filters)
-    if clauses:
-        sql += f"\nWHERE {' AND '.join(clauses)}"
-
-    if plan.get('group_by'):
-        sql += f"\nGROUP BY {', '.join(plan['group_by'])}"
-
-    having_filters = [f for f in plan.get('filters', []) if f.get('is_aggregate')]
-    if having_filters:
-        having_clauses = []
-        for f in having_filters:
-            metric = csm['metrics'].get(f['col_key'])
-            if metric:
-                having_clauses.append(f"{metric['compute']} {f['op']} {f['val']}")
-        if having_clauses:
-            sql += f"\nHAVING {' AND '.join(having_clauses)}"
-
-    if plan.get('sort') == 'desc':
-        sql += "\nORDER BY result DESC"
-    elif plan.get('sort') == 'asc':
-        sql += "\nORDER BY result ASC"
-
-    if plan.get('limit'):
-        sql += f"\nLIMIT {plan['limit']}"
-
-    return sql
+        intent_output = data
+    return intent_output
 
 
-# ---------------------------------------------------------------------------
-# List-intent keywords
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# INTENT NORMALISER
+# ═══════════════════════════════════════════════════════════════════════════
 
 LIST_TRIGGERS = {
     "list", "show", "display", "all", "every", "get", "fetch",
     "give me", "who are", "what are", "tell me", "enumerate",
 }
 
-RANKING_KEYWORDS = {
-    "desc": ["most", "highest", "top", "best", "costliest", "expensive",
-             "largest", "maximum", "max", "biggest"],
-    "asc":  ["least", "lowest", "cheapest", "smallest", "minimum", "min", "fewest"],
-}
-
-
-def enforce_ranking(intent_output: dict, question: str) -> dict:
-    data = intent_output.get('intent', intent_output)
-    q    = question.lower()
-
-    for direction, keywords in RANKING_KEYWORDS.items():
-        if any(kw in q for kw in keywords):
-            if not data.get('sort'):
-                data['sort'] = direction
-                print(f"  [enforcer] sort={direction} (keyword match)")
-            if not data.get('limit'):
-                data['limit'] = 1
-                print(f"  [enforcer] limit=1 (keyword match)")
-            break
-
-    if 'intent' in intent_output:
-        intent_output['intent'] = data
-    else:
-        intent_output = data
-
-    return intent_output
-
-
-# ---------------------------------------------------------------------------
-# Intent normaliser
-# FIX: resolves dimension/filter keys case-insensitively; detects list intent
-# ---------------------------------------------------------------------------
 
 def normalize_intent(intent_output: dict, question: str = "") -> dict:
     """
-    Normalises LLM output into the shape the rest of the pipeline expects.
-
-    Key fixes:
-      1. Resolves dimension / filter keys case-insensitively against the CSM.
-      2. Detects "list" intent from question keywords and overrides mode when
-         the LLM missed it (e.g. it returned a row_count metric with no dims).
-      3. When mode=list and no dimensions were resolved, auto-injects the id
-         dimension and the first string dimension for the base table so the
-         query returns meaningful columns instead of COUNT(*).
+    Normalise LLM output:
+    1. Resolve measure/dimension/recipe keys case-insensitively via AxonLoader.
+    2. Flatten filter value lists.
+    3. Detect list intent from question keywords.
     """
-    data = intent_output.get('intent', intent_output)
+    data = intent_output.get("intent", intent_output)
 
-    # -- Normalise metric key ------------------------------------------------
-    raw_metric       = data.get("metric", "")
-    canonical_metric = resolve_metric_key(raw_metric)
-    if canonical_metric:
-        data["metric"] = canonical_metric
-    elif raw_metric:
-        print(f"  [warn] Metric '{raw_metric}' not in CSM -- keeping as-is")
+    # ── Recipe key ────────────────────────────────────────────────────────
+    raw_recipe = data.get("recipe") or ""
+    if raw_recipe:
+        rk, _ = axon.resolve_recipe(str(raw_recipe))
+        if rk:
+            data["recipe"] = rk
+        else:
+            print(f"  [warn] Recipe '{raw_recipe}' not found — cleared")
+            data["recipe"] = None
 
-    # -- Normalise dimension keys --------------------------------------------
+    # ── Measure key ───────────────────────────────────────────────────────
+    raw_metric = data.get("metric") or ""
+    if raw_metric:
+        mk, _ = axon.resolve_measure(str(raw_metric))
+        if mk:
+            data["metric"] = mk
+        else:
+            print(f"  [warn] Measure '{raw_metric}' not found — cleared")
+            data["metric"] = None
+
+    # ── Dimension keys ────────────────────────────────────────────────────
     resolved_dims = []
     for raw_dim in data.get("dimensions", []):
-        canonical = resolve_dimension_key(raw_dim)
-        if canonical:
-            resolved_dims.append(canonical)
+        dk, _ = axon.resolve_dimension(str(raw_dim))
+        if dk:
+            resolved_dims.append(dk)
         else:
-            print(f"  [warn] Dimension '{raw_dim}' not in CSM -- skipped")
+            print(f"  [warn] Dimension '{raw_dim}' not found — skipped")
     data["dimensions"] = resolved_dims
 
-    # -- Normalise filter keys + values (supports multi-value IN filters) -----
-    # The LLM may emit values=["done","in_progress"] for "completed and in progress".
-    # We preserve the full list in vals so _build_where_clauses can emit IN (...).
-    normalized_filters = []
+    # ── Filter keys + values ──────────────────────────────────────────────
+    normalised_filters = []
     for f in data.get("filters", []):
         raw_key = f.get("col_key") or f.get("field") or ""
+        dk, _   = axon.resolve_dimension(str(raw_key))
+        if not dk:
+            print(f"  [warn] Filter field '{raw_key}' not found — skipped")
+            continue
         values = (
-            f.get("values")
-            or f.get("vals")
+            f.get("values") or f.get("vals")
             or ([f.get("val")] if f.get("val") is not None else [])
         )
-        # Flatten nested lists that some LLM outputs produce
-        if values and isinstance(values[0], list):
+        if values and isinstance(values, list) and values and isinstance(values[0], list):
             values = [item for sub in values for item in sub]
-        # Drop empty strings
         values = [v for v in values if v is not None and str(v).strip() != ""]
-
-        if not raw_key or not values:
+        if not values:
             continue
-
-        canonical_key = resolve_dimension_key(raw_key)
-        if not canonical_key:
-            print(f"  [warn] Filter field '{raw_key}' not in CSM -- skipped")
-            continue
-
-        normalized_filters.append({
-            "col_key":      canonical_key,
-            "val":          values[0],   # primary value (single-value path)
-            "vals":         values,       # full list  (multi-value IN path)
-            "op":           f.get("operator", "equals"),
-            "is_aggregate": False,
+        normalised_filters.append({
+            "col_key":  dk,
+            "field":    dk,
+            "val":      values[0],
+            "vals":     values,
+            "values":   values,
+            "operator": f.get("operator") or f.get("op") or "equals",
+            "op":       f.get("operator") or f.get("op") or "equals",
         })
         if len(values) > 1:
-            print(f"  [normalizer] multi-value filter: {canonical_key} IN {values}")
+            print(f"  [normalizer] multi-value filter: {dk} IN {values}")
+    data["filters"] = normalised_filters
 
-    data["filters"] = normalized_filters
+    # ── Detect list intent from question ──────────────────────────────────
+    q              = question.lower()
+    is_list_q      = any(kw in q for kw in LIST_TRIGGERS)
+    metric_is_count = (data.get("metric") or "").endswith("_row_count")
+    has_no_sort    = not data.get("sort")
+    llm_said_list  = data.get("mode") == "list"
 
-    # -- FIX: detect list intent from question keywords ----------------------
-    q = question.lower()
-    is_list_question = any(kw in q for kw in LIST_TRIGGERS)
-    metric_is_count  = data.get("metric", "").endswith("_row_count")
-    has_no_sort      = not data.get("sort")
-    llm_said_list    = data.get("mode") == "list"
-
-    if (is_list_question and metric_is_count and has_no_sort) or llm_said_list:
+    if (is_list_q and metric_is_count and has_no_sort) or llm_said_list:
         data["mode"] = "list"
-        print(f"  [normalizer] mode=list detected")
-
-        # Auto-inject id + name dimensions if none were resolved
+        print("  [normalizer] mode=list")
+        # Auto-inject id + name dims if none were found
         if not data["dimensions"] and data.get("metric"):
-            base_table = (
-                csm["metrics"]
-                .get(data["metric"], {})
-                .get("sources", [""])[0]
-            )
-            if base_table:
-                id_dim   = f"{base_table}_id"
+            mk = data["metric"]
+            mn = axon.measures.get(mk, {})
+            base = mn.get("source", "")
+            if base:
+                id_dim   = f"{base}_id"
                 name_dim = next(
-                    (k for k, v in csm["dimensions"].items()
-                     if v.get("source") == base_table and v.get("type") == "string"),
+                    (k for k, v in axon.dimensions.items()
+                     if v.get("source") == base and v.get("type") == "string"),
                     None,
                 )
-                auto_dims = []
-                if id_dim in csm["dimensions"]:
-                    auto_dims.append(id_dim)
-                if name_dim:
-                    auto_dims.append(name_dim)
-                if auto_dims:
-                    data["dimensions"] = auto_dims
-                    print(f"  [normalizer] auto-injected dims: {auto_dims}")
+                auto = [d for d in [id_dim, name_dim] if d and d in axon.dimensions]
+                if auto:
+                    data["dimensions"] = auto
+                    print(f"  [normalizer] auto-injected dims: {auto}")
 
     if "intent" in intent_output:
         intent_output["intent"] = data
     else:
         intent_output = data
-
     return intent_output
 
 
-# ---------------------------------------------------------------------------
-# RAG++ resolver  (builds the logical plan from normalised intent)
-# FIX: passes mode and select_cols through to the plan
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# AXON COMPILE STEP (replaces rag_plus_plus_resolver + sql_compiler)
+# ═══════════════════════════════════════════════════════════════════════════
 
-def rag_plus_plus_resolver(raw_intent):
-    data = raw_intent.get('intent', raw_intent)
+def axon_compile(intent_output: dict) -> dict:
+    """
+    Takes normalised intent, compiles via AxonCompiler, returns sql + plan.
+    """
+    data = intent_output.get("intent", intent_output)
 
-    m_key = data.get('metric') or 'row_count'
-    metric_node = csm['metrics'].get(m_key)
-    if not metric_node:
-        available_metrics = list(csm['metrics'].keys())
-        raise ValueError(f"Metric '{m_key}' not found in CSM. Available: {available_metrics}")
-
-    base_table = metric_node.get('sources')[0]
-
-    required_tables = set()
-    dim_nodes       = []
-    for d_id in data.get('dimensions', []):
-        node = csm['dimensions'].get(d_id)
-        if node:
-            dim_nodes.append((d_id, node))
-            required_tables.add(node['source'])
-
-    valid_filters = []
-    for f in data.get('filters', []):
-        col_key = f.get('col_key')
-        val     = f.get('val')
-
-        if not val or (isinstance(val, str) and val.strip() == ''):
-            continue
-
-        f_dim = csm['dimensions'].get(col_key)
-        if not f_dim:
-            print(f"  [warn] Filter col_key '{col_key}' not in CSM dimensions -- skipped")
-            continue
-
-        required_tables.add(f_dim['source'])
-        valid_filters.append(f)
-
-    relationships = csm.get('relationships', {})
-
-    def find_join_path(start, target):
-        if start == target:
-            return []
-        queue   = [(start, [])]
-        visited = {start}
-        while queue:
-            (current_node, path) = queue.pop(0)
-            for rel_id, rel in relationships.items():
-                if rel['from'] == current_node and rel['to'] not in visited:
-                    new_path = path + [(rel['to'], rel['join'])]
-                    if rel['to'] == target:
-                        return new_path
-                    visited.add(rel['to'])
-                    queue.append((rel['to'], new_path))
-                elif rel['to'] == current_node and rel['from'] not in visited:
-                    new_path = path + [(rel['from'], rel['join'])]
-                    if rel['from'] == target:
-                        return new_path
-                    visited.add(rel['from'])
-                    queue.append((rel['from'], new_path))
-        return None
-
-    active_joins  = []
-    joined_tables = {base_table}
-
-    for table in required_tables:
-        if table not in joined_tables:
-            path = find_join_path(base_table, table)
-            if path:
-                for to_table, join_on in path:
-                    if to_table not in joined_tables:
-                        active_joins.append(f"LEFT JOIN {to_table} ON {join_on}")
-                        joined_tables.add(to_table)
-            else:
-                print(f"  [warn] No join path found from {base_table} to {table}")
-
-    # Build the standard aggregate-mode select/group_by
-    dim_col_refs  = [f"{node['source']}.{node['column']}" for _, node in dim_nodes]
-    aggregate_sel = dim_col_refs + [f"{metric_node['compute']} AS result"]
-    group_by      = dim_col_refs if dim_col_refs else []
-
-    plan = {
-        "select":   aggregate_sel,
-        "from":     base_table,
-        "joins":    active_joins,
-        "group_by": group_by,
-        "limit":    data.get('limit'),
-        "sort":     data.get('sort'),
-        "filters":  valid_filters,
+    # Build intent dict for compiler (unified shape)
+    intent = {
+        "recipe":     data.get("recipe"),
+        "metric":     data.get("metric"),
+        "dimensions": data.get("dimensions", []),
+        "filters":    data.get("filters", []),
+        "sort":       data.get("sort"),
+        "limit":      data.get("limit"),
+        "mode":       data.get("mode"),
     }
 
-    # FIX: carry mode through and build select_cols for list queries
-    if data.get("mode") == "list":
-        plan["mode"] = "list"
-        # select_cols: prefer explicitly requested dims, fall back to table.*
-        if dim_col_refs:
-            plan["select_cols"] = dim_col_refs
-        else:
-            plan["select_cols"] = [f"{base_table}.*"]
-
-    return plan
+    sql, plan = compiler.compile(intent)
+    return {"sql": sql, "plan": plan, "intent": data}
 
 
-# ---------------------------------------------------------------------------
-# Pipeline
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# PIPELINE
+# ═══════════════════════════════════════════════════════════════════════════
 
 analytics_pipeline = (
     RunnableParallel({
-        "question":        RunnablePassthrough(),
-        "metrics_list":    lambda x: list(csm['metrics'].keys()),
-        "dimensions_list": lambda x: list(csm['dimensions'].keys()),
-        "schema_context":  lambda x: json.dumps({
-            "metrics":    {k: {"sources": v['sources']} for k, v in csm['metrics'].items()},
-            "dimensions": {k: {"source":  v['source']}  for k, v in csm['dimensions'].items()},
-        }),
-        "bgo_context":     lambda x: build_bgo_context(glossary),
+        "question": RunnablePassthrough(),
     })
     | RunnableParallel({
         "intent":   decomposition_chain,
         "question": lambda x: x["question"],
     })
     | RunnableLambda(lambda x: {
-        "intent":   enforce_ranking(x['intent'], x['question']),
-        "question": x['question'],
-    })
-    # FIX: pass question into normalize_intent so it can detect list mode
-    | RunnableLambda(lambda x: {
-        "intent":   normalize_intent(x['intent'], x['question']),
-        "question": x['question'],
+        "intent":   enforce_ranking(x["intent"], x["question"]),
+        "question": x["question"],
     })
     | RunnableLambda(lambda x: {
-        "logical_plan": rag_plus_plus_resolver(x['intent']),
-        "intent":       x['intent'],
+        "intent":   normalize_intent(x["intent"], x["question"]),
+        "question": x["question"],
     })
-    | RunnableLambda(lambda x: {
-        "sql":          sql_compiler(x['logical_plan']),
-        "logical_plan": x['logical_plan'],
-        "intent":       x['intent'],
-    })
+    | RunnableLambda(lambda x: axon_compile(x["intent"]))
 )
 
 
-# ---------------------------------------------------------------------------
-# Public entry point
-# ---------------------------------------------------------------------------
-
-def ask_database(query):
-    print(f"Processing: {query}")
-    print("Running pipeline...")
-
-    output = analytics_pipeline.invoke(query)
-
-    final_sql    = output['sql']
-    logical_plan = output['logical_plan']
-
-    print(f"Generated SQL:\n{final_sql}\n")
-
-    with engine.connect() as conn:
-        result = conn.execute(text(final_sql))
-        return [dict(row._mapping) for row in result]
-
+# ═══════════════════════════════════════════════════════════════════════════
+# PUBLIC ENTRY POINT
+# ═══════════════════════════════════════════════════════════════════════════
 
 def decimal_default(obj):
     if isinstance(obj, decimal.Decimal):
@@ -603,7 +366,48 @@ def decimal_default(obj):
     raise TypeError
 
 
+def ask_database(question: str) -> list[dict]:
+    print(f"\nProcessing: {question}")
+    print("Running pipeline...")
+
+    output   = analytics_pipeline.invoke(question)
+    final_sql = output["sql"]
+    plan      = output["plan"]
+
+    print(f"\nPlan type : {plan.plan_type}")
+    print(f"Generated SQL:\n{final_sql}\n")
+
+    with engine.connect() as conn:
+        result = conn.execute(text(final_sql))
+        return [dict(row._mapping) for row in result]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CLI
+# ═══════════════════════════════════════════════════════════════════════════
+
 if __name__ == "__main__":
-    question = input("Ask your question: ")
-    results  = ask_database(question)
-    print("Data Output:", json.dumps(results, indent=2, default=decimal_default))
+    print("AXON Analytics Connector")
+    print("=" * 50)
+    print("Supported query types:")
+    print("  • Simple lists (show/list/get)")
+    print("  • Aggregates (count/sum per dimension)")
+    print("  • Ratios (completion rate, block rate)")
+    print("  • Window functions (rank employees globally or within dept)")
+    print("  • Composite scores (weighted performance score)")
+    print("  • Subquery thresholds (above-average workload)")
+    print("  • Recipes (multi-CTE efficiency/dept/manager reports)")
+    print("=" * 50)
+
+    while True:
+        try:
+            question = input("\nAsk your question (or 'quit'): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            break
+        if not question or question.lower() in ("quit", "exit", "q"):
+            break
+        try:
+            results = ask_database(question)
+            print("Results:", json.dumps(results, indent=2, default=decimal_default))
+        except Exception as e:
+            print(f"Error: {e}")
