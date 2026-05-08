@@ -1,316 +1,526 @@
 metrics:
+  # ── Basic row counts ────────────────────────────────────────────────────
   departments_row_count:
     compute: COUNT(*)
     sources:
-    - departments
+      - departments
     label: Total Departments
+
   employee_skills_row_count:
     compute: COUNT(*)
     sources:
-    - employee_skills
+      - employee_skills
     label: Total Employee Skills
+
   employees_row_count:
     compute: COUNT(*)
     sources:
-    - employees
+      - employees
     label: Total Employees
+
   projects_row_count:
     compute: COUNT(*)
     sources:
-    - projects
+      - projects
     label: Total Projects
+
   skills_row_count:
     compute: COUNT(*)
     sources:
-    - skills
+      - skills
     label: Total Skills
+
   task_logs_row_count:
     compute: COUNT(*)
     sources:
-    - task_logs
+      - task_logs
     label: Total Task Logs
+
   tasks_row_count:
     compute: COUNT(*)
     sources:
-    - tasks
+      - tasks
     label: Total Tasks
+
+  # ── Relational counts ───────────────────────────────────────────────────
   departments_per_employee:
     compute: COUNT(DISTINCT departments.id)
     sources:
-    - departments
-    - employees
+      - departments
+      - employees
     label: Departments per Employee
+
   projects_per_department:
     compute: COUNT(DISTINCT projects.id)
     sources:
-    - projects
-    - departments
+      - projects
+      - departments
     label: Projects per Department
+
   employee_skills_per_employee:
-    compute: COUNT(DISTINCT employee_skills.id)
+    compute: COUNT(DISTINCT employee_skills.skill_id)
     sources:
-    - employee_skills
-    - employees
-    label: Employee_Skills per Employee
+      - employee_skills
+      - employees
+    label: Skills per Employee
+
   employee_skills_per_skill:
-    compute: COUNT(DISTINCT employee_skills.id)
+    compute: COUNT(DISTINCT employee_skills.employee_id)
     sources:
-    - employee_skills
-    - skills
-    label: Employee_Skills per Skill
+      - employee_skills
+      - skills
+    label: Employees per Skill
+
   tasks_per_employee:
     compute: COUNT(DISTINCT tasks.id)
     sources:
-    - tasks
-    - employees
+      - tasks
+      - employees
     label: Tasks per Employee
+
   tasks_per_project:
     compute: COUNT(DISTINCT tasks.id)
     sources:
-    - tasks
-    - projects
+      - tasks
+      - projects
     label: Tasks per Project
+
   task_logs_per_task:
     compute: COUNT(DISTINCT task_logs.id)
     sources:
-    - task_logs
-    - tasks
-    label: Task_Logs per Task
+      - task_logs
+      - tasks
+    label: Task Logs per Task
+
+  # ── Skill / proficiency metrics ─────────────────────────────────────────
+  avg_proficiency_per_employee:
+    compute: AVG(employee_skills.proficiency)
+    sources:
+      - employee_skills
+      - employees
+    label: Average Skill Proficiency per Employee
+    description: >
+      Mean proficiency score across all skills an employee holds.
+      Higher = more skilled on average. Use to find the "most skilled" employee.
+
+  total_proficiency_per_employee:
+    compute: SUM(employee_skills.proficiency)
+    sources:
+      - employee_skills
+      - employees
+    label: Total Proficiency Score per Employee
+    description: >
+      Sum of proficiency scores across all skills. Rewards both breadth
+      (many skills) and depth (high scores). Best single proxy for
+      "most skilled overall".
+
+  max_proficiency_per_employee:
+    compute: MAX(employee_skills.proficiency)
+    sources:
+      - employee_skills
+      - employees
+    label: Peak Proficiency per Employee
+    description: Best single-skill proficiency score an employee has achieved.
+
+  avg_proficiency_per_skill:
+    compute: AVG(employee_skills.proficiency)
+    sources:
+      - employee_skills
+      - skills
+    label: Average Proficiency per Skill
+    description: Mean proficiency of all employees holding a given skill.
+
+  avg_proficiency_per_department:
+    compute: AVG(employee_skills.proficiency)
+    sources:
+      - employee_skills
+      - employees
+      - departments
+    label: Average Proficiency per Department
+    description: Mean skill proficiency across all employees in a department.
+
+  # ── Task-completion / efficiency metrics ────────────────────────────────
+  done_tasks_per_employee:
+    compute: COUNT(DISTINCT tasks.id)
+    sources:
+      - tasks
+      - employees
+    label: Completed Tasks per Employee
+    description: >
+      Number of tasks in status='done' assigned to an employee.
+      Filter tasks_task_status = 'done' when using this metric.
+
+  completion_rate_per_employee:
+    compute: "SUM(CASE WHEN tasks.task_status = 'done' THEN 1 ELSE 0 END) / NULLIF(COUNT(DISTINCT tasks.id), 0)"
+    sources:
+      - tasks
+      - employees
+    label: Task Completion Rate per Employee
+    description: >
+      Fraction of assigned tasks that are done (0-1 scale). The best
+      proxy for employee efficiency / productivity. Higher = more efficient.
+
+  pending_tasks_per_employee:
+    compute: COUNT(DISTINCT tasks.id)
+    sources:
+      - tasks
+      - employees
+    label: Pending Tasks per Employee
+    description: >
+      Number of tasks still pending or blocked. Filter tasks_task_status
+      IN ('pending','blocked') when using this metric.
+
+  blocked_tasks_per_employee:
+    compute: COUNT(DISTINCT tasks.id)
+    sources:
+      - tasks
+      - employees
+    label: Blocked Tasks per Employee
+    description: Tasks in 'blocked' status assigned to an employee.
+
+  task_log_activity_per_employee:
+    compute: COUNT(DISTINCT task_logs.id)
+    sources:
+      - task_logs
+      - tasks
+      - employees
+    label: Task Log Activity per Employee
+    description: >
+      Total number of task-log events generated by tasks assigned to
+      an employee. A proxy for work activity volume.
+
+  avg_logs_per_task_per_employee:
+    compute: "COUNT(DISTINCT task_logs.id) / NULLIF(COUNT(DISTINCT tasks.id), 0)"
+    sources:
+      - task_logs
+      - tasks
+      - employees
+    label: Avg Log Events per Task per Employee
+    description: >
+      Average number of log events per task per employee. Higher may
+      indicate more iterative / complex work or more thorough tracking.
+
+  # ── Project-level metrics ───────────────────────────────────────────────
+  active_projects_per_department:
+    compute: COUNT(DISTINCT projects.id)
+    sources:
+      - projects
+      - departments
+    label: Active Projects per Department
+    description: Count of projects with status='active' per department.
+
+  completed_projects_per_department:
+    compute: COUNT(DISTINCT projects.id)
+    sources:
+      - projects
+      - departments
+    label: Completed Projects per Department
+    description: Count of projects with status='completed' per department.
+
+  tasks_done_per_project:
+    compute: "SUM(CASE WHEN tasks.task_status = 'done' THEN 1 ELSE 0 END)"
+    sources:
+      - tasks
+      - projects
+    label: Completed Tasks per Project
+
+  completion_rate_per_project:
+    compute: "SUM(CASE WHEN tasks.task_status = 'done' THEN 1 ELSE 0 END) / NULLIF(COUNT(DISTINCT tasks.id), 0)"
+    sources:
+      - tasks
+      - projects
+    label: Task Completion Rate per Project
+    description: Fraction of tasks done within a project (0-1).
+
+  # ── Cross-entity / leaderboard metrics ─────────────────────────────────
+  skill_diversity_per_department:
+    compute: COUNT(DISTINCT employee_skills.skill_id)
+    sources:
+      - employee_skills
+      - employees
+      - departments
+    label: Skill Diversity per Department
+    description: Number of distinct skills present across all employees in a department.
+
+  employees_with_skill_per_department:
+    compute: COUNT(DISTINCT employees.id)
+    sources:
+      - employee_skills
+      - employees
+      - departments
+    label: Skilled Employees per Department
+    description: How many employees in a department hold at least one skill.
+
 dimensions:
   departments_id:
     source: departments
     column: id
     type: id
     label: Id
+
   departments_dept_name:
     source: departments
     column: dept_name
     type: string
     label: Dept Name
     sample_values:
-    - Engineering
-    - Product
-    - Design
-    - Data & Analytics
-    - Operations
+      - Engineering
+      - Product
+      - Design
+      - Data & Analytics
+      - Operations
+
   departments_manager_id:
     source: departments
     column: manager_id
     type: number
     label: Manager Id
     fk: employees.id
+
   employee_skills_employee_id:
     source: employee_skills
     column: employee_id
     type: id
     label: Employee Id
     fk: employees.id
+
   employee_skills_skill_id:
     source: employee_skills
     column: skill_id
     type: id
     label: Skill Id
     fk: skills.id
+
   employee_skills_proficiency:
     source: employee_skills
     column: proficiency
     type: number
     label: Proficiency
+
   employees_id:
     source: employees
     column: id
     type: id
     label: Id
+
   employees_emp_name:
     source: employees
     column: emp_name
     type: string
     label: Emp Name
     sample_values:
-    - Alice Nair
-    - Ben Sharma
-    - Clara Melo
-    - David Osei
-    - Elena Kovac
+      - Alice Nair
+      - Ben Sharma
+      - Clara Melo
+      - David Osei
+      - Elena Kovac
+
   employees_emp_role:
     source: employees
     column: emp_role
     type: string
     label: Emp Role
     sample_values:
-    - Engineering Manager
-    - Product Manager
-    - Design Lead
-    - Data Director
-    - Operations Head
+      - Engineering Manager
+      - Product Manager
+      - Design Lead
+      - Data Director
+      - Operations Head
+
   employees_dept_id:
     source: employees
     column: dept_id
     type: number
     label: Dept Id
     fk: departments.id
+
   employees_manager_id:
     source: employees
     column: manager_id
     type: number
     label: Manager Id
     fk: employees.id
+
   projects_id:
     source: projects
     column: id
     type: id
     label: Id
+
   projects_project_name:
     source: projects
     column: project_name
     type: string
     label: Project Name
     sample_values:
-    - Platform Rewrite
-    - API Gateway v2
-    - Mobile App
-    - Q3 Roadmap
-    - Onboarding Redesign
+      - Platform Rewrite
+      - API Gateway v2
+      - Mobile App
+      - Q3 Roadmap
+      - Onboarding Redesign
+
   projects_status:
     source: projects
     column: status
     type: string
     label: Status
     sample_values:
-    - active
-    - on_hold
-    - completed
+      - active
+      - on_hold
+      - completed
+
   projects_dept_id:
     source: projects
     column: dept_id
     type: number
     label: Dept Id
     fk: departments.id
+
   skills_id:
     source: skills
     column: id
     type: id
     label: Id
+
   skills_skill_name:
     source: skills
     column: skill_name
     type: string
     label: Skill Name
     sample_values:
-    - dbt
-    - Figma
-    - Go
-    - Kubernetes
-    - Product Strategy
+      - dbt
+      - Figma
+      - Go
+      - Kubernetes
+      - Product Strategy
+
   skills_category:
     source: skills
     column: category
     type: string
     label: Category
     sample_values:
-    - Programming
-    - Data
-    - Frontend
-    - Design
-    - Infrastructure
+      - Programming
+      - Data
+      - Frontend
+      - Design
+      - Infrastructure
+
   task_logs_id:
     source: task_logs
     column: id
     type: id
     label: Id
+
   task_logs_task_id:
     source: task_logs
     column: task_id
     type: number
     label: Task Id
     fk: tasks.id
+
   task_logs_action:
     source: task_logs
     column: action
     type: string
     label: Action
     sample_values:
-    - Task created
-    - Status changed to in_progress
-    - Status changed to done
-    - Research sessions completed
-    - dbt model layer started
+      - Task created
+      - Status changed to in_progress
+      - Status changed to done
+      - Research sessions completed
+      - dbt model layer started
+
   task_logs_logged_at:
     source: task_logs
     column: logged_at
     type: time
     label: Logged At
+
   tasks_id:
     source: tasks
     column: id
     type: id
     label: Id
+
   tasks_task_name:
     source: tasks
     column: task_name
     type: string
     label: Task Name
     sample_values:
-    - Scaffold new service structure
-    - Migrate auth module
-    - Write unit tests for core libs
-    - Deploy to staging
-    - Define OpenAPI spec
+      - Scaffold new service structure
+      - Migrate auth module
+      - Write unit tests for core libs
+      - Deploy to staging
+      - Define OpenAPI spec
+
   tasks_task_status:
     source: tasks
     column: task_status
     type: string
     label: Task Status
     sample_values:
-    - done
-    - in_progress
-    - pending
-    - blocked
+      - done
+      - in_progress
+      - pending
+      - blocked
+
   tasks_project_id:
     source: tasks
     column: project_id
     type: number
     label: Project Id
     fk: projects.id
+
   tasks_assigned_to:
     source: tasks
     column: assigned_to
     type: number
     label: Assigned To
     fk: employees.id
+
 relationships:
   departments_to_employees:
     from: departments
     to: employees
     join: departments.manager_id = employees.id
+
   employee_skills_to_employees:
     from: employee_skills
     to: employees
     join: employee_skills.employee_id = employees.id
+
   employee_skills_to_skills:
     from: employee_skills
     to: skills
     join: employee_skills.skill_id = skills.id
+
   employees_to_departments:
     from: employees
     to: departments
     join: employees.dept_id = departments.id
+
   employees_to_employees:
     from: employees
     to: employees
     join: employees.manager_id = employees.id
+
   projects_to_departments:
     from: projects
     to: departments
     join: projects.dept_id = departments.id
+
   task_logs_to_tasks:
     from: task_logs
     to: tasks
     join: task_logs.task_id = tasks.id
+
   tasks_to_employees:
     from: tasks
     to: employees
     join: tasks.assigned_to = employees.id
+
   tasks_to_projects:
     from: tasks
     to: projects
