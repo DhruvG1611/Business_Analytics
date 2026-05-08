@@ -1,0 +1,309 @@
+-- =============================================================================
+-- HR Analytics Test Schema
+-- 7 tables: departments, employees (self-ref manager), projects, tasks,
+--           skills, employee_skills (junction), task_logs
+-- Designed to stress-test CSM generator + connector BFS join resolution
+-- =============================================================================
+
+-- Drop in reverse FK order
+DROP TABLE IF EXISTS task_logs;
+DROP TABLE IF EXISTS employee_skills;
+DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS skills;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS departments;
+
+
+-- =============================================================================
+-- TABLE 1: departments
+-- Referenced by: employees.dept_id, projects.dept_id
+-- Self-ref via: departments.manager_id -> employees (set after employees exist)
+-- =============================================================================
+CREATE TABLE departments (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    dept_name   VARCHAR(100) NOT NULL,
+    manager_id  INT NULL          -- FK to employees.id, added after employees
+);
+
+
+-- =============================================================================
+-- TABLE 2: employees
+-- Self-referencing: manager_id -> employees.id
+-- =============================================================================
+CREATE TABLE employees (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    emp_name    VARCHAR(100) NOT NULL,
+    emp_role    VARCHAR(80)  NOT NULL,
+    dept_id     INT NOT NULL,
+    manager_id  INT NULL,         -- self-ref: NULL = top of hierarchy
+    CONSTRAINT fk_emp_dept    FOREIGN KEY (dept_id)    REFERENCES departments(id),
+    CONSTRAINT fk_emp_manager FOREIGN KEY (manager_id) REFERENCES employees(id)
+);
+
+-- Back-fill departments.manager_id FK now that employees table exists
+ALTER TABLE departments
+    ADD CONSTRAINT fk_dept_manager FOREIGN KEY (manager_id) REFERENCES employees(id);
+
+
+-- =============================================================================
+-- TABLE 3: projects
+-- Owned by a department
+-- =============================================================================
+CREATE TABLE projects (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    project_name  VARCHAR(150) NOT NULL,
+    status        ENUM('active','on_hold','completed') NOT NULL DEFAULT 'active',
+    dept_id       INT NOT NULL,
+    CONSTRAINT fk_proj_dept FOREIGN KEY (dept_id) REFERENCES departments(id)
+);
+
+
+-- =============================================================================
+-- TABLE 4: skills  (lookup / reference table)
+-- =============================================================================
+CREATE TABLE skills (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    skill_name  VARCHAR(100) NOT NULL UNIQUE,
+    category    VARCHAR(80)  NOT NULL
+);
+
+
+-- =============================================================================
+-- TABLE 5: employee_skills  (junction: employees <-> skills)
+-- Composite PK, two FKs
+-- =============================================================================
+CREATE TABLE employee_skills (
+    employee_id  INT NOT NULL,
+    skill_id     INT NOT NULL,
+    proficiency  TINYINT NOT NULL DEFAULT 3 CHECK (proficiency BETWEEN 1 AND 5),
+    PRIMARY KEY (employee_id, skill_id),
+    CONSTRAINT fk_es_emp   FOREIGN KEY (employee_id) REFERENCES employees(id),
+    CONSTRAINT fk_es_skill FOREIGN KEY (skill_id)    REFERENCES skills(id)
+);
+
+
+-- =============================================================================
+-- TABLE 6: tasks
+-- Belongs to a project AND assigned to an employee
+-- =============================================================================
+CREATE TABLE tasks (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    task_name    VARCHAR(200) NOT NULL,
+    task_status  ENUM('pending','in_progress','done','blocked') NOT NULL DEFAULT 'pending',
+    project_id   INT NOT NULL,
+    assigned_to  INT NOT NULL,
+    CONSTRAINT fk_task_proj FOREIGN KEY (project_id)  REFERENCES projects(id),
+    CONSTRAINT fk_task_emp  FOREIGN KEY (assigned_to) REFERENCES employees(id)
+);
+
+
+-- =============================================================================
+-- TABLE 7: task_logs
+-- Audit trail for every task — deep leaf table to test multi-hop joins
+-- =============================================================================
+CREATE TABLE task_logs (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    task_id    INT          NOT NULL,
+    action     VARCHAR(200) NOT NULL,
+    logged_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_log_task FOREIGN KEY (task_id) REFERENCES tasks(id)
+);
+
+
+-- =============================================================================
+-- SEED DATA
+-- =============================================================================
+
+-- ── Departments (manager_id filled in after employees) ──────────────────────
+INSERT INTO departments (dept_name) VALUES
+    ('Engineering'),
+    ('Product'),
+    ('Design'),
+    ('Data & Analytics'),
+    ('Operations');
+
+
+-- ── Employees (department first, managers second) ───────────────────────────
+-- Batch 1: top-level managers (manager_id = NULL)
+INSERT INTO employees (emp_name, emp_role, dept_id, manager_id) VALUES
+    ('Alice Nair',      'Engineering Manager', 1, NULL),   -- id 1
+    ('Ben Sharma',      'Product Manager',     2, NULL),   -- id 2
+    ('Clara Melo',      'Design Lead',         3, NULL),   -- id 3
+    ('David Osei',      'Data Director',       4, NULL),   -- id 4
+    ('Elena Kovac',     'Operations Head',     5, NULL);   -- id 5
+
+-- Batch 2: individual contributors reporting to managers above
+INSERT INTO employees (emp_name, emp_role, dept_id, manager_id) VALUES
+    ('Frank Liu',       'Senior Engineer',     1, 1),      -- id 6
+    ('Grace Park',      'Engineer',            1, 1),      -- id 7
+    ('Hiro Tanaka',     'Engineer',            1, 6),      -- id 8  (reports to Frank)
+    ('Iris Dube',       'Product Analyst',     2, 2),      -- id 9
+    ('Jomo Abubakar',   'Product Designer',    2, 2),      -- id 10
+    ('Kezia Reyes',     'UX Designer',         3, 3),      -- id 11
+    ('Liam Okafor',     'Visual Designer',     3, 3),      -- id 12
+    ('Maya Singh',      'Data Engineer',       4, 4),      -- id 13
+    ('Noah Petrov',     'Data Analyst',        4, 4),      -- id 14
+    ('Olivia Crane',    'Ops Coordinator',     5, 5),      -- id 15
+    ('Pedro Almada',    'Ops Analyst',         5, 5);      -- id 16
+
+-- Assign department managers (Engineering=Alice, Product=Ben, etc.)
+UPDATE departments SET manager_id = 1 WHERE id = 1;
+UPDATE departments SET manager_id = 2 WHERE id = 2;
+UPDATE departments SET manager_id = 3 WHERE id = 3;
+UPDATE departments SET manager_id = 4 WHERE id = 4;
+UPDATE departments SET manager_id = 5 WHERE id = 5;
+
+
+-- ── Skills ──────────────────────────────────────────────────────────────────
+INSERT INTO skills (skill_name, category) VALUES
+    ('Python',          'Programming'),
+    ('SQL',             'Data'),
+    ('React',           'Frontend'),
+    ('Figma',           'Design'),
+    ('Kubernetes',      'Infrastructure'),
+    ('dbt',             'Data'),
+    ('Product Strategy','Management'),
+    ('User Research',   'Research'),
+    ('Go',              'Programming'),
+    ('Tableau',         'Analytics');
+
+
+-- ── Employee Skills (junction) ───────────────────────────────────────────────
+INSERT INTO employee_skills (employee_id, skill_id, proficiency) VALUES
+    (1,  1, 5), (1,  9, 4), (1,  5, 3),   -- Alice: Python, Go, Kubernetes
+    (6,  1, 5), (6,  9, 5), (6,  5, 4),   -- Frank: Python, Go, Kubernetes
+    (7,  1, 4), (7,  3, 3),                -- Grace: Python, React
+    (8,  1, 3), (8,  3, 4),                -- Hiro:  Python, React
+    (9,  2, 4), (9,  7, 3),                -- Iris:  SQL, Product Strategy
+    (10, 7, 4), (10, 8, 4),                -- Jomo:  Product Strategy, User Research
+    (11, 4, 5), (11, 8, 4),                -- Kezia: Figma, User Research
+    (12, 4, 4),                             -- Liam:  Figma
+    (13, 1, 4), (13, 2, 5), (13, 6, 5),   -- Maya:  Python, SQL, dbt
+    (14, 2, 4), (14, 10,4),                -- Noah:  SQL, Tableau
+    (15, 2, 3),                             -- Olivia: SQL
+    (16, 2, 4), (16, 10,3);                -- Pedro: SQL, Tableau
+
+
+-- ── Projects ─────────────────────────────────────────────────────────────────
+INSERT INTO projects (project_name, status, dept_id) VALUES
+    ('Platform Rewrite',        'active',    1),   -- id 1  Eng
+    ('API Gateway v2',          'active',    1),   -- id 2  Eng
+    ('Mobile App',              'on_hold',   1),   -- id 3  Eng
+    ('Q3 Roadmap',              'active',    2),   -- id 4  Product
+    ('Onboarding Redesign',     'active',    3),   -- id 5  Design
+    ('Design System',           'completed', 3),   -- id 6  Design
+    ('Data Warehouse Migration','active',    4),   -- id 7  Data
+    ('Revenue Dashboard',       'active',    4),   -- id 8  Data
+    ('Vendor Consolidation',    'active',    5),   -- id 9  Ops
+    ('Process Automation',      'on_hold',   5);   -- id 10 Ops
+
+
+-- ── Tasks ─────────────────────────────────────────────────────────────────────
+INSERT INTO tasks (task_name, task_status, project_id, assigned_to) VALUES
+    -- Platform Rewrite (proj 1)
+    ('Scaffold new service structure',   'done',        1,  6),
+    ('Migrate auth module',              'in_progress', 1,  7),
+    ('Write unit tests for core libs',   'pending',     1,  8),
+    ('Deploy to staging',                'pending',     1,  6),
+    -- API Gateway v2 (proj 2)
+    ('Define OpenAPI spec',              'done',        2,  6),
+    ('Implement rate limiting',          'in_progress', 2,  7),
+    ('Load test gateway',                'pending',     2,  8),
+    -- Mobile App (proj 3 - on hold)
+    ('UI wireframes',                    'blocked',     3, 11),
+    ('API contract draft',               'blocked',     3,  9),
+    -- Q3 Roadmap (proj 4)
+    ('Stakeholder interviews',           'done',        4,  9),
+    ('Draft feature briefs',             'in_progress', 4, 10),
+    ('Prioritisation workshop',          'pending',     4,  2),
+    -- Onboarding Redesign (proj 5)
+    ('User research sessions',           'done',        5, 11),
+    ('Prototype v1',                     'in_progress', 5, 11),
+    ('Prototype v2',                     'pending',     5, 12),
+    -- Design System (proj 6 - completed)
+    ('Component library audit',          'done',        6, 12),
+    ('Token documentation',              'done',        6, 11),
+    -- Data Warehouse Migration (proj 7)
+    ('Source system mapping',            'done',        7, 13),
+    ('Build staging pipeline',           'in_progress', 7, 13),
+    ('dbt model layer',                  'in_progress', 7, 13),
+    ('Data quality checks',              'pending',     7, 14),
+    -- Revenue Dashboard (proj 8)
+    ('Define KPI list',                  'done',        8, 14),
+    ('Build Tableau workbook',           'in_progress', 8, 14),
+    ('Stakeholder review',               'pending',     8,  4),
+    -- Vendor Consolidation (proj 9)
+    ('Vendor assessment matrix',         'done',        9, 15),
+    ('Contract negotiation prep',        'in_progress', 9, 16),
+    ('Sign-off documentation',           'pending',     9,  5),
+    -- Process Automation (proj 10 - on hold)
+    ('AS-IS process mapping',            'blocked',     10, 15),
+    ('Tool evaluation',                  'blocked',     10, 16);
+
+
+-- ── Task Logs (audit trail, multi-hop: task_logs -> tasks -> projects) ────────
+INSERT INTO task_logs (task_id, action, logged_at) VALUES
+    (1,  'Task created',                          '2024-01-10 09:00:00'),
+    (1,  'Status changed to in_progress',         '2024-01-11 10:30:00'),
+    (1,  'Status changed to done',                '2024-01-15 17:00:00'),
+    (2,  'Task created',                          '2024-01-10 09:05:00'),
+    (2,  'Status changed to in_progress',         '2024-01-16 09:00:00'),
+    (3,  'Task created',                          '2024-01-12 11:00:00'),
+    (5,  'Task created',                          '2024-01-08 08:00:00'),
+    (5,  'Status changed to done',                '2024-01-20 16:00:00'),
+    (6,  'Task created',                          '2024-01-20 09:00:00'),
+    (6,  'Status changed to in_progress',         '2024-01-22 10:00:00'),
+    (10, 'Task created',                          '2024-02-01 09:00:00'),
+    (10, 'Status changed to done',                '2024-02-10 17:00:00'),
+    (13, 'Task created',                          '2024-02-05 09:00:00'),
+    (13, 'Research sessions completed',           '2024-02-12 15:00:00'),
+    (13, 'Status changed to done',                '2024-02-12 15:05:00'),
+    (18, 'Task created',                          '2024-01-15 09:00:00'),
+    (18, 'Status changed to done',                '2024-01-25 14:00:00'),
+    (19, 'Task created',                          '2024-01-25 09:00:00'),
+    (19, 'Status changed to in_progress',         '2024-02-01 09:00:00'),
+    (20, 'dbt model layer started',               '2024-02-05 09:00:00'),
+    (22, 'KPI list approved by director',         '2024-02-08 11:00:00'),
+    (25, 'Vendor shortlist finalised',            '2024-01-30 13:00:00'),
+    (25, 'Status changed to done',                '2024-02-02 09:00:00'),
+    (28, 'Blocked pending budget approval',       '2024-02-14 10:00:00'),
+    (29, 'Blocked pending budget approval',       '2024-02-14 10:05:00');
+
+
+-- =============================================================================
+-- QUICK SANITY CHECK QUERIES (run these to verify counts)
+-- =============================================================================
+/*
+SELECT 'departments'   AS tbl, COUNT(*) AS rows FROM departments
+UNION ALL
+SELECT 'employees',    COUNT(*) FROM employees
+UNION ALL
+SELECT 'projects',     COUNT(*) FROM projects
+UNION ALL
+SELECT 'skills',       COUNT(*) FROM skills
+UNION ALL
+SELECT 'employee_skills', COUNT(*) FROM employee_skills
+UNION ALL
+SELECT 'tasks',        COUNT(*) FROM tasks
+UNION ALL
+SELECT 'task_logs',    COUNT(*) FROM task_logs;
+
+-- Expected: 5 / 16 / 10 / 10 / 24 / 29 / 25
+
+-- Multi-hop join test (task_logs -> tasks -> projects -> departments):
+SELECT d.dept_name, COUNT(tl.id) AS log_entries
+FROM task_logs tl
+JOIN tasks t     ON t.id = tl.task_id
+JOIN projects p  ON p.id = t.project_id
+JOIN departments d ON d.id = p.dept_id
+GROUP BY d.dept_name
+ORDER BY log_entries DESC;
+
+-- Self-ref manager test:
+SELECT e.emp_name, m.emp_name AS reports_to, d.dept_name
+FROM employees e
+LEFT JOIN employees m ON m.id = e.manager_id
+JOIN departments d    ON d.id = e.dept_id
+ORDER BY d.dept_name, m.emp_name;
+*/
