@@ -1,0 +1,1727 @@
+[
+  {
+    "type": "metric",
+    "key": "actor_row_count",
+    "label": "Total Actors",
+    "compute": "COUNT(*)",
+    "sources": [
+      "actor"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "address_row_count",
+    "label": "Total Addresses",
+    "compute": "COUNT(*)",
+    "sources": [
+      "address"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "category_row_count",
+    "label": "Total Categories",
+    "compute": "COUNT(*)",
+    "sources": [
+      "category"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "city_row_count",
+    "label": "Total Cities",
+    "compute": "COUNT(*)",
+    "sources": [
+      "city"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "country_row_count",
+    "label": "Total Countries",
+    "compute": "COUNT(*)",
+    "sources": [
+      "country"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "customer_row_count",
+    "label": "Total Customers",
+    "compute": "COUNT(*)",
+    "sources": [
+      "customer"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "active_customer_count",
+    "label": "Active Customers",
+    "compute": "COUNT(*)",
+    "sources": [
+      "customer"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "film_row_count",
+    "label": "Total Films",
+    "compute": "COUNT(*)",
+    "sources": [
+      "film"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "inventory_row_count",
+    "label": "Total Inventory Copies",
+    "compute": "COUNT(*)",
+    "sources": [
+      "inventory"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "language_row_count",
+    "label": "Total Languages",
+    "compute": "COUNT(*)",
+    "sources": [
+      "language"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "payment_row_count",
+    "label": "Total Payments",
+    "compute": "COUNT(*)",
+    "sources": [
+      "payment"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rental_row_count",
+    "label": "Total Rentals",
+    "compute": "COUNT(*)",
+    "sources": [
+      "rental"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "active_rental_count",
+    "label": "Open / Active Rentals",
+    "compute": "COUNT(*)",
+    "sources": [
+      "rental"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "staff_row_count",
+    "label": "Total Staff",
+    "compute": "COUNT(*)",
+    "sources": [
+      "staff"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "active_staff_count",
+    "label": "Active Staff",
+    "compute": "COUNT(*)",
+    "sources": [
+      "staff"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "store_row_count",
+    "label": "Total Stores",
+    "compute": "COUNT(*)",
+    "sources": [
+      "store"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "never_rented_film_count",
+    "label": "Films Never Rented",
+    "compute": "COUNT(DISTINCT film.film_id)",
+    "sources": [
+      "film"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "currently_rented_films",
+    "label": "Distinct Films Currently Rented Out",
+    "compute": "COUNT(DISTINCT inventory.film_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "overdue_rental_count",
+    "label": "Overdue Rentals",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "overdue_rentals_detail",
+    "label": "Overdue Rentals (with Customer & Film Detail)",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "film",
+      "customer"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film",
+      "rental_to_customer",
+      "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "unpaid_rental_count",
+    "label": "Rentals Without a Payment (Unpaid)",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "customer"
+    ],
+    "join_path": [
+      "rental",
+      "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "outstanding_balance_by_customer",
+    "label": "Unpaid Rental Count per Customer",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "customer"
+    ],
+    "join_path": [
+      "rental",
+      "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "total_revenue",
+    "label": "Total Revenue",
+    "compute": "SUM(payment.amount)",
+    "sources": [
+      "payment"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_payment_amount",
+    "label": "Average Payment Amount",
+    "compute": "AVG(payment.amount)",
+    "sources": [
+      "payment"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "revenue_by_store",
+    "label": "Revenue by Store",
+    "compute": "SUM(payment.amount)",
+    "sources": [
+      "payment",
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "join_path": [
+      "payment",
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "revenue_by_category",
+    "label": "Revenue by Film Category",
+    "compute": "SUM(payment.amount)",
+    "sources": [
+      "payment",
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "join_path": [
+      "payment",
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "revenue_by_film",
+    "label": "Revenue by Film",
+    "compute": "SUM(payment.amount)",
+    "sources": [
+      "payment",
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "join_path": [
+      "payment",
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "revenue_by_customer",
+    "label": "Revenue by Customer (CLV)",
+    "compute": "SUM(payment.amount)",
+    "sources": [
+      "payment",
+      "customer",
+      "address",
+      "city",
+      "country"
+    ],
+    "join_path": [
+      "payment",
+      "customer",
+      "address",
+      "city",
+      "country"
+    ],
+    "description": "Total spend per customer partitioned by geography"
+  },
+  {
+    "type": "metric",
+    "key": "revenue_by_staff",
+    "label": "Revenue Processed by Staff Member",
+    "compute": "SUM(payment.amount)",
+    "sources": [
+      "payment",
+      "staff"
+    ],
+    "join_path": [
+      "payment",
+      "staff"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "revenue_by_month",
+    "label": "Monthly Revenue",
+    "compute": "SUM(payment.amount)",
+    "sources": [
+      "payment"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "revenue_by_rating",
+    "label": "Revenue by Film Rating",
+    "compute": "SUM(payment.amount)",
+    "sources": [
+      "payment",
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "join_path": [
+      "payment",
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "revenue_per_inventory_copy",
+    "label": "Revenue per Inventory Copy (Efficiency)",
+    "compute": "SUM(payment.amount) / COUNT(DISTINCT inventory.inventory_id)",
+    "sources": [
+      "payment",
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "join_path": [
+      "payment",
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "revenue_density_per_store",
+    "label": "Revenue per Inventory Copy by Store",
+    "compute": "SUM(payment.amount) / COUNT(DISTINCT inventory.inventory_id)",
+    "sources": [
+      "payment",
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "join_path": [
+      "payment",
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_payment_per_rental_by_category",
+    "label": "Average Payment per Rental by Film Category",
+    "compute": "AVG(payment.amount)",
+    "sources": [
+      "payment",
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "join_path": [
+      "payment",
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "films_per_category",
+    "label": "Films per Category",
+    "compute": "COUNT(DISTINCT film_category.film_id)",
+    "sources": [
+      "film_category",
+      "category"
+    ],
+    "join_path": [
+      "film_category",
+      "category"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "films_per_actor",
+    "label": "Films per Actor",
+    "compute": "COUNT(DISTINCT film_actor.film_id)",
+    "sources": [
+      "film_actor",
+      "actor"
+    ],
+    "join_path": [
+      "film_actor",
+      "actor"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "films_per_language",
+    "label": "Films per Language",
+    "compute": "COUNT(DISTINCT film.film_id)",
+    "sources": [
+      "film",
+      "language"
+    ],
+    "join_path": [
+      "film",
+      "language"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "films_per_rating",
+    "label": "Films per Rating",
+    "compute": "COUNT(DISTINCT film.film_id)",
+    "sources": [
+      "film"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_rental_rate",
+    "label": "Average Rental Rate",
+    "compute": "AVG(film.rental_rate)",
+    "sources": [
+      "film"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_film_length",
+    "label": "Average Film Length (Minutes)",
+    "compute": "AVG(film.length)",
+    "sources": [
+      "film"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_replacement_cost",
+    "label": "Average Replacement Cost (all films)",
+    "compute": "AVG(film.replacement_cost)",
+    "sources": [
+      "film"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_replacement_cost_by_rating",
+    "label": "Average Replacement Cost by Rating",
+    "compute": "AVG(film.replacement_cost)",
+    "sources": [
+      "film"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "max_replacement_cost",
+    "label": "Maximum Replacement Cost",
+    "compute": "MAX(film.replacement_cost)",
+    "sources": [
+      "film"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "films_above_length_threshold",
+    "label": "Films Longer Than 2 Hours",
+    "compute": "COUNT(DISTINCT film.film_id)",
+    "sources": [
+      "film"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rank_films_within_category",
+    "label": "Rental Rank of Film Within Its Category",
+    "compute": "RANK() OVER (PARTITION BY category.category_id ORDER BY COUNT(DISTINCT rental.rental_id) DESC)",
+    "sources": [
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "actors_per_film",
+    "label": "Actors per Film",
+    "compute": "COUNT(DISTINCT film_actor.actor_id)",
+    "sources": [
+      "film_actor",
+      "film"
+    ],
+    "join_path": [
+      "film_actor",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "actor_co_appearance_count",
+    "label": "Co-appearance Count Between Actor Pairs",
+    "compute": "COUNT(DISTINCT fa1.film_id)",
+    "sources": [
+      "film_actor"
+    ],
+    "join_path": [
+      "film_actor_self_join"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_per_customer",
+    "label": "Rentals per Customer",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "customer"
+    ],
+    "join_path": [
+      "rental",
+      "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_per_film",
+    "label": "Rentals per Film",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_per_store",
+    "label": "Rentals per Store",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_per_store_per_month",
+    "label": "Rentals per Store per Month",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_per_staff",
+    "label": "Rentals Processed per Staff Member",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "staff"
+    ],
+    "join_path": [
+      "rental",
+      "staff"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_per_category",
+    "label": "Rentals per Category",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_rental_duration_days",
+    "label": "Average Rental Duration (Days)",
+    "compute": "AVG(DATEDIFF(rental.return_date, rental.rental_date))",
+    "sources": [
+      "rental"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "repeat_rental_rate",
+    "label": "Customers with Repeat Rentals at Same Store in a Month",
+    "compute": "COUNT(DISTINCT rental.customer_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "customer"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "customer_rental_tenure_days",
+    "label": "Days Between First and Latest Rental per Customer",
+    "compute": "DATEDIFF(MAX(rental.rental_date), MIN(rental.rental_date))",
+    "sources": [
+      "rental",
+      "customer"
+    ],
+    "join_path": [
+      "rental",
+      "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_per_inventory_item",
+    "label": "Total Rentals per Inventory Copy",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "loyalty_eligible_customers",
+    "label": "Loyalty-Eligible Customers (7+ rentals, $20+ spend, last 30 days)",
+    "compute": "COUNT(DISTINCT customer.customer_id)",
+    "sources": [
+      "rental",
+      "payment",
+      "customer"
+    ],
+    "join_path": [
+      "rental",
+      "payment",
+      "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "copies_per_film",
+    "label": "Copies per Film (all stores)",
+    "compute": "COUNT(DISTINCT inventory.inventory_id)",
+    "sources": [
+      "inventory",
+      "film"
+    ],
+    "join_path": [
+      "inventory",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "copies_per_film_per_store",
+    "label": "Copies per Film per Store",
+    "compute": "COUNT(DISTINCT inventory.inventory_id)",
+    "sources": [
+      "inventory",
+      "film",
+      "store"
+    ],
+    "join_path": [
+      "inventory",
+      "film",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "inventory_per_store",
+    "label": "Total Inventory per Store",
+    "compute": "COUNT(DISTINCT inventory.inventory_id)",
+    "sources": [
+      "inventory",
+      "store"
+    ],
+    "join_path": [
+      "inventory",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "inventory_in_stock_pct",
+    "label": "Percentage of Inventory Currently In Stock by Store",
+    "compute": "SUM(CASE WHEN inventory_in_stock(inventory.inventory_id) = 1 THEN 1 ELSE 0 END) / COUNT(DISTINCT inventory.inventory_id) * 100\n",
+    "sources": [
+      "inventory",
+      "store"
+    ],
+    "join_path": [
+      "inventory",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "inventory_turnover_rate",
+    "label": "Inventory Turnover Rate (Rentals per Copy per Month)",
+    "compute": "COUNT(DISTINCT rental.rental_id) / COUNT(DISTINCT inventory.inventory_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "customers_per_store",
+    "label": "Customers per Store",
+    "compute": "COUNT(DISTINCT customer.customer_id)",
+    "sources": [
+      "customer",
+      "store"
+    ],
+    "join_path": [
+      "customer",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "active_customers_per_store",
+    "label": "Active Customers per Store",
+    "compute": "COUNT(DISTINCT customer.customer_id)",
+    "sources": [
+      "customer",
+      "store"
+    ],
+    "join_path": [
+      "customer",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "inactive_customers_per_store",
+    "label": "Inactive Customers per Store",
+    "compute": "COUNT(DISTINCT customer.customer_id)",
+    "sources": [
+      "customer",
+      "store"
+    ],
+    "join_path": [
+      "customer",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "customers_per_country",
+    "label": "Customers per Country",
+    "compute": "COUNT(DISTINCT customer.customer_id)",
+    "sources": [
+      "customer",
+      "address",
+      "city",
+      "country"
+    ],
+    "join_path": [
+      "customer",
+      "address",
+      "city",
+      "country"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "customers_per_city",
+    "label": "Customers per City",
+    "compute": "COUNT(DISTINCT customer.customer_id)",
+    "sources": [
+      "customer",
+      "address",
+      "city"
+    ],
+    "join_path": [
+      "customer",
+      "address",
+      "city"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "customer_churn_rate",
+    "label": "Customer Churn Rate (Month-over-Month)",
+    "compute": "COUNT(DISTINCT prev_month.customer_id) - COUNT(DISTINCT curr_month.customer_id) / COUNT(DISTINCT prev_month.customer_id) * 100\n",
+    "sources": [
+      "rental",
+      "customer"
+    ],
+    "join_path": [
+      "rental",
+      "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "payments_processed_per_staff",
+    "label": "Payments Processed per Staff Member",
+    "compute": "COUNT(DISTINCT payment.payment_id)",
+    "sources": [
+      "payment",
+      "staff"
+    ],
+    "join_path": [
+      "payment",
+      "staff"
+    ],
+    "description": ""
+  },
+  {
+    "type": "dimension",
+    "key": "actor_actor_id",
+    "label": "Actor ID",
+    "source": "actor",
+    "column": "actor_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "actor_first_name",
+    "label": "Actor First Name",
+    "source": "actor",
+    "column": "first_name",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "actor_last_name",
+    "label": "Actor Last Name",
+    "source": "actor",
+    "column": "last_name",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "actor_last_update",
+    "label": "Actor Last Updated",
+    "source": "actor",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "address_address_id",
+    "label": "Address ID",
+    "source": "address",
+    "column": "address_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "address_address",
+    "label": "Street Address (Line 1)",
+    "source": "address",
+    "column": "address",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "address_address2",
+    "label": "Street Address (Line 2)",
+    "source": "address",
+    "column": "address2",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "address_district",
+    "label": "District / State / Region",
+    "source": "address",
+    "column": "district",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "address_city_id",
+    "label": "City ID",
+    "source": "address",
+    "column": "city_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "address_postal_code",
+    "label": "Postal / ZIP Code",
+    "source": "address",
+    "column": "postal_code",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "address_phone",
+    "label": "Phone Number",
+    "source": "address",
+    "column": "phone",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "address_last_update",
+    "label": "Address Last Updated",
+    "source": "address",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "category_category_id",
+    "label": "Category ID",
+    "source": "category",
+    "column": "category_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "category_name",
+    "label": "Category Name",
+    "source": "category",
+    "column": "name",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "category_last_update",
+    "label": "Category Last Updated",
+    "source": "category",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "city_city_id",
+    "label": "City ID",
+    "source": "city",
+    "column": "city_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "city_city",
+    "label": "City Name",
+    "source": "city",
+    "column": "city",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "city_country_id",
+    "label": "Country ID",
+    "source": "city",
+    "column": "country_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "city_last_update",
+    "label": "City Last Updated",
+    "source": "city",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "country_country_id",
+    "label": "Country ID",
+    "source": "country",
+    "column": "country_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "country_country",
+    "label": "Country Name",
+    "source": "country",
+    "column": "country",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "country_last_update",
+    "label": "Country Last Updated",
+    "source": "country",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "customer_customer_id",
+    "label": "Customer ID",
+    "source": "customer",
+    "column": "customer_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "customer_store_id",
+    "label": "Home Store ID",
+    "source": "customer",
+    "column": "store_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "customer_first_name",
+    "label": "Customer First Name",
+    "source": "customer",
+    "column": "first_name",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "customer_last_name",
+    "label": "Customer Last Name",
+    "source": "customer",
+    "column": "last_name",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "customer_email",
+    "label": "Customer Email Address",
+    "source": "customer",
+    "column": "email",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "customer_address_id",
+    "label": "Customer Address ID",
+    "source": "customer",
+    "column": "address_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "customer_active",
+    "label": "Customer Active Status",
+    "source": "customer",
+    "column": "active",
+    "col_type": "boolean"
+  },
+  {
+    "type": "dimension",
+    "key": "customer_create_date",
+    "label": "Customer Registration Date",
+    "source": "customer",
+    "column": "create_date",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "customer_last_update",
+    "label": "Customer Last Updated",
+    "source": "customer",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "film_film_id",
+    "label": "Film ID",
+    "source": "film",
+    "column": "film_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "film_title",
+    "label": "Film Title",
+    "source": "film",
+    "column": "title",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "film_description",
+    "label": "Film Description / Plot Summary",
+    "source": "film",
+    "column": "description",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "film_release_year",
+    "label": "Release Year",
+    "source": "film",
+    "column": "release_year",
+    "col_type": "number"
+  },
+  {
+    "type": "dimension",
+    "key": "film_language_id",
+    "label": "Language ID",
+    "source": "film",
+    "column": "language_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "film_original_language_id",
+    "label": "Original Language ID",
+    "source": "film",
+    "column": "original_language_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "film_rental_duration",
+    "label": "Rental Duration (Days)",
+    "source": "film",
+    "column": "rental_duration",
+    "col_type": "number"
+  },
+  {
+    "type": "dimension",
+    "key": "film_rental_rate",
+    "label": "Rental Rate (USD)",
+    "source": "film",
+    "column": "rental_rate",
+    "col_type": "number"
+  },
+  {
+    "type": "dimension",
+    "key": "film_length",
+    "label": "Film Length (Minutes)",
+    "source": "film",
+    "column": "length",
+    "col_type": "number"
+  },
+  {
+    "type": "dimension",
+    "key": "film_replacement_cost",
+    "label": "Replacement Cost (USD)",
+    "source": "film",
+    "column": "replacement_cost",
+    "col_type": "number"
+  },
+  {
+    "type": "dimension",
+    "key": "film_rating",
+    "label": "MPAA Rating",
+    "source": "film",
+    "column": "rating",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "film_special_features",
+    "label": "Special Features",
+    "source": "film",
+    "column": "special_features",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "film_last_update",
+    "label": "Film Last Updated",
+    "source": "film",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "film_actor_actor_id",
+    "label": "Actor ID (film_actor)",
+    "source": "film_actor",
+    "column": "actor_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "film_actor_film_id",
+    "label": "Film ID (film_actor)",
+    "source": "film_actor",
+    "column": "film_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "film_actor_last_update",
+    "label": "Film-Actor Last Updated",
+    "source": "film_actor",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "film_category_film_id",
+    "label": "Film ID (film_category)",
+    "source": "film_category",
+    "column": "film_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "film_category_category_id",
+    "label": "Category ID (film_category)",
+    "source": "film_category",
+    "column": "category_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "film_category_last_update",
+    "label": "Film-Category Last Updated",
+    "source": "film_category",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "film_text_film_id",
+    "label": "Film ID (film_text)",
+    "source": "film_text",
+    "column": "film_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "film_text_title",
+    "label": "Film Title (full-text index)",
+    "source": "film_text",
+    "column": "title",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "film_text_description",
+    "label": "Film Description (full-text index)",
+    "source": "film_text",
+    "column": "description",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "inventory_inventory_id",
+    "label": "Inventory ID",
+    "source": "inventory",
+    "column": "inventory_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "inventory_film_id",
+    "label": "Film ID (inventory)",
+    "source": "inventory",
+    "column": "film_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "inventory_store_id",
+    "label": "Store ID (inventory)",
+    "source": "inventory",
+    "column": "store_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "inventory_last_update",
+    "label": "Inventory Last Updated",
+    "source": "inventory",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "inventory_current_status",
+    "label": "Inventory Current Status (In Stock / Rented Out)",
+    "source": "inventory",
+    "column": "_derived_",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "language_language_id",
+    "label": "Language ID",
+    "source": "language",
+    "column": "language_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "language_name",
+    "label": "Language Name",
+    "source": "language",
+    "column": "name",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "language_last_update",
+    "label": "Language Last Updated",
+    "source": "language",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "payment_payment_id",
+    "label": "Payment ID",
+    "source": "payment",
+    "column": "payment_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "payment_customer_id",
+    "label": "Customer ID (payment)",
+    "source": "payment",
+    "column": "customer_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "payment_staff_id",
+    "label": "Staff ID (payment)",
+    "source": "payment",
+    "column": "staff_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "payment_rental_id",
+    "label": "Rental ID (payment)",
+    "source": "payment",
+    "column": "rental_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "payment_amount",
+    "label": "Payment Amount (USD)",
+    "source": "payment",
+    "column": "amount",
+    "col_type": "number"
+  },
+  {
+    "type": "dimension",
+    "key": "payment_payment_date",
+    "label": "Payment Date",
+    "source": "payment",
+    "column": "payment_date",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "payment_last_update",
+    "label": "Payment Last Updated",
+    "source": "payment",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "rental_rental_id",
+    "label": "Rental ID",
+    "source": "rental",
+    "column": "rental_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "rental_rental_date",
+    "label": "Rental / Checkout Date",
+    "source": "rental",
+    "column": "rental_date",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "rental_inventory_id",
+    "label": "Inventory ID (rental)",
+    "source": "rental",
+    "column": "inventory_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "rental_customer_id",
+    "label": "Customer ID (rental)",
+    "source": "rental",
+    "column": "customer_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "rental_return_date",
+    "label": "Return Date",
+    "source": "rental",
+    "column": "return_date",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "rental_staff_id",
+    "label": "Staff ID (rental)",
+    "source": "rental",
+    "column": "staff_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "rental_last_update",
+    "label": "Rental Last Updated",
+    "source": "rental",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "staff_staff_id",
+    "label": "Staff ID",
+    "source": "staff",
+    "column": "staff_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "staff_first_name",
+    "label": "Staff First Name",
+    "source": "staff",
+    "column": "first_name",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "staff_last_name",
+    "label": "Staff Last Name",
+    "source": "staff",
+    "column": "last_name",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "staff_address_id",
+    "label": "Staff Address ID",
+    "source": "staff",
+    "column": "address_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "staff_email",
+    "label": "Staff Email Address",
+    "source": "staff",
+    "column": "email",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "staff_store_id",
+    "label": "Home Store ID (staff)",
+    "source": "staff",
+    "column": "store_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "staff_active",
+    "label": "Staff Active Status",
+    "source": "staff",
+    "column": "active",
+    "col_type": "boolean"
+  },
+  {
+    "type": "dimension",
+    "key": "staff_username",
+    "label": "System Username",
+    "source": "staff",
+    "column": "username",
+    "col_type": "string"
+  },
+  {
+    "type": "dimension",
+    "key": "staff_last_update",
+    "label": "Staff Last Updated",
+    "source": "staff",
+    "column": "last_update",
+    "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "store_store_id",
+    "label": "Store ID",
+    "source": "store",
+    "column": "store_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "store_manager_staff_id",
+    "label": "Manager Staff ID",
+    "source": "store",
+    "column": "manager_staff_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "store_address_id",
+    "label": "Store Address ID",
+    "source": "store",
+    "column": "address_id",
+    "col_type": "id"
+  },
+  {
+    "type": "dimension",
+    "key": "store_last_update",
+    "label": "Store Last Updated",
+    "source": "store",
+    "column": "last_update",
+    "col_type": "time"
+  }
+]

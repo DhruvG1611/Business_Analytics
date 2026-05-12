@@ -1,0 +1,6 @@
+{
+  "model": "all-MiniLM-L6-v2",
+  "csm_file": "csm_enterprise.yaml",
+  "metrics_entries": 158,
+  "pattern_entries": 75
+}

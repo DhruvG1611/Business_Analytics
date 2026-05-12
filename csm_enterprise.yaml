@@ -1,536 +1,2798 @@
 metrics:
-  departments_row_count:
-    compute: COUNT(*)
-    sources:
-    - departments
-    label: Total Departments
-  employee_skills_row_count:
-    compute: COUNT(*)
-    sources:
-    - employee_skills
-    label: Total Employee Skills
-  employees_row_count:
-    compute: COUNT(*)
-    sources:
-    - employees
-    label: Total Employees
-  projects_row_count:
-    compute: COUNT(*)
-    sources:
-    - projects
-    label: Total Projects
-  skills_row_count:
-    compute: COUNT(*)
-    sources:
-    - skills
-    label: Total Skills
-  task_logs_row_count:
-    compute: COUNT(*)
-    sources:
-    - task_logs
-    label: Total Task Logs
-  tasks_row_count:
-    compute: COUNT(*)
-    sources:
-    - tasks
-    label: Total Tasks
-  departments_per_employee:
-    compute: COUNT(DISTINCT departments.id)
-    sources:
-    - departments
-    - employees
-    label: Departments per Employee
-  projects_per_department:
-    compute: COUNT(DISTINCT projects.id)
-    sources:
-    - projects
-    - departments
-    label: Projects per Department
-  employee_skills_per_employee:
-    compute: COUNT(DISTINCT employee_skills.skill_id)
-    sources:
-    - employee_skills
-    - employees
-    label: Skills per Employee
-  employee_skills_per_skill:
-    compute: COUNT(DISTINCT employee_skills.employee_id)
-    sources:
-    - employee_skills
-    - skills
-    label: Employees per Skill
-  tasks_per_employee:
-    compute: COUNT(DISTINCT tasks.id)
-    sources:
-    - tasks
-    - employees
-    label: Tasks per Employee
-  tasks_per_project:
-    compute: COUNT(DISTINCT tasks.id)
-    sources:
-    - tasks
-    - projects
-    label: Tasks per Project
-  task_logs_per_task:
-    compute: COUNT(DISTINCT task_logs.id)
-    sources:
-    - task_logs
-    - tasks
-    label: Task Logs per Task
-  avg_proficiency_per_employee:
-    compute: AVG(employee_skills.proficiency)
-    sources:
-    - employee_skills
-    - employees
-    label: Average Skill Proficiency per Employee
-    description: 'Mean proficiency score across all skills an employee holds. Higher
-      = more skilled on average. Use to find the "most skilled" employee.
+  # ════════════════════════════════════════════════════════
+  # ROW COUNT METRICS  (Easy E1–E10, E15)
+  # ════════════════════════════════════════════════════════
 
-      '
-  total_proficiency_per_employee:
-    compute: SUM(employee_skills.proficiency)
-    sources:
-    - employee_skills
-    - employees
-    label: Total Proficiency Score per Employee
-    description: 'Sum of proficiency scores across all skills. Rewards both breadth
-      (many skills) and depth (high scores). Best single proxy for "most skilled overall".
+  actor_row_count:
+    compute: COUNT(*)
+    sources: [actor]
+    label: Total Actors
+    covers: [E10]
 
-      '
-  max_proficiency_per_employee:
-    compute: MAX(employee_skills.proficiency)
-    sources:
-    - employee_skills
-    - employees
-    label: Peak Proficiency per Employee
-    description: Best single-skill proficiency score an employee has achieved.
-  avg_proficiency_per_skill:
-    compute: AVG(employee_skills.proficiency)
-    sources:
-    - employee_skills
-    - skills
-    label: Average Proficiency per Skill
-    description: Mean proficiency of all employees holding a given skill.
-  avg_proficiency_per_department:
-    compute: AVG(employee_skills.proficiency)
-    sources:
-    - employee_skills
-    - employees
-    - departments
-    label: Average Proficiency per Department
-    description: Mean skill proficiency across all employees in a department.
-    join_path:
-    - employee_skills
-    - employees
-    - departments
-  done_tasks_per_employee:
-    compute: COUNT(DISTINCT tasks.id)
-    sources:
-    - tasks
-    - employees
-    label: Completed Tasks per Employee
-    description: 'Number of tasks in status=''done'' assigned to an employee. Filter
-      tasks_task_status = ''done'' when using this metric.
+  address_row_count:
+    compute: COUNT(*)
+    sources: [address]
+    label: Total Addresses
 
-      '
-  completion_rate_per_employee:
-    compute: SUM(CASE WHEN tasks.task_status = 'done' THEN 1 ELSE 0 END) / NULLIF(COUNT(DISTINCT
-      tasks.id), 0)
-    sources:
-    - tasks
-    - employees
-    label: Task Completion Rate per Employee
-    description: 'Fraction of assigned tasks that are done (0-1 scale). The best proxy
-      for employee efficiency / productivity. Higher = more efficient.
+  category_row_count:
+    compute: COUNT(*)
+    sources: [category]
+    label: Total Categories
+    covers: [E5]
 
-      '
-  pending_tasks_per_employee:
-    compute: COUNT(DISTINCT tasks.id)
-    sources:
-    - tasks
-    - employees
-    label: Pending Tasks per Employee
-    description: 'Number of tasks still pending or blocked. Filter tasks_task_status
-      IN (''pending'',''blocked'') when using this metric.
+  city_row_count:
+    compute: COUNT(*)
+    sources: [city]
+    label: Total Cities
 
-      '
-  blocked_tasks_per_employee:
-    compute: COUNT(DISTINCT tasks.id)
-    sources:
-    - tasks
-    - employees
-    label: Blocked Tasks per Employee
-    description: Tasks in 'blocked' status assigned to an employee.
-  task_log_activity_per_employee:
-    compute: COUNT(DISTINCT task_logs.id)
-    sources:
-    - task_logs
-    - tasks
-    - employees
-    label: Task Log Activity per Employee
-    description: 'Total number of task-log events generated by tasks assigned to an
-      employee. A proxy for work activity volume.
+  country_row_count:
+    compute: COUNT(*)
+    sources: [country]
+    label: Total Countries
 
-      '
-  avg_logs_per_task_per_employee:
-    compute: COUNT(DISTINCT task_logs.id) / NULLIF(COUNT(DISTINCT tasks.id), 0)
-    sources:
-    - task_logs
-    - tasks
-    - employees
-    label: Avg Log Events per Task per Employee
-    description: 'Average number of log events per task per employee. Higher may indicate
-      more iterative / complex work or more thorough tracking.
+  customer_row_count:
+    compute: COUNT(*)
+    sources: [customer]
+    label: Total Customers
 
-      '
-  active_projects_per_department:
-    compute: COUNT(DISTINCT projects.id)
+  active_customer_count:
+    compute: COUNT(*)
+    compute_where: customer.active = 1
+    sources: [customer]
+    label: Active Customers
+    covers: [E2]
+
+  film_row_count:
+    compute: COUNT(*)
+    sources: [film]
+    label: Total Films
+    covers: [E1]
+
+  inventory_row_count:
+    compute: COUNT(*)
+    sources: [inventory]
+    label: Total Inventory Copies
+    covers: [E7]
+
+  language_row_count:
+    compute: COUNT(*)
+    sources: [language]
+    label: Total Languages
+    covers: [E6]
+
+  payment_row_count:
+    compute: COUNT(*)
+    sources: [payment]
+    label: Total Payments
+    covers: [E9]
+
+  rental_row_count:
+    compute: COUNT(*)
+    sources: [rental]
+    label: Total Rentals
+    covers: [E8]
+
+  active_rental_count:
+    compute: COUNT(*)
+    compute_where: rental.return_date IS NULL
+    sources: [rental]
+    label: Open / Active Rentals
+    covers: [E15]
+
+  staff_row_count:
+    compute: COUNT(*)
+    sources: [staff]
+    label: Total Staff
+
+  active_staff_count:
+    compute: COUNT(*)
+    compute_where: staff.active = 1
+    sources: [staff]
+    label: Active Staff
+    covers: [E4]
+
+  # ════════════════════════════════════════════════════════
+  # RENTAL STATUS METRICS  (Medium M9, M14; Hard H1, H5)
+  # ════════════════════════════════════════════════════════
+
+  never_rented_film_count:
+    compute: COUNT(DISTINCT film.film_id)
+    compute_where: film.film_id NOT IN (SELECT DISTINCT i.film_id FROM inventory i JOIN rental r ON r.inventory_id = i.inventory_id)
+    sources: [film]
+    label: Films Never Rented
+    covers: [M9]
+    notes: >
+      Anti-join: films with no inventory copy that ever appears in the rental table.
+      Returns film_id + title for listing; count for summary.
+
+  currently_rented_films:
+    compute: COUNT(DISTINCT inventory.film_id)
+    compute_where: rental.return_date IS NULL
+    sources: [rental, inventory, film]
+    label: Distinct Films Currently Rented Out
+    join_path: [rental, inventory, film]
+    covers: [M14]
+    notes: >
+      Group by film.film_id + film.title + customer to list which titles
+      are out and who has them.
+
+  overdue_rental_count:
+    compute: COUNT(DISTINCT rental.rental_id)
+    compute_where: >
+      rental.return_date IS NULL
+      AND DATE_ADD(rental.rental_date, INTERVAL film.rental_duration DAY) < CURRENT_DATE()
+    sources: [rental, inventory, film]
+    label: Overdue Rentals
+    join_path: [rental, inventory, film]
+    covers: [H1]
+
+  overdue_rentals_detail:
+    compute: COUNT(DISTINCT rental.rental_id)
+    compute_where: >
+      rental.return_date IS NULL
+      AND DATE_ADD(rental.rental_date, INTERVAL film.rental_duration DAY) < CURRENT_DATE()
+    sources: [rental, inventory, film, customer]
+    label: Overdue Rentals (with Customer & Film Detail)
+    join_path: [rental, inventory, film, rental_to_customer, customer]
+    group_by:
+      [
+        customer.customer_id,
+        customer.first_name,
+        customer.last_name,
+        film.title,
+        rental.rental_date,
+        film.rental_duration,
+      ]
+    covers: [H1]
+    notes: >
+      Use DATEDIFF(CURRENT_DATE(), DATE_ADD(rental.rental_date, INTERVAL film.rental_duration DAY))
+      as days_overdue column.
+
+  unpaid_rental_count:
+    compute: COUNT(DISTINCT rental.rental_id)
+    compute_where: rental.rental_id NOT IN (SELECT rental_id FROM payment WHERE rental_id IS NOT NULL)
+    sources: [rental, customer]
+    label: Rentals Without a Payment (Unpaid)
+    join_path: [rental, customer]
+    covers: [H5-summary]
+
+  outstanding_balance_by_customer:
+    compute: COUNT(DISTINCT rental.rental_id)
+    compute_where: rental.rental_id NOT IN (SELECT rental_id FROM payment WHERE rental_id IS NOT NULL)
+    sources: [rental, customer]
+    label: Unpaid Rental Count per Customer
+    join_path: [rental, customer]
+    group_by:
+      [
+        customer.customer_id,
+        customer.first_name,
+        customer.last_name,
+        customer.store_id,
+        rental.return_date,
+      ]
+    covers: [H5]
+    notes: >
+      Multiply unpaid_count by film.rental_rate (via inventory join) for estimated amount owed.
+      Split by return_date IS NULL vs IS NOT NULL to separate "open + unpaid" from "returned + unpaid".
+
+  # ════════════════════════════════════════════════════════
+  # REVENUE METRICS  (Easy E11; Medium M1–M5, M11, M13, M17; Hard H2, H3, H6, H7, H10)
+  # ════════════════════════════════════════════════════════
+
+  total_revenue:
+    compute: SUM(payment.amount)
+    sources: [payment]
+    label: Total Revenue
+    covers: [E11]
+
+  average_payment_amount:
+    compute: AVG(payment.amount)
+    sources: [payment]
+    label: Average Payment Amount
+
+  revenue_by_store:
+    compute: SUM(payment.amount)
+    sources: [payment, rental, inventory, store]
+    label: Revenue by Store
+    join_path: [payment, rental, inventory, store]
+    group_by: [inventory.store_id]
+    covers: [M1]
+
+  revenue_by_category:
+    compute: SUM(payment.amount)
+    sources: [payment, rental, inventory, film, film_category, category]
+    label: Revenue by Film Category
+    join_path: [payment, rental, inventory, film, film_category, category]
+    group_by: [category.category_id, category.name]
+    covers: [M3]
+
+  revenue_by_film:
+    compute: SUM(payment.amount)
+    sources: [payment, rental, inventory, film]
+    label: Revenue by Film
+    join_path: [payment, rental, inventory, film]
+    group_by: [film.film_id, film.title]
+
+  revenue_by_customer:
+    compute: SUM(payment.amount)
+    sources: [payment, customer, address, city, country]
+    label: Revenue by Customer (CLV)
+    join_path: [payment, customer, address, city, country]
+    group_by: [customer.customer_id, customer.first_name, customer.last_name]
+    covers: [M4, H2]
+    description: Total spend per customer partitioned by geography
+
+  revenue_by_staff:
+    compute: SUM(payment.amount)
+    sources: [payment, staff]
+    label: Revenue Processed by Staff Member
+    join_path: [payment, staff]
+    group_by: [staff.staff_id, staff.first_name, staff.last_name]
+    covers: [M11]
+
+  revenue_by_month:
+    compute: SUM(payment.amount)
+    compute_group: YEAR(payment.payment_date), MONTH(payment.payment_date)
+    sources: [payment]
+    label: Monthly Revenue
+    group_by: [YEAR(payment.payment_date), MONTH(payment.payment_date)]
+    covers: [M5]
+
+  revenue_by_rating:
+    compute: SUM(payment.amount)
+    sources: [payment, rental, inventory, film]
+    label: Revenue by Film Rating
+    join_path: [payment, rental, inventory, film]
+    group_by: [film.rating]
+    covers: [H10]
+
+  revenue_per_inventory_copy:
+    compute: SUM(payment.amount) / COUNT(DISTINCT inventory.inventory_id)
+    sources: [payment, rental, inventory, film]
+    label: Revenue per Inventory Copy (Efficiency)
+    join_path: [payment, rental, inventory, film]
+    group_by: [film.film_id, film.title]
+    covers: [H3]
+    notes: >
+      Numerator: total payments for each film_id via rental→inventory.
+      Denominator: total distinct inventory copies for that film_id.
+      Rank DESC to find most efficient titles.
+
+  revenue_density_per_store:
+    compute: SUM(payment.amount) / COUNT(DISTINCT inventory.inventory_id)
+    sources: [payment, rental, inventory, store]
+    label: Revenue per Inventory Copy by Store
+    join_path: [payment, rental, inventory, store]
+    group_by: [inventory.store_id]
+    covers: [H7]
+
+  average_payment_per_rental_by_category:
+    compute: AVG(payment.amount)
+    sources: [payment, rental, inventory, film, film_category, category]
+    label: Average Payment per Rental by Film Category
+    join_path: [payment, rental, inventory, film, film_category, category]
+    group_by: [category.category_id, category.name]
+    covers: [H13]
+
+  # ════════════════════════════════════════════════════════
+  # FILM METRICS  (Easy E12–E13; Medium M13, M17, M20)
+  # ════════════════════════════════════════════════════════
+
+  films_per_category:
+    compute: COUNT(DISTINCT film_category.film_id)
+    sources: [film_category, category]
+    label: Films per Category
+    join_path: [film_category, category]
+    group_by: [category.category_id, category.name]
+    covers: [E14]
+
+  films_per_actor:
+    compute: COUNT(DISTINCT film_actor.film_id)
+    sources: [film_actor, actor]
+    label: Films per Actor
+    join_path: [film_actor, actor]
+    group_by: [actor.actor_id, actor.first_name, actor.last_name]
+    covers: [M6]
+
+  films_per_language:
+    compute: COUNT(DISTINCT film.film_id)
+    sources: [film, language]
+    label: Films per Language
+    join_path: [film, language]
+    group_by: [language.language_id, language.name]
+
+  films_per_rating:
+    compute: COUNT(DISTINCT film.film_id)
+    sources: [film]
+    label: Films per Rating
+    group_by: [film.rating]
+    covers: [E13]
+
+  average_rental_rate:
+    compute: AVG(film.rental_rate)
+    sources: [film]
+    label: Average Rental Rate
+    covers: [E12]
+
+  average_film_length:
+    compute: AVG(film.length)
+    sources: [film]
+    label: Average Film Length (Minutes)
+
+  average_replacement_cost:
+    compute: AVG(film.replacement_cost)
+    sources: [film]
+    label: Average Replacement Cost (all films)
+
+  average_replacement_cost_by_rating:
+    compute: AVG(film.replacement_cost)
+    sources: [film]
+    label: Average Replacement Cost by Rating
+    group_by: [film.rating]
+    covers: [M13]
+
+  max_replacement_cost:
+    compute: MAX(film.replacement_cost)
+    sources: [film]
+    label: Maximum Replacement Cost
+    covers: [M17]
+    notes: >
+      To return the film title, use:
+      SELECT title, replacement_cost FROM film ORDER BY replacement_cost DESC LIMIT 1
+
+  films_above_length_threshold:
+    compute: COUNT(DISTINCT film.film_id)
+    compute_where: film.length > 120
+    sources: [film]
+    label: Films Longer Than 2 Hours
+    group_by:
+      [film.film_id, film.title, film.length, film.rental_rate, film.rating]
+    covers: [M20]
+    notes: >
+      Threshold is parameterised; default 120 minutes (2 hours).
+      Returns listing rows, not just a count — project title, length, rental_rate, rating.
+
+  rank_films_within_category:
+    compute: RANK() OVER (PARTITION BY category.category_id ORDER BY COUNT(DISTINCT rental.rental_id) DESC)
+    sources: [rental, inventory, film, film_category, category]
+    label: Rental Rank of Film Within Its Category
+    join_path: [rental, inventory, film, film_category, category]
+    group_by: [category.category_id, category.name, film.film_id, film.title]
+    covers: [H6]
+    notes: >
+      Outer query filters WHERE film_rank <= 3 to return top-3 per category.
+      Also compute SUM(payment.amount) per group for the revenue dimension of H6.
+
+  # ════════════════════════════════════════════════════════
+  # ACTOR METRICS  (Hard H9)
+  # ════════════════════════════════════════════════════════
+
+  actors_per_film:
+    compute: COUNT(DISTINCT film_actor.actor_id)
+    sources: [film_actor, film]
+    label: Actors per Film
+    join_path: [film_actor, film]
+    group_by: [film.film_id, film.title]
+
+  actor_co_appearance_count:
+    compute: COUNT(DISTINCT fa1.film_id)
+    sources: [film_actor]
+    label: Co-appearance Count Between Actor Pairs
+    join_path: [film_actor_self_join]
+    group_by: [fa1.actor_id, fa2.actor_id]
+    covers: [H9]
+    notes: >
+      Self-join: film_actor fa1 JOIN film_actor fa2 ON fa1.film_id = fa2.film_id AND fa1.actor_id < fa2.actor_id
+      GROUP BY fa1.actor_id, fa2.actor_id
+      ORDER BY COUNT(*) DESC
+      Join back to actor twice (a1, a2) for names.
+
+  actors_never_in_action:
+    compute: COUNT(DISTINCT actor.actor_id)
+    compute_where: >
+      actor.actor_id NOT IN (
+        SELECT fa.actor_id FROM film_actor fa
+        JOIN film_category fc ON fa.film_id = fc.film_id
+        JOIN category c ON fc.category_id = c.category_id
+        WHERE c.name = 'Action'
+      )
+    sources: [actor]
+    label: Actors Who Never Acted in Action Movies
+
+  actors_in_all_categories:
+    compute: COUNT(DISTINCT film_category.category_id)
+    sources: [actor, film_actor, film_category]
+    label: Actors Working in All Categories
+    join_path: [actor, film_actor, film_category]
+    group_by: [actor.actor_id, actor.first_name, actor.last_name]
+    compute_having: COUNT(DISTINCT film_category.category_id) = (SELECT COUNT(category_id) FROM category)
+
+  # ════════════════════════════════════════════════════════
+  # RENTAL METRICS  (Medium M2, M7, M10, M16, M19; Hard H4, H11, H12, H15)
+  # ════════════════════════════════════════════════════════
+
+  rentals_per_customer:
+    compute: COUNT(DISTINCT rental.rental_id)
+    sources: [rental, customer]
+    label: Rentals per Customer
+    join_path: [rental, customer]
+    group_by: [customer.customer_id, customer.first_name, customer.last_name]
+    compute_having: COUNT(DISTINCT rental.rental_id) > 30
+    covers: [M10]
+    notes: >
+      Remove compute_having for full listing. Add it back (threshold parameterisable)
+      to answer "customers who rented more than N films".
+
+  rentals_per_film:
+    compute: COUNT(DISTINCT rental.rental_id)
+    sources: [rental, inventory, film]
+    label: Rentals per Film
+    join_path: [rental, inventory, film]
+    group_by: [film.film_id, film.title]
+    covers: [M2]
+
+  rentals_per_store:
+    compute: COUNT(DISTINCT rental.rental_id)
+    sources: [rental, inventory, store]
+    label: Rentals per Store
+    join_path: [rental, inventory, store]
+    group_by: [inventory.store_id]
+
+  rentals_per_store_per_month:
+    compute: COUNT(DISTINCT rental.rental_id)
+    sources: [rental, inventory, store]
+    label: Rentals per Store per Month
+    join_path: [rental, inventory, store]
+    group_by:
+      [inventory.store_id, YEAR(rental.rental_date), MONTH(rental.rental_date)]
+    covers: [M16]
+
+  rentals_by_month:
+    compute: COUNT(DISTINCT rental.rental_id)
+    compute_group: YEAR(rental.rental_date), MONTH(rental.rental_date)
+    sources: [rental]
+    label: Rentals by Month
+    group_by: [YEAR(rental.rental_date), MONTH(rental.rental_date)]
+
+  rentals_by_category_and_country:
+    compute: COUNT(DISTINCT rental.rental_id)
     sources:
-    - projects
-    - departments
-    label: Active Projects per Department
-    description: Count of projects with status='active' per department.
-  completed_projects_per_department:
-    compute: COUNT(DISTINCT projects.id)
-    sources:
-    - projects
-    - departments
-    label: Completed Projects per Department
-    description: Count of projects with status='completed' per department.
-  tasks_done_per_project:
-    compute: SUM(CASE WHEN tasks.task_status = 'done' THEN 1 ELSE 0 END)
-    sources:
-    - tasks
-    - projects
-    label: Completed Tasks per Project
-  completion_rate_per_project:
-    compute: SUM(CASE WHEN tasks.task_status = 'done' THEN 1 ELSE 0 END) / NULLIF(COUNT(DISTINCT
-      tasks.id), 0)
-    sources:
-    - tasks
-    - projects
-    label: Task Completion Rate per Project
-    description: Fraction of tasks done within a project (0-1).
-  skill_diversity_per_department:
-    compute: COUNT(DISTINCT employee_skills.skill_id)
-    sources:
-    - employee_skills
-    - employees
-    - departments
-    label: Skill Diversity per Department
-    description: Number of distinct skills present across all employees in a department.
+      [
+        rental,
+        inventory,
+        film,
+        film_category,
+        category,
+        customer,
+        address,
+        city,
+        country,
+      ]
+    label: Rentals by Category and Country
     join_path:
-    - employee_skills
-    - employees
-    - departments
-  employees_with_skill_per_department:
-    compute: COUNT(DISTINCT employees.id)
-    sources:
-    - employee_skills
-    - employees
-    - departments
-    label: Skilled Employees per Department
-    description: How many employees in a department hold at least one skill.
-    join_path:
-    - employee_skills
-    - employees
-    - departments
-  total_proficiency_per_project:
-    compute: SUM(employee_skills.proficiency)
-    sources:
-    - employee_skills
-    - employees
-    - tasks
-    - projects
-    label: Total Skill Proficiency per Project
-    description: Sum of proficiency scores of all employees assigned to tasks within
-      a project. Best proxy for most skilled people working on a project.
-    join_path:
-    - employee_skills
-    - employees
-    - tasks
-    - projects
-  avg_proficiency_per_project:
-    compute: AVG(employee_skills.proficiency)
-    sources:
-    - employee_skills
-    - employees
-    - tasks
-    - projects
-    label: Average Skill Proficiency per Project
-    description: Mean proficiency across all skills of employees assigned to a project.
-      Normalised for team size � useful for comparing small and large project teams
-      fairly.
-    join_path:
-    - employee_skills
-    - employees
-    - tasks
-    - projects
-  distinct_skills_per_project:
-    compute: COUNT(DISTINCT employee_skills.skill_id)
-    sources:
-    - employee_skills
-    - employees
-    - tasks
-    - projects
-    label: Distinct Skills per Project
-    description: Number of unique skills present across all employees working on a
-      project. Measures team skill breadth/diversity.
-    join_path:
-    - employee_skills
-    - employees
-    - tasks
-    - projects
-  skilled_employees_per_project:
-    compute: COUNT(DISTINCT employees.id)
-    sources:
-    - employee_skills
-    - employees
-    - tasks
-    - projects
-    label: Skilled Employees per Project
-    description: How many distinct employees with at least one logged skill are assigned
-      to tasks within a project.
-    join_path:
-    - employee_skills
-    - employees
-    - tasks
-    - projects
+      [
+        rental,
+        inventory,
+        film,
+        film_category,
+        category,
+        customer,
+        address,
+        city,
+        country,
+      ]
+    group_by:
+      [country.country_id, country.country, category.category_id, category.name]
+
+  rentals_per_staff:
+    compute: COUNT(DISTINCT rental.rental_id)
+    sources: [rental, staff]
+    label: Rentals Processed per Staff Member
+    join_path: [rental, staff]
+    group_by: [staff.staff_id, staff.first_name, staff.last_name]
+    covers: [M19]
+
+  rentals_per_category:
+    compute: COUNT(DISTINCT rental.rental_id)
+    sources: [rental, inventory, film, film_category, category]
+    label: Rentals per Category
+    join_path: [rental, inventory, film, film_category, category]
+    group_by: [category.category_id, category.name]
+
+  average_rental_duration_days:
+    compute: AVG(DATEDIFF(rental.return_date, rental.rental_date))
+    compute_where: rental.return_date IS NOT NULL
+    sources: [rental]
+    label: Average Rental Duration (Days)
+    covers: [M7]
+
+  avg_rental_duration_per_category:
+    compute: AVG(DATEDIFF(rental.return_date, rental.rental_date))
+    sources: [rental, inventory, film, film_category, category]
+    label: Average Rental Duration per Category
+    join_path: [rental, inventory, film, film_category, category]
+    group_by: [category.category_id, category.name]
+
+  repeat_rental_rate:
+    compute: COUNT(DISTINCT rental.customer_id)
+    compute_where: >
+      rental.customer_id IN (
+        SELECT r2.customer_id
+        FROM rental r2
+        JOIN inventory i2 ON r2.inventory_id = i2.inventory_id
+        GROUP BY r2.customer_id, i2.store_id, YEAR(r2.rental_date), MONTH(r2.rental_date)
+        HAVING COUNT(*) > 1
+      )
+    sources: [rental, inventory, customer]
+    label: Customers with Repeat Rentals at Same Store in a Month
+    join_path: [rental, inventory, customer]
+    covers: [H4]
+    notes: >
+      For rate: divide by active_customer_count.
+      For monthly trend: add YEAR/MONTH grouping to the outer query.
+
+  customer_rental_tenure_days:
+    compute: DATEDIFF(MAX(rental.rental_date), MIN(rental.rental_date))
+    sources: [rental, customer]
+    label: Days Between First and Latest Rental per Customer
+    join_path: [rental, customer]
+    group_by: [customer.customer_id, customer.first_name, customer.last_name]
+    covers: [H11]
+    notes: >
+      Also surface MIN(rental.rental_date) AS first_rental and MAX(rental.rental_date) AS last_rental
+      as companion columns.
+
+  rentals_per_inventory_item:
+    compute: COUNT(DISTINCT rental.rental_id)
+    sources: [rental, inventory, film]
+    label: Total Rentals per Inventory Copy
+    join_path: [rental, inventory, film]
+    group_by:
+      [inventory.inventory_id, film.film_id, film.title, inventory.store_id]
+    covers: [H12]
+    notes: >
+      Add a derived column:
+        CASE WHEN EXISTS (SELECT 1 FROM rental r2 WHERE r2.inventory_id = inventory.inventory_id AND r2.return_date IS NULL)
+             THEN 'rented_out' ELSE 'in_stock' END AS current_status
+
+  loyalty_eligible_customers:
+    compute: COUNT(DISTINCT customer.customer_id)
+    compute_where: >
+      rental.rental_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
+    sources: [rental, payment, customer]
+    label: Loyalty-Eligible Customers (7+ rentals, $20+ spend, last 30 days)
+    join_path: [rental, payment, customer]
+    group_by:
+      [
+        customer.customer_id,
+        customer.first_name,
+        customer.last_name,
+        customer.email,
+      ]
+    compute_having: COUNT(DISTINCT rental.rental_id) >= 7 AND SUM(payment.amount) >= 20.00
+    covers: [H15]
+    notes: >
+      Thresholds are parameterisable: min_rentals (default 7), min_spend (default 20.00).
+      Corresponds to the rewards_report stored procedure logic in Sakila.
+
+  films_rented_by_all_customers:
+    compute: COUNT(DISTINCT rental.rental_id)
+    sources: [film, inventory, rental]
+    label: Films Rented by All Customers
+    join_path: [film, inventory, rental]
+    group_by: [film.film_id, film.title]
+    compute_having: COUNT(DISTINCT rental.customer_id) = (SELECT COUNT(customer_id) FROM customer)
+
+  # ════════════════════════════════════════════════════════
+  # INVENTORY METRICS  (Medium M8, M15; Hard H14)
+  # ════════════════════════════════════════════════════════
+
+  copies_per_film:
+    compute: COUNT(DISTINCT inventory.inventory_id)
+    sources: [inventory, film]
+    label: Copies per Film (all stores)
+    join_path: [inventory, film]
+    group_by: [film.film_id, film.title]
+
+  copies_per_film_per_store:
+    compute: COUNT(DISTINCT inventory.inventory_id)
+    sources: [inventory, film, store]
+    label: Copies per Film per Store
+    join_path: [inventory, film, store]
+    group_by: [film.film_id, film.title, inventory.store_id]
+    covers: [M8]
+
+  inventory_per_store:
+    compute: COUNT(DISTINCT inventory.inventory_id)
+    sources: [inventory, store]
+    label: Total Inventory per Store
+    join_path: [inventory, store]
+    group_by: [inventory.store_id]
+
+  inventory_in_stock_pct:
+    compute: >
+      SUM(CASE WHEN inventory_in_stock(inventory.inventory_id) = 1 THEN 1 ELSE 0 END)
+      / COUNT(DISTINCT inventory.inventory_id) * 100
+    sources: [inventory, store]
+    label: Percentage of Inventory Currently In Stock by Store
+    join_path: [inventory, store]
+    group_by: [inventory.store_id]
+    covers: [M15]
+    notes: >
+      Uses the inventory_in_stock() stored function.
+      Alternative without the function:
+        SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM rental r WHERE r.inventory_id = inventory.inventory_id AND r.return_date IS NULL) THEN 1 ELSE 0 END)
+        / COUNT(*) * 100
+
+  inventory_turnover_rate:
+    compute: COUNT(DISTINCT rental.rental_id) / COUNT(DISTINCT inventory.inventory_id)
+    sources: [rental, inventory, store]
+    label: Inventory Turnover Rate (Rentals per Copy per Month)
+    join_path: [rental, inventory, store]
+    group_by:
+      [inventory.store_id, YEAR(rental.rental_date), MONTH(rental.rental_date)]
+    covers: [H14]
+    notes: >
+      Numerator: total rentals processed at the store in the month.
+      Denominator: total inventory copies stocked at the store.
+      Compare across stores to identify higher throughput location.
+
+  # ════════════════════════════════════════════════════════
+  # CUSTOMER METRICS  (Medium M12, M18; Hard H8, H15)
+  # ════════════════════════════════════════════════════════
+
+  customers_per_store:
+    compute: COUNT(DISTINCT customer.customer_id)
+    sources: [customer, store]
+    label: Customers per Store
+    join_path: [customer, store]
+    group_by: [customer.store_id]
+
+  active_customers_per_store:
+    compute: COUNT(DISTINCT customer.customer_id)
+    compute_where: customer.active = 1
+    sources: [customer, store]
+    label: Active Customers per Store
+    join_path: [customer, store]
+    group_by: [customer.store_id]
+    covers: [M18-active]
+
+  inactive_customers_per_store:
+    compute: COUNT(DISTINCT customer.customer_id)
+    compute_where: customer.active = 0
+    sources: [customer, store]
+    label: Inactive Customers per Store
+    join_path: [customer, store]
+    group_by: [customer.store_id]
+    covers: [M18-inactive]
+
+  customers_per_country:
+    compute: COUNT(DISTINCT customer.customer_id)
+    sources: [customer, address, city, country]
+    label: Customers per Country
+    join_path: [customer, address, city, country]
+    group_by: [country.country_id, country.country]
+    covers: [M12]
+
+  customers_per_city:
+    compute: COUNT(DISTINCT customer.customer_id)
+    sources: [customer, address, city]
+    label: Customers per City
+    join_path: [customer, address, city]
+    group_by: [city.city_id, city.city]
+
+  customer_churn_rate:
+    compute: >
+      COUNT(DISTINCT prev_month.customer_id) - COUNT(DISTINCT curr_month.customer_id)
+      / COUNT(DISTINCT prev_month.customer_id) * 100
+    sources: [rental, customer]
+    label: Customer Churn Rate (Month-over-Month)
+    join_path: [rental, customer]
+    covers: [H8]
+    notes: >
+      CTE approach:
+        prev_month AS (SELECT DISTINCT customer_id FROM rental
+                       WHERE rental_date BETWEEN DATE_SUB(LAST_DAY(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH)), INTERVAL DAY(LAST_DAY(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH)))-1 DAY)
+                                             AND LAST_DAY(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))),
+        curr_month AS (SELECT DISTINCT customer_id FROM rental
+                       WHERE rental_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL DAY(CURRENT_DATE())-1 DAY)
+                                             AND CURRENT_DATE())
+        SELECT COUNT(p.customer_id) AS churned,
+               COUNT(p.customer_id) / COUNT(*) * 100 AS churn_pct
+        FROM prev_month p LEFT JOIN curr_month c ON p.customer_id = c.customer_id
+        WHERE c.customer_id IS NULL
+
+  customers_with_no_rentals:
+    compute: COUNT(DISTINCT customer.customer_id)
+    compute_where: customer.customer_id NOT IN (SELECT customer_id FROM rental)
+    sources: [customer]
+    label: Customers With No Rentals
+
+  customers_above_avg_spend:
+    compute: SUM(payment.amount)
+    sources: [payment, customer]
+    label: Customers Spending Above Average
+    join_path: [payment, customer]
+    group_by: [customer.customer_id, customer.first_name, customer.last_name]
+    compute_having: >
+      SUM(payment.amount) > (
+        SELECT AVG(customer_total) FROM (
+          SELECT SUM(amount) AS customer_total FROM payment GROUP BY customer_id
+        ) AS avg_query
+      )
+
+  customers_rented_all_categories:
+    compute: COUNT(DISTINCT rental.rental_id)
+    sources: [customer, rental, inventory, film_category]
+    label: Customers Who Rented From All Categories
+    join_path: [customer, rental, inventory, film_category]
+    group_by: [customer.customer_id, customer.first_name, customer.last_name]
+    compute_having: COUNT(DISTINCT film_category.category_id) = (SELECT COUNT(category_id) FROM category)
+
+  # ════════════════════════════════════════════════════════
+  # STAFF METRICS
+  # ════════════════════════════════════════════════════════
+
+  payments_processed_per_staff:
+    compute: COUNT(DISTINCT payment.payment_id)
+    sources: [payment, staff]
+    label: Payments Processed per Staff Member
+    join_path: [payment, staff]
+    group_by: [staff.staff_id, staff.first_name, staff.last_name]
+
+# ════════════════════════════════════════════════════════════
+# DIMENSIONS
+# ════════════════════════════════════════════════════════════
+
 dimensions:
-  departments_id:
-    source: departments
-    column: id
+  # ── ACTOR ──────────────────────────────────────────────────────────────────
+
+  actor_actor_id:
+    source: actor
+    column: actor_id
     type: id
-    label: Id
-  departments_dept_name:
-    source: departments
-    column: dept_name
+    label: Actor ID
+
+  actor_first_name:
+    source: actor
+    column: first_name
     type: string
-    label: Dept Name
-    sample_values:
-    - Engineering
-    - Product
-    - Design
-    - Data & Analytics
-    - Operations
-  departments_manager_id:
-    source: departments
-    column: manager_id
-    type: number
-    label: Manager Id
-    fk: employees.id
-  employee_skills_employee_id:
-    source: employee_skills
-    column: employee_id
-    type: id
-    label: Employee Id
-    fk: employees.id
-  employee_skills_skill_id:
-    source: employee_skills
-    column: skill_id
-    type: id
-    label: Skill Id
-    fk: skills.id
-  employee_skills_proficiency:
-    source: employee_skills
-    column: proficiency
-    type: number
-    label: Proficiency
-  employees_id:
-    source: employees
-    column: id
-    type: id
-    label: Id
-  employees_emp_name:
-    source: employees
-    column: emp_name
+    label: Actor First Name
+    sample_values: [PENELOPE, NICK, ED, JENNIFER, JOHNNY]
+
+  actor_last_name:
+    source: actor
+    column: last_name
     type: string
-    label: Emp Name
-    sample_values:
-    - Alice Nair
-    - Ben Sharma
-    - Clara Melo
-    - David Osei
-    - Elena Kovac
-  employees_emp_role:
-    source: employees
-    column: emp_role
-    type: string
-    label: Emp Role
-    sample_values:
-    - Engineering Manager
-    - Product Manager
-    - Design Lead
-    - Data Director
-    - Operations Head
-  employees_dept_id:
-    source: employees
-    column: dept_id
-    type: number
-    label: Dept Id
-    fk: departments.id
-  employees_manager_id:
-    source: employees
-    column: manager_id
-    type: number
-    label: Manager Id
-    fk: employees.id
-  projects_id:
-    source: projects
-    column: id
-    type: id
-    label: Id
-  projects_project_name:
-    source: projects
-    column: project_name
-    type: string
-    label: Project Name
-    sample_values:
-    - Platform Rewrite
-    - API Gateway v2
-    - Mobile App
-    - Q3 Roadmap
-    - Onboarding Redesign
-  projects_status:
-    source: projects
-    column: status
-    type: string
-    label: Status
-    sample_values:
-    - active
-    - on_hold
-    - completed
-  projects_dept_id:
-    source: projects
-    column: dept_id
-    type: number
-    label: Dept Id
-    fk: departments.id
-  skills_id:
-    source: skills
-    column: id
-    type: id
-    label: Id
-  skills_skill_name:
-    source: skills
-    column: skill_name
-    type: string
-    label: Skill Name
-    sample_values:
-    - dbt
-    - Figma
-    - Go
-    - Kubernetes
-    - Product Strategy
-  skills_category:
-    source: skills
-    column: category
-    type: string
-    label: Category
-    sample_values:
-    - Programming
-    - Data
-    - Frontend
-    - Design
-    - Infrastructure
-  task_logs_id:
-    source: task_logs
-    column: id
-    type: id
-    label: Id
-  task_logs_task_id:
-    source: task_logs
-    column: task_id
-    type: number
-    label: Task Id
-    fk: tasks.id
-  task_logs_action:
-    source: task_logs
-    column: action
-    type: string
-    label: Action
-    sample_values:
-    - Task created
-    - Status changed to in_progress
-    - Status changed to done
-    - Research sessions completed
-    - dbt model layer started
-  task_logs_logged_at:
-    source: task_logs
-    column: logged_at
+    label: Actor Last Name
+    sample_values: [GUINESS, WAHLBERG, CHASE, DAVIS, LOLLOBRIGIDA]
+
+  actor_last_update:
+    source: actor
+    column: last_update
     type: time
-    label: Logged At
-  tasks_id:
-    source: tasks
-    column: id
+    label: Actor Last Updated
+
+  # ── ADDRESS ────────────────────────────────────────────────────────────────
+
+  address_address_id:
+    source: address
+    column: address_id
     type: id
-    label: Id
-  tasks_task_name:
-    source: tasks
-    column: task_name
+    label: Address ID
+
+  address_address:
+    source: address
+    column: address
     type: string
-    label: Task Name
-    sample_values:
-    - Scaffold new service structure
-    - Migrate auth module
-    - Write unit tests for core libs
-    - Deploy to staging
-    - Define OpenAPI spec
-  tasks_task_status:
-    source: tasks
-    column: task_status
+    label: Street Address (Line 1)
+
+  address_address2:
+    source: address
+    column: address2
     type: string
-    label: Task Status
+    label: Street Address (Line 2)
+    nullable: true
+
+  address_district:
+    source: address
+    column: district
+    type: string
+    label: District / State / Region
+    sample_values: [Alberta, QLD, Gauteng, Maharashtra, California]
+
+  address_city_id:
+    source: address
+    column: city_id
+    type: id
+    label: City ID
+    fk: city.city_id
+
+  address_postal_code:
+    source: address
+    column: postal_code
+    type: string
+    label: Postal / ZIP Code
+    nullable: true
+
+  address_phone:
+    source: address
+    column: phone
+    type: string
+    label: Phone Number
+
+  address_last_update:
+    source: address
+    column: last_update
+    type: time
+    label: Address Last Updated
+
+  # ── CATEGORY ───────────────────────────────────────────────────────────────
+
+  category_category_id:
+    source: category
+    column: category_id
+    type: id
+    label: Category ID
+
+  category_name:
+    source: category
+    column: name
+    type: string
+    label: Category Name
     sample_values:
-    - done
-    - in_progress
-    - pending
-    - blocked
-  tasks_project_id:
-    source: tasks
-    column: project_id
+      [
+        Action,
+        Animation,
+        Children,
+        Classics,
+        Comedy,
+        Documentary,
+        Drama,
+        Family,
+        Foreign,
+        Games,
+        Horror,
+        Music,
+        New,
+        Sci-Fi,
+        Sports,
+        Travel,
+      ]
+
+  category_last_update:
+    source: category
+    column: last_update
+    type: time
+    label: Category Last Updated
+
+  # ── CITY ───────────────────────────────────────────────────────────────────
+
+  city_city_id:
+    source: city
+    column: city_id
+    type: id
+    label: City ID
+
+  city_city:
+    source: city
+    column: city
+    type: string
+    label: City Name
+    sample_values: [Lethbridge, Woodridge, Kimberley, Pune, Aurora]
+
+  city_country_id:
+    source: city
+    column: country_id
+    type: id
+    label: Country ID
+    fk: country.country_id
+
+  city_last_update:
+    source: city
+    column: last_update
+    type: time
+    label: City Last Updated
+
+  # ── COUNTRY ────────────────────────────────────────────────────────────────
+
+  country_country_id:
+    source: country
+    column: country_id
+    type: id
+    label: Country ID
+
+  country_country:
+    source: country
+    column: country
+    type: string
+    label: Country Name
+    sample_values:
+      [
+        Afghanistan,
+        Brazil,
+        Canada,
+        China,
+        Germany,
+        India,
+        Japan,
+        "United States",
+      ]
+
+  country_last_update:
+    source: country
+    column: last_update
+    type: time
+    label: Country Last Updated
+
+  # ── CUSTOMER ───────────────────────────────────────────────────────────────
+
+  customer_customer_id:
+    source: customer
+    column: customer_id
+    type: id
+    label: Customer ID
+
+  customer_store_id:
+    source: customer
+    column: store_id
+    type: id
+    label: Home Store ID
+    fk: store.store_id
+
+  customer_first_name:
+    source: customer
+    column: first_name
+    type: string
+    label: Customer First Name
+    sample_values: [MARY, PATRICIA, LINDA, BARBARA, ELIZABETH]
+
+  customer_last_name:
+    source: customer
+    column: last_name
+    type: string
+    label: Customer Last Name
+    sample_values: [SMITH, JOHNSON, WILLIAMS, JONES, BROWN]
+
+  customer_email:
+    source: customer
+    column: email
+    type: string
+    label: Customer Email Address
+    nullable: true
+
+  customer_address_id:
+    source: customer
+    column: address_id
+    type: id
+    label: Customer Address ID
+    fk: address.address_id
+
+  customer_active:
+    source: customer
+    column: active
+    type: boolean
+    label: Customer Active Status
+    sample_values: [1, 0]
+    domain_values:
+      1: Active customer
+      0: Inactive (soft-deleted)
+    filter_hints:
+      active_only: "customer.active = 1"
+      inactive_only: "customer.active = 0"
+
+  customer_create_date:
+    source: customer
+    column: create_date
+    type: time
+    label: Customer Registration Date
+
+  customer_last_update:
+    source: customer
+    column: last_update
+    type: time
+    label: Customer Last Updated
+    nullable: true
+
+  # ── FILM ───────────────────────────────────────────────────────────────────
+
+  film_film_id:
+    source: film
+    column: film_id
+    type: id
+    label: Film ID
+
+  film_title:
+    source: film
+    column: title
+    type: string
+    label: Film Title
+    sample_values:
+      [
+        ACADEMY DINOSAUR,
+        ACE GOLDFINGER,
+        ADAPTATION HOLES,
+        AFFAIR PREJUDICE,
+        AFRICAN EGG,
+      ]
+
+  film_description:
+    source: film
+    column: description
+    type: string
+    label: Film Description / Plot Summary
+    nullable: true
+
+  film_release_year:
+    source: film
+    column: release_year
     type: number
-    label: Project Id
-    fk: projects.id
-  tasks_assigned_to:
-    source: tasks
-    column: assigned_to
+    label: Release Year
+    nullable: true
+    sample_values: [2006]
+
+  film_language_id:
+    source: film
+    column: language_id
+    type: id
+    label: Language ID
+    fk: language.language_id
+
+  film_original_language_id:
+    source: film
+    column: original_language_id
+    type: id
+    label: Original Language ID
+    fk: language.language_id
+    nullable: true
+
+  film_rental_duration:
+    source: film
+    column: rental_duration
     type: number
-    label: Assigned To
-    fk: employees.id
+    label: Rental Duration (Days)
+    sample_values: [3, 5, 6, 7]
+    notes: >
+      Used to compute overdue status:
+      DATE_ADD(rental.rental_date, INTERVAL film.rental_duration DAY) < CURRENT_DATE()
+
+  film_rental_rate:
+    source: film
+    column: rental_rate
+    type: number
+    label: Rental Rate (USD)
+    sample_values: [0.99, 2.99, 4.99]
+
+  film_length:
+    source: film
+    column: length
+    type: number
+    label: Film Length (Minutes)
+    nullable: true
+    sample_values: [86, 48, 117, 130, 185]
+    filter_hints:
+      longer_than_2h: "film.length > 120"
+      longer_than_3h: "film.length > 180"
+
+  film_replacement_cost:
+    source: film
+    column: replacement_cost
+    type: number
+    label: Replacement Cost (USD)
+    sample_values: [20.99, 12.99, 28.99]
+
+  film_rating:
+    source: film
+    column: rating
+    type: string
+    label: MPAA Rating
+    nullable: true
+    sample_values: [G, PG, PG-13, R, NC-17]
+    domain_values:
+      G: General audiences
+      PG: Parental guidance suggested
+      PG-13: Parents strongly cautioned
+      R: Restricted
+      NC-17: Adults only
+
+  film_special_features:
+    source: film
+    column: special_features
+    type: string
+    label: Special Features
+    nullable: true
+    sample_values: [Trailers, Commentaries, Deleted Scenes, Behind the Scenes]
+
+  film_last_update:
+    source: film
+    column: last_update
+    type: time
+    label: Film Last Updated
+
+  # ── FILM_ACTOR ─────────────────────────────────────────────────────────────
+
+  film_actor_actor_id:
+    source: film_actor
+    column: actor_id
+    type: id
+    label: Actor ID (film_actor)
+    fk: actor.actor_id
+
+  film_actor_film_id:
+    source: film_actor
+    column: film_id
+    type: id
+    label: Film ID (film_actor)
+    fk: film.film_id
+
+  film_actor_last_update:
+    source: film_actor
+    column: last_update
+    type: time
+    label: Film-Actor Last Updated
+
+  # ── FILM_CATEGORY ──────────────────────────────────────────────────────────
+
+  film_category_film_id:
+    source: film_category
+    column: film_id
+    type: id
+    label: Film ID (film_category)
+    fk: film.film_id
+
+  film_category_category_id:
+    source: film_category
+    column: category_id
+    type: id
+    label: Category ID (film_category)
+    fk: category.category_id
+
+  film_category_last_update:
+    source: film_category
+    column: last_update
+    type: time
+    label: Film-Category Last Updated
+
+  # ── FILM_TEXT ──────────────────────────────────────────────────────────────
+
+  film_text_film_id:
+    source: film_text
+    column: film_id
+    type: id
+    label: Film ID (film_text)
+    fk: film.film_id
+
+  film_text_title:
+    source: film_text
+    column: title
+    type: string
+    label: Film Title (full-text index)
+
+  film_text_description:
+    source: film_text
+    column: description
+    type: string
+    label: Film Description (full-text index)
+    nullable: true
+
+  # ── INVENTORY ──────────────────────────────────────────────────────────────
+
+  inventory_inventory_id:
+    source: inventory
+    column: inventory_id
+    type: id
+    label: Inventory ID
+
+  inventory_film_id:
+    source: inventory
+    column: film_id
+    type: id
+    label: Film ID (inventory)
+    fk: film.film_id
+
+  inventory_store_id:
+    source: inventory
+    column: store_id
+    type: id
+    label: Store ID (inventory)
+    fk: store.store_id
+
+  inventory_last_update:
+    source: inventory
+    column: last_update
+    type: time
+    label: Inventory Last Updated
+
+  inventory_current_status:
+    source: inventory
+    column: _derived_
+    type: string
+    label: Inventory Current Status (In Stock / Rented Out)
+    domain_values:
+      in_stock: No open rental exists for this inventory_id
+      rented_out: An open rental (return_date IS NULL) exists for this inventory_id
+    notes: >
+      Derived via:
+      CASE WHEN EXISTS (SELECT 1 FROM rental r
+                        WHERE r.inventory_id = inventory.inventory_id
+                          AND r.return_date IS NULL)
+           THEN 'rented_out' ELSE 'in_stock' END
+
+  # ── LANGUAGE ───────────────────────────────────────────────────────────────
+
+  language_language_id:
+    source: language
+    column: language_id
+    type: id
+    label: Language ID
+
+  language_name:
+    source: language
+    column: name
+    type: string
+    label: Language Name
+    sample_values: [English, Italian, Japanese, Mandarin, French, German, Hindi]
+
+  language_last_update:
+    source: language
+    column: last_update
+    type: time
+    label: Language Last Updated
+
+  # ── PAYMENT ────────────────────────────────────────────────────────────────
+
+  payment_payment_id:
+    source: payment
+    column: payment_id
+    type: id
+    label: Payment ID
+
+  payment_customer_id:
+    source: payment
+    column: customer_id
+    type: id
+    label: Customer ID (payment)
+    fk: customer.customer_id
+
+  payment_staff_id:
+    source: payment
+    column: staff_id
+    type: id
+    label: Staff ID (payment)
+    fk: staff.staff_id
+
+  payment_rental_id:
+    source: payment
+    column: rental_id
+    type: id
+    label: Rental ID (payment)
+    fk: rental.rental_id
+    nullable: true
+    notes: >
+      NULL means the payment covers an outstanding balance not tied to a specific rental.
+      Use IS NOT NULL filter when joining payment to rental for per-rental analysis.
+
+  payment_amount:
+    source: payment
+    column: amount
+    type: number
+    label: Payment Amount (USD)
+    sample_values: [0.99, 1.99, 2.99, 4.99, 9.99]
+
+  payment_payment_date:
+    source: payment
+    column: payment_date
+    type: time
+    label: Payment Date
+
+  payment_last_update:
+    source: payment
+    column: last_update
+    type: time
+    label: Payment Last Updated
+    nullable: true
+
+  # ── RENTAL ─────────────────────────────────────────────────────────────────
+
+  rental_rental_id:
+    source: rental
+    column: rental_id
+    type: id
+    label: Rental ID
+
+  rental_rental_date:
+    source: rental
+    column: rental_date
+    type: time
+    label: Rental / Checkout Date
+
+  rental_inventory_id:
+    source: rental
+    column: inventory_id
+    type: id
+    label: Inventory ID (rental)
+    fk: inventory.inventory_id
+
+  rental_customer_id:
+    source: rental
+    column: customer_id
+    type: id
+    label: Customer ID (rental)
+    fk: customer.customer_id
+
+  rental_return_date:
+    source: rental
+    column: return_date
+    type: time
+    label: Return Date
+    nullable: true
+    notes: NULL indicates the item has not yet been returned (open / active rental).
+    filter_hints:
+      open_rentals: "rental.return_date IS NULL"
+      returned_rentals: "rental.return_date IS NOT NULL"
+      overdue: >
+        rental.return_date IS NULL
+        AND DATE_ADD(rental.rental_date, INTERVAL film.rental_duration DAY) < CURRENT_DATE()
+
+  rental_rental_month:
+    source: rental
+    column: "DATE_FORMAT(rental_date, '%Y-%m')"
+    type: string
+    label: Rental Month
+
+  rental_staff_id:
+    source: rental
+    column: staff_id
+    type: id
+    label: Staff ID (rental)
+    fk: staff.staff_id
+
+  rental_last_update:
+    source: rental
+    column: last_update
+    type: time
+    label: Rental Last Updated
+
+  # ── STAFF ──────────────────────────────────────────────────────────────────
+
+  staff_staff_id:
+    source: staff
+    column: staff_id
+    type: id
+    label: Staff ID
+
+  staff_first_name:
+    source: staff
+    column: first_name
+    type: string
+    label: Staff First Name
+    sample_values: [Mike, Jon]
+
+  staff_last_name:
+    source: staff
+    column: last_name
+    type: string
+    label: Staff Last Name
+    sample_values: [Hillyer, Stephens]
+
+  staff_address_id:
+    source: staff
+    column: address_id
+    type: id
+    label: Staff Address ID
+    fk: address.address_id
+
+  staff_email:
+    source: staff
+    column: email
+    type: string
+    label: Staff Email Address
+    nullable: true
+
+  staff_store_id:
+    source: staff
+    column: store_id
+    type: id
+    label: Home Store ID (staff)
+    fk: store.store_id
+
+  staff_active:
+    source: staff
+    column: active
+    type: boolean
+    label: Staff Active Status
+    sample_values: [1, 0]
+    domain_values:
+      1: Currently employed
+      0: Former employee (soft-deleted)
+
+  staff_username:
+    source: staff
+    column: username
+    type: string
+    label: System Username
+    sample_values: [Mike, Jon]
+
+  staff_last_update:
+    source: staff
+    column: last_update
+    type: time
+    label: Staff Last Updated
+
+  # ── STORE ──────────────────────────────────────────────────────────────────
+
+  store_store_id:
+    source: store
+    column: store_id
+    type: id
+    label: Store ID
+    sample_values: [1, 2]
+
+  store_manager_staff_id:
+    source: store
+    column: manager_staff_id
+    type: id
+    label: Manager Staff ID
+    fk: staff.staff_id
+
+  store_address_id:
+    source: store
+    column: address_id
+    type: id
+    label: Store Address ID
+    fk: address.address_id
+
+  store_last_update:
+    source: store
+    column: last_update
+    type: time
+    label: Store Last Updated
+
+# ════════════════════════════════════════════════════════════
+# RELATIONSHIPS
+# ════════════════════════════════════════════════════════════
+
 relationships:
-  departments_to_employees:
-    from: departments
-    to: employees
-    join: departments.manager_id = employees.id
-  employee_skills_to_employees:
-    from: employee_skills
-    to: employees
-    join: employee_skills.employee_id = employees.id
-  employee_skills_to_skills:
-    from: employee_skills
-    to: skills
-    join: employee_skills.skill_id = skills.id
-  employees_to_departments:
-    from: employees
-    to: departments
-    join: employees.dept_id = departments.id
-  employees_to_employees:
-    from: employees
-    to: employees
-    join: employees.manager_id = employees.id
-  projects_to_departments:
-    from: projects
-    to: departments
-    join: projects.dept_id = departments.id
-  task_logs_to_tasks:
-    from: task_logs
-    to: tasks
-    join: task_logs.task_id = tasks.id
-  tasks_to_employees:
-    from: tasks
-    to: employees
-    join: tasks.assigned_to = employees.id
-  tasks_to_projects:
-    from: tasks
-    to: projects
-    join: tasks.project_id = projects.id
+  film_actor_to_actor:
+    from: film_actor
+    to: actor
+    join: film_actor.actor_id = actor.actor_id
+
+  film_actor_to_film:
+    from: film_actor
+    to: film
+    join: film_actor.film_id = film.film_id
+
+  film_actor_self_join:
+    from: film_actor
+    to: film_actor
+    alias_left: fa1
+    alias_right: fa2
+    join: fa1.film_id = fa2.film_id AND fa1.actor_id < fa2.actor_id
+    notes: >
+      Use actor joined twice (a1, a2) to retrieve names for both actors in the pair.
+      fa1.actor_id < fa2.actor_id prevents duplicate pairs (A,B) and (B,A).
+
+  film_category_to_film:
+    from: film_category
+    to: film
+    join: film_category.film_id = film.film_id
+
+  film_category_to_category:
+    from: film_category
+    to: category
+    join: film_category.category_id = category.category_id
+
+  film_to_language:
+    from: film
+    to: language
+    join: film.language_id = language.language_id
+
+  film_to_original_language:
+    from: film
+    to: language
+    join: film.original_language_id = language.language_id
+    notes: Only populated for dubbed films; original_language_id may be NULL.
+
+  film_text_to_film:
+    from: film_text
+    to: film
+    join: film_text.film_id = film.film_id
+
+  inventory_to_film:
+    from: inventory
+    to: film
+    join: inventory.film_id = film.film_id
+
+  inventory_to_store:
+    from: inventory
+    to: store
+    join: inventory.store_id = store.store_id
+
+  rental_to_inventory:
+    from: rental
+    to: inventory
+    join: rental.inventory_id = inventory.inventory_id
+
+  rental_to_customer:
+    from: rental
+    to: customer
+    join: rental.customer_id = customer.customer_id
+
+  rental_to_staff:
+    from: rental
+    to: staff
+    join: rental.staff_id = staff.staff_id
+
+  payment_to_customer:
+    from: payment
+    to: customer
+    join: payment.customer_id = customer.customer_id
+
+  payment_to_staff:
+    from: payment
+    to: staff
+    join: payment.staff_id = staff.staff_id
+
+  payment_to_rental:
+    from: payment
+    to: rental
+    join: payment.rental_id = rental.rental_id
+    notes: >
+      Always add AND payment.rental_id IS NOT NULL when joining payment to rental
+      to exclude balance-settlement payments not tied to a specific rental.
+
+  customer_to_store:
+    from: customer
+    to: store
+    join: customer.store_id = store.store_id
+
+  customer_to_address:
+    from: customer
+    to: address
+    join: customer.address_id = address.address_id
+
+  staff_to_store:
+    from: staff
+    to: store
+    join: staff.store_id = store.store_id
+
+  staff_to_address:
+    from: staff
+    to: address
+    join: staff.address_id = address.address_id
+
+  store_to_manager:
+    from: store
+    to: staff
+    join: store.manager_staff_id = staff.staff_id
+
+  store_to_address:
+    from: store
+    to: address
+    join: store.address_id = address.address_id
+
+  address_to_city:
+    from: address
+    to: city
+    join: address.city_id = city.city_id
+
+  city_to_country:
+    from: city
+    to: country
+    join: city.country_id = country.country_id
+
+# ════════════════════════════════════════════════════════════
+# INTENT PATTERNS
+# ════════════════════════════════════════════════════════════
+#
+# Purpose: teach the RAG retriever the correct metric + partition_by/group_by
+# for ranked / windowed / top-N / grouped queries. Without these, the
+# SQL generator falls back to guessing and picks wrong PARTITION BY columns.
+#
+# Rules for adding new patterns:
+#   1. metric must match a key in the metrics section above.
+#   2. partition_by must be a dimension key — never a name column
+#      (customer_first_name, customer_last_name, actor_first_name, etc.).
+#   3. group_by lists all columns that appear in SELECT + GROUP BY.
+#   4. filter is the WHERE/HAVING applied AFTER the window (usually rnk = 1
+#      for "top 1 per group", rnk <= 3 for "top 3", etc.).
+#   5. Add at least 2–3 natural-language variants per logical query shape
+#      so the embedding model can find the pattern under different phrasings.
+# ════════════════════════════════════════════════════════════════════════════
+
+intent_patterns:
+  # ──────────────────────────────────────────────────────────────────────────
+  # CORE 16 EXERCISES (LEVEL 1 TO LEVEL 4)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: level1_q1_top_rented_films
+    pattern: Which films have been rented the most? Show top 10.
+    metric: rentals_per_film
+    dimensions:
+      - film_film_id
+      - film_title
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: rentals_per_film DESC
+    filter: rnk <= 10
+
+  - id: level1_q2_revenue_per_category
+    pattern: What is the total revenue generated by each film category?
+    metric: revenue_by_category
+    dimensions:
+      - category_name
+      - payment_amount
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: revenue_by_category DESC
+    filter: _none_
+
+  - id: level1_q3_top_customers_spending
+    pattern: Who are the top 5 customers by total spending?
+    metric: revenue_by_customer
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: revenue_by_customer DESC
+    filter: rnk <= 5
+
+  - id: level1_q4_rentals_per_month
+    pattern: How many rentals were made each month?
+    metric: rentals_by_month
+    dimensions:
+      - rental_rental_month
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: level2_q5_actors_in_most_films
+    pattern: Which actors have appeared in the most films?
+    metric: films_per_actor
+    dimensions:
+      - actor_actor_id
+      - actor_first_name
+      - actor_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: films_per_actor DESC
+    filter: rnk = 1
+
+  - id: level2_q6_films_never_rented
+    pattern: List all films that have never been rented.
+    metric: never_rented_film_count
+    dimensions:
+      - film_film_id
+      - film_title
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: level2_q7_customers_no_rentals
+    pattern: Which customers have never rented a film?
+    metric: customers_with_no_rentals
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: level2_q8_avg_rental_duration_category
+    pattern: What is the average rental duration for each film category?
+    metric: avg_rental_duration_per_category
+    dimensions:
+      - category_category_id
+      - category_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: level3_q9_highest_spending_customer_per_country
+    pattern: Find the highest spending customer in each country.
+    metric: revenue_by_customer
+    dimensions:
+      - country_country
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: country_country
+      order_by: revenue_by_customer DESC
+    filter: rnk = 1
+
+  - id: level3_q10_most_popular_category_per_country
+    pattern: Which film category is most popular in each country?
+    metric: rentals_by_category_and_country
+    dimensions:
+      - country_country
+      - category_name
+    window:
+      function: RANK
+      partition_by: country_country
+      order_by: rentals_by_category_and_country DESC
+    filter: rnk = 1
+
+  - id: level3_q11_actors_never_in_action
+    pattern: List actors who have never appeared in Action films.
+    metric: actors_never_in_action
+    dimensions:
+      - actor_actor_id
+      - actor_first_name
+      - actor_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: level3_q12_customers_above_average_spend
+    pattern: Find customers whose total spending is above the average spending of all customers.
+    metric: customers_above_avg_spend
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: level4_q13_second_highest_spending_customer_per_country
+    pattern: Find the second highest spending customer in each country.
+    metric: revenue_by_customer
+    dimensions:
+      - country_country
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: country_country
+      order_by: revenue_by_customer DESC
+    filter: rnk = 2
+
+  - id: level4_q14_films_rented_by_all_customers
+    pattern: List films that have been rented by every customer.
+    metric: films_rented_by_all_customers
+    dimensions:
+      - film_film_id
+      - film_title
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: level4_q15_actors_working_in_all_categories
+    pattern: Find actors who have acted in films from every category.
+    metric: actors_in_all_categories
+    dimensions:
+      - actor_actor_id
+      - actor_first_name
+      - actor_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: level4_q16_customers_who_rented_from_all_categories
+    pattern: Find customers who have rented at least one film from every category.
+    metric: customers_rented_all_categories
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # GEOGRAPHY-SCOPED CUSTOMER / REVENUE RANKINGS
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: top_customer_by_spend_per_country_v2
+    pattern: top customer by spend per country
+    metric: revenue_by_customer
+    dimensions:
+      - country_country
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: country_country
+      order_by: revenue_by_customer DESC
+    filter: rnk = 1
+
+  - id: top_customer_by_spend_per_country_v3
+    pattern: best customer per country by revenue
+    metric: revenue_by_customer
+    dimensions:
+      - country_country
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: country_country
+      order_by: revenue_by_customer DESC
+    filter: rnk = 1
+
+  - id: top_customer_by_spend_per_country_v4
+    pattern: which customer spent the most in each country
+    metric: revenue_by_customer
+    dimensions:
+      - country_country
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: country_country
+      order_by: revenue_by_customer DESC
+    filter: rnk = 1
+
+  - id: top_customer_by_spend_per_country_v5
+    pattern: most valuable customer by country
+    metric: revenue_by_customer
+    dimensions:
+      - country_country
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: country_country
+      order_by: revenue_by_customer DESC
+    filter: rnk = 1
+
+  - id: top3_customers_per_country
+    pattern: top 3 customers by spend in each country
+    metric: revenue_by_customer
+    dimensions:
+      - country_country
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: country_country
+      order_by: revenue_by_customer DESC
+    filter: rnk <= 3
+
+  - id: top_customer_per_city
+    pattern: highest spending customer in each city
+    metric: revenue_by_customer
+    dimensions:
+      - city_city
+      - country_country
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: city_city
+      order_by: revenue_by_customer DESC
+    filter: rnk = 1
+
+  - id: top_customer_per_city_v2
+    pattern: best customer per city
+    metric: revenue_by_customer
+    dimensions:
+      - city_city
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: city_city
+      order_by: revenue_by_customer DESC
+    filter: rnk = 1
+
+  - id: top_customer_per_store
+    pattern: highest spending customer per store
+    metric: revenue_by_customer
+    dimensions:
+      - customer_store_id
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: customer_store_id
+      order_by: revenue_by_customer DESC
+    filter: rnk = 1
+
+  - id: top_customer_per_store_v2
+    pattern: best customer at each store
+    metric: revenue_by_customer
+    dimensions:
+      - customer_store_id
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: customer_store_id
+      order_by: revenue_by_customer DESC
+    filter: rnk = 1
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # TOP RENTALS PER GROUP
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: most_rented_film_per_category
+    pattern: most rented film in each category
+    metric: rentals_per_film
+    dimensions:
+      - category_name
+      - film_film_id
+      - film_title
+      - rental_rental_id
+    window:
+      function: RANK
+      partition_by: category_name
+      order_by: rentals_per_film DESC
+    filter: rnk = 1
+
+  - id: most_rented_film_per_category_v2
+    pattern: top film by rentals per category
+    metric: rentals_per_film
+    dimensions:
+      - category_name
+      - film_film_id
+      - film_title
+    window:
+      function: RANK
+      partition_by: category_name
+      order_by: rentals_per_film DESC
+    filter: rnk = 1
+
+  - id: top3_films_per_category
+    pattern: top 3 most rented films in each category
+    metric: rentals_per_film
+    dimensions:
+      - category_name
+      - film_film_id
+      - film_title
+    window:
+      function: RANK
+      partition_by: category_name
+      order_by: rentals_per_film DESC
+    filter: rnk <= 3
+
+  - id: most_rented_film_per_store
+    pattern: most rented film per store
+    metric: rentals_per_film
+    dimensions:
+      - inventory_store_id
+      - film_film_id
+      - film_title
+    window:
+      function: RANK
+      partition_by: inventory_store_id
+      order_by: rentals_per_film DESC
+    filter: rnk = 1
+
+  - id: most_rented_film_per_rating
+    pattern: most rented film for each rating
+    metric: rentals_per_film
+    dimensions:
+      - film_rating
+      - film_film_id
+      - film_title
+    window:
+      function: RANK
+      partition_by: film_rating
+      order_by: rentals_per_film DESC
+    filter: rnk = 1
+
+  - id: most_active_customer_per_store
+    pattern: customer with most rentals at each store
+    metric: rentals_per_customer
+    dimensions:
+      - customer_store_id
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: RANK
+      partition_by: customer_store_id
+      order_by: rentals_per_customer DESC
+    filter: rnk = 1
+
+  - id: most_active_customer_per_store_v2
+    pattern: most frequent renter per store
+    metric: rentals_per_customer
+    dimensions:
+      - customer_store_id
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: RANK
+      partition_by: customer_store_id
+      order_by: rentals_per_customer DESC
+    filter: rnk = 1
+
+  - id: most_active_customer_per_country
+    pattern: customer who rented the most in each country
+    metric: rentals_per_customer
+    dimensions:
+      - country_country
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: RANK
+      partition_by: country_country
+      order_by: rentals_per_customer DESC
+    filter: rnk = 1
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # TOP REVENUE PER GROUP
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: highest_revenue_film_per_category
+    pattern: highest revenue film in each category
+    metric: revenue_by_film
+    dimensions:
+      - category_name
+      - film_film_id
+      - film_title
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: category_name
+      order_by: revenue_by_film DESC
+    filter: rnk = 1
+
+  - id: highest_revenue_film_per_category_v2
+    pattern: best earning film per category
+    metric: revenue_by_film
+    dimensions:
+      - category_name
+      - film_film_id
+      - film_title
+    window:
+      function: RANK
+      partition_by: category_name
+      order_by: revenue_by_film DESC
+    filter: rnk = 1
+
+  - id: highest_revenue_film_per_rating
+    pattern: highest grossing film per rating
+    metric: revenue_by_film
+    dimensions:
+      - film_rating
+      - film_film_id
+      - film_title
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: film_rating
+      order_by: revenue_by_film DESC
+    filter: rnk = 1
+
+  - id: highest_revenue_film_per_store
+    pattern: top earning film at each store
+    metric: revenue_by_film
+    dimensions:
+      - inventory_store_id
+      - film_film_id
+      - film_title
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: inventory_store_id
+      order_by: revenue_by_film DESC
+    filter: rnk = 1
+
+  - id: top_revenue_category_per_store
+    pattern: best performing category at each store
+    metric: revenue_by_category
+    dimensions:
+      - inventory_store_id
+      - category_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: inventory_store_id
+      order_by: revenue_by_category DESC
+    filter: rnk = 1
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # ACTOR PATTERNS
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: most_films_per_actor
+    pattern: actor who appeared in the most films
+    metric: films_per_actor
+    dimensions:
+      - actor_actor_id
+      - actor_first_name
+      - actor_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: films_per_actor DESC
+    filter: rnk = 1
+    notes: No partition — this is a global top-1 ranking across all actors.
+
+  - id: most_films_per_actor_v2
+    pattern: top actors by number of films
+    metric: films_per_actor
+    dimensions:
+      - actor_actor_id
+      - actor_first_name
+      - actor_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: films_per_actor DESC
+    filter: rnk <= 10
+
+  - id: actor_most_rentals
+    pattern: actor whose films have been rented the most
+    metric: rentals_per_film
+    dimensions:
+      - actor_actor_id
+      - actor_first_name
+      - actor_last_name
+      - film_film_id
+      - film_title
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: rentals_per_film DESC
+    filter: rnk = 1
+
+  - id: actor_most_revenue
+    pattern: actor who generated the most revenue
+    metric: revenue_by_film
+    dimensions:
+      - actor_actor_id
+      - actor_first_name
+      - actor_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: revenue_by_film DESC
+    filter: rnk = 1
+
+  - id: actor_co_appearance_top
+    pattern: which two actors have appeared together most often
+    metric: actor_co_appearance_count
+    dimensions:
+      - actor_first_name
+      - actor_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: actor_co_appearance_count DESC
+    filter: rnk = 1
+
+  - id: actor_co_appearance_top_v2
+    pattern: actor pairs who share the most films
+    metric: actor_co_appearance_count
+    dimensions:
+      - actor_first_name
+      - actor_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: actor_co_appearance_count DESC
+    filter: rnk <= 5
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # FILM / INVENTORY PATTERNS
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: most_efficient_film_by_revenue_per_copy
+    pattern: which film earns the most revenue per copy
+    metric: revenue_per_inventory_copy
+    dimensions:
+      - film_film_id
+      - film_title
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: revenue_per_inventory_copy DESC
+    filter: rnk = 1
+
+  - id: most_efficient_film_by_revenue_per_copy_v2
+    pattern: most efficient films by revenue per inventory copy
+    metric: revenue_per_inventory_copy
+    dimensions:
+      - film_film_id
+      - film_title
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: revenue_per_inventory_copy DESC
+    filter: rnk <= 10
+
+  - id: highest_replacement_cost_per_rating
+    pattern: most expensive film to replace per rating
+    metric: average_replacement_cost_by_rating
+    dimensions:
+      - film_rating
+      - film_film_id
+      - film_title
+      - film_replacement_cost
+    window:
+      function: RANK
+      partition_by: film_rating
+      order_by: film_replacement_cost DESC
+    filter: rnk = 1
+
+  - id: longest_film_per_category
+    pattern: longest film in each category
+    metric: films_per_category
+    dimensions:
+      - category_name
+      - film_film_id
+      - film_title
+      - film_length
+    window:
+      function: RANK
+      partition_by: category_name
+      order_by: film_length DESC
+    filter: rnk = 1
+
+  - id: longest_film_per_rating
+    pattern: longest film per rating
+    metric: films_per_rating
+    dimensions:
+      - film_rating
+      - film_film_id
+      - film_title
+      - film_length
+    window:
+      function: RANK
+      partition_by: film_rating
+      order_by: film_length DESC
+    filter: rnk = 1
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # STORE / STAFF PATTERNS
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: highest_revenue_store
+    pattern: which store made the most revenue
+    metric: revenue_by_store
+    dimensions:
+      - inventory_store_id
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: revenue_by_store DESC
+    filter: rnk = 1
+
+  - id: store_revenue_comparison
+    pattern: compare revenue between stores
+    metric: revenue_by_store
+    dimensions:
+      - inventory_store_id
+      - payment_amount
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: revenue_by_store DESC
+    filter: _none_
+
+  - id: top_staff_by_revenue
+    pattern: staff member who processed the most revenue
+    metric: revenue_by_staff
+    dimensions:
+      - staff_staff_id
+      - staff_first_name
+      - staff_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: revenue_by_staff DESC
+    filter: rnk = 1
+
+  - id: top_staff_by_revenue_v2
+    pattern: which employee generated the most sales
+    metric: revenue_by_staff
+    dimensions:
+      - staff_staff_id
+      - staff_first_name
+      - staff_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: revenue_by_staff DESC
+    filter: rnk = 1
+
+  - id: top_staff_by_rentals
+    pattern: staff member who handled the most rentals
+    metric: rentals_per_staff
+    dimensions:
+      - staff_staff_id
+      - staff_first_name
+      - staff_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: rentals_per_staff DESC
+    filter: rnk = 1
+
+  - id: top_staff_per_store
+    pattern: best performing staff member at each store
+    metric: revenue_by_staff
+    dimensions:
+      - staff_store_id
+      - staff_staff_id
+      - staff_first_name
+      - staff_last_name
+    window:
+      function: RANK
+      partition_by: staff_store_id
+      order_by: revenue_by_staff DESC
+    filter: rnk = 1
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # OVERDUE / OUTSTANDING PATTERNS
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: overdue_rentals_by_customer
+    pattern: customers with overdue rentals
+    metric: overdue_rentals_detail
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - film_title
+      - rental_rental_date
+      - film_rental_duration
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: overdue_rentals_by_customer_v2
+    pattern: who has not returned their rental
+    metric: overdue_rental_count
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - film_title
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: customers_with_unpaid_rentals
+    pattern: customers who owe money
+    metric: outstanding_balance_by_customer
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: customers_with_unpaid_rentals_v2
+    pattern: unpaid rentals per customer
+    metric: outstanding_balance_by_customer
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: most_indebted_customer
+    pattern: customer with the most unpaid rentals
+    metric: outstanding_balance_by_customer
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: outstanding_balance_by_customer DESC
+    filter: rnk = 1
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # TEMPORAL / TREND PATTERNS
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: revenue_by_month_trend
+    pattern: monthly revenue trend
+    metric: revenue_by_month
+    dimensions:
+      - payment_payment_date
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: payment_payment_date ASC
+    filter: _none_
+
+  - id: revenue_by_month_trend_v2
+    pattern: how has revenue changed month over month
+    metric: revenue_by_month
+    dimensions:
+      - payment_payment_date
+      - payment_amount
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: payment_payment_date ASC
+    filter: _none_
+
+  - id: best_revenue_month
+    pattern: which month had the highest revenue
+    metric: revenue_by_month
+    dimensions:
+      - payment_payment_date
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: revenue_by_month DESC
+    filter: rnk = 1
+
+  - id: rentals_per_store_monthly
+    pattern: how many rentals did each store process each month
+    metric: rentals_per_store_per_month
+    dimensions:
+      - inventory_store_id
+      - rental_rental_date
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: rental_rental_date ASC
+    filter: _none_
+
+  - id: customer_rental_tenure
+    pattern: how long has each customer been renting
+    metric: customer_rental_tenure_days
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: customer_rental_tenure_days DESC
+    filter: _none_
+
+  - id: loyalty_eligible
+    pattern: which customers qualify for the loyalty program
+    metric: loyalty_eligible_customers
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - customer_email
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: loyalty_eligible_v2
+    pattern: customers eligible for rewards based on recent activity
+    metric: loyalty_eligible_customers
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+      - customer_email
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # SIMPLE AGGREGATE / COUNT PATTERNS (easy queries)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  - id: total_films
+    pattern: how many films are in the catalog
+    metric: film_row_count
+    dimensions: []
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: total_films_v2
+    pattern: total number of films
+    metric: film_row_count
+    dimensions: []
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: total_revenue_simple
+    pattern: what is the total revenue
+    metric: total_revenue
+    dimensions: []
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: total_revenue_simple_v2
+    pattern: how much money has the store made
+    metric: total_revenue
+    dimensions: []
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: active_customers_count
+    pattern: how many active customers are there
+    metric: active_customer_count
+    dimensions: []
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: never_rented
+    pattern: which films have never been rented
+    metric: never_rented_film_count
+    dimensions:
+      - film_film_id
+      - film_title
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: never_rented_v2
+    pattern: films with zero rentals
+    metric: never_rented_film_count
+    dimensions:
+      - film_film_id
+      - film_title
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: currently_out
+    pattern: what films are currently checked out
+    metric: currently_rented_films
+    dimensions:
+      - film_title
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: currently_out_v2
+    pattern: films currently rented by customers
+    metric: currently_rented_films
+    dimensions:
+      - film_title
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: avg_rental_rate_simple
+    pattern: what is the average rental rate
+    metric: average_rental_rate
+    dimensions: []
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: films_by_rating
+    pattern: how many films are in each rating category
+    metric: films_per_rating
+    dimensions:
+      - film_rating
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: films_by_rating_v2
+    pattern: film count by MPAA rating
+    metric: films_per_rating
+    dimensions:
+      - film_rating
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: revenue_by_category_simple
+    pattern: revenue by film category
+    metric: revenue_by_category
+    dimensions:
+      - category_name
+      - payment_amount
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: revenue_by_category DESC
+    filter: _none_
+
+  - id: revenue_by_category_v2
+    pattern: which genre makes the most money
+    metric: revenue_by_category
+    dimensions:
+      - category_name
+      - payment_amount
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: revenue_by_category DESC
+    filter: rnk = 1
+
+  - id: avg_rental_duration
+    pattern: how long do customers keep films on average
+    metric: average_rental_duration_days
+    dimensions: []
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: inventory_in_stock
+    pattern: what percentage of inventory is currently in stock
+    metric: inventory_in_stock_pct
+    dimensions:
+      - inventory_store_id
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: customers_per_country_simple
+    pattern: how many customers are in each country
+    metric: customers_per_country
+    dimensions:
+      - country_country
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: customers_per_country DESC
+    filter: _none_
+
+  - id: customers_per_country_top
+    pattern: which country has the most customers
+    metric: customers_per_country
+    dimensions:
+      - country_country
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: customers_per_country DESC
+    filter: rnk = 1
+
+  - id: churn_rate_simple
+    pattern: what is the customer churn rate
+    metric: customer_churn_rate
+    dimensions: []
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_
+
+  - id: heavy_renters
+    pattern: customers who have rented more than 30 films
+    metric: rentals_per_customer
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: rentals_per_customer DESC
+    filter: rentals > 30
+
+  - id: heavy_renters_v2
+    pattern: most active customers by rental count
+    metric: rentals_per_customer
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: RANK
+      partition_by: _none_
+      order_by: rentals_per_customer DESC
+    filter: rnk <= 10
+
+  - id: inventory_turnover_by_store
+    pattern: inventory turnover rate by store
+    metric: inventory_turnover_rate
+    dimensions:
+      - inventory_store_id
+      - rental_rental_date
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: inventory_turnover_rate DESC
+    filter: _none_
+
+  - id: repeat_renters
+    pattern: customers who rented more than once in the same month at the same store
+    metric: repeat_rental_rate
+    dimensions:
+      - customer_customer_id
+      - customer_first_name
+      - customer_last_name
+    window:
+      function: _none_
+      partition_by: _none_
+      order_by: _none_
+    filter: _none_

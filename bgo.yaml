@@ -1,715 +1,1610 @@
-metrics:
-  departments_row_count:
-  - department count
-  - number of departments
-  - department tally
-  - department total
-  - department quantity
-  - how many departments
-  employee_skills_row_count:
-  - skill count per employee
-  - employee skills tally
-  - skill quantity per employee
-  - employee skill total
-  - employee skill count
-  - how many employee skills
-  employees_row_count:
-  - employee count
-  - number of employees
-  - employee tally
-  - employee total
-  - employee quantity
-  - how many employees
-  - staff count
-  - headcount
-  projects_row_count:
-  - project count
-  - number of projects
-  - project tally
-  - project total
-  - project quantity
-  - how many projects
-  skills_row_count:
-  - skill count
-  - number of skills
-  - skill tally
-  - skill total
-  - skill quantity
-  - how many skills
-  task_logs_row_count:
-  - log count
-  - number of logs
-  - log tally
-  - log total
-  - log quantity
-  - how many logs
-  - how many task logs
-  tasks_row_count:
-  - task count
-  - number of tasks
-  - task tally
-  - task total
-  - task quantity
-  - how many tasks
-  departments_per_employee:
-  - department per employee ratio
-  - employee department count
-  - department employee tally
-  projects_per_department:
-  - project per department ratio
-  - department project count
-  - projects in department
-  - how many projects per department
-  employee_skills_per_employee:
-  - skill per employee ratio
-  - employee skills count
-  - skills per employee
-  - number of skills per employee
-  - how many skills does each employee have
-  - skill breadth
-  employee_skills_per_skill:
-  - employee per skill ratio
-  - skill employee count
-  - how many employees have each skill
-  - employees with skill
-  tasks_per_employee:
-  - task per employee ratio
-  - employee task count
-  - tasks assigned per employee
-  - how many tasks per employee
-  - workload per employee
-  - task workload
-  tasks_per_project:
-  - task per project ratio
-  - project task count
-  - tasks in project
-  - how many tasks per project
-  task_logs_per_task:
-  - log per task ratio
-  - task log count
-  - logs per task
-  - how many logs per task
-  avg_proficiency_per_employee:
-  - average proficiency per employee
-  - mean skill level per employee
-  - average skill score
-  - avg skill rating per employee
-  - mean proficiency
-  - skill quality per employee
-  - average expertise
-  total_proficiency_per_employee:
-  - total proficiency per employee
-  - sum of skills per employee
-  - overall skill score
-  - combined proficiency
-  - cumulative skill level
-  - most skilled employee
-  - who is the most skilled
-  - top skilled employee
-  - best employee by skills
-  - highest skill score
-  - skill champion
-  - skill leader
-  - most talented employee
-  - best skilled
-  - top performer by skill
-  - skill ranking
-  max_proficiency_per_employee:
-  - peak proficiency per employee
-  - highest single skill score
-  - best skill per employee
-  - maximum skill rating
-  - top skill level
-  avg_proficiency_per_skill:
-  - average proficiency per skill
-  - mean skill rating
-  - how hard is each skill
-  - skill difficulty average
-  - proficiency by skill
-  avg_proficiency_per_department:
-  - average proficiency per department
-  - department skill level
-  - mean skills by department
-  - department expertise average
-  - most skilled department
-  - best department by skill
-  done_tasks_per_employee:
-  - completed tasks per employee
-  - finished tasks per employee
-  - tasks done by employee
-  - how many tasks completed per employee
-  - tasks closed per employee
-  completion_rate_per_employee:
-  - completion rate per employee
-  - task completion rate
-  - efficiency per employee
-  - most efficient employee
-  - who is the most efficient
-  - top performer
-  - best performer
-  - highest completion rate
-  - productivity rate
-  - task success rate
-  - employee productivity
-  - work efficiency
-  - employee efficiency
-  - who gets things done
-  - best at completing tasks
-  - most productive employee
-  - highest productivity
-  - performance rate
-  - output rate
-  - delivery rate
-  - task delivery rate
-  - fastest employee
-  - most reliable employee
-  pending_tasks_per_employee:
-  - pending tasks per employee
-  - open tasks per employee
-  - unfinished tasks per employee
-  - tasks not done per employee
-  - backlog per employee
-  blocked_tasks_per_employee:
-  - blocked tasks per employee
-  - tasks blocked per employee
-  - how many tasks are blocked per employee
-  - blockers per employee
-  task_log_activity_per_employee:
-  - activity per employee
-  - task log activity
-  - work activity per employee
-  - total events per employee
-  - log volume per employee
-  - most active employee
-  - busiest employee
-  avg_logs_per_task_per_employee:
-  - average logs per task per employee
-  - task iteration rate
-  - work iterations per task
-  - task complexity per employee
-  active_projects_per_department:
-  - active projects per department
-  - ongoing projects by department
-  - how many active projects per department
-  - current projects per department
-  completed_projects_per_department:
-  - completed projects per department
-  - finished projects per department
-  - projects done by department
-  tasks_done_per_project:
-  - completed tasks per project
-  - finished tasks in project
-  - tasks done in project
-  - how many tasks are done per project
-  completion_rate_per_project:
-  - project completion rate
-  - project progress
-  - how complete is the project
-  - project task completion rate
-  - project delivery rate
-  skill_diversity_per_department:
-  - skill diversity per department
-  - distinct skills per department
-  - skill variety in department
-  - how many different skills in department
-  - department skill breadth
-  employees_with_skill_per_department:
-  - skilled employees per department
-  - how many skilled employees in department
-  - employees with skills per department
-  total_proficiency_per_project:
-  - most skilled project team
-  - which project has the most skilled people
-  - project with highest skill
-  - most talented project team
-  - best skilled project
-  - highest skill score per project
-  - total skill per project
-  - project skill total
-  - which project has the best team
-  - most capable project team
-  - project skill strength
-  - skill power per project
-  - which project has the most skilled people working on it
-  - project with most talent
-  - highest combined skill project
-  avg_proficiency_per_project:
-  - average skill per project
-  - mean skill level per project
-  - project skill average
-  - most skilled project on average
-  - highest average skill project
-  - project proficiency average
-  distinct_skills_per_project:
-  - skill diversity per project
-  - distinct skills per project
-  - how many skills per project
-  - skill variety in project
-  - project skill breadth
-  - most diverse skill set per project
-  skilled_employees_per_project:
-  - skilled employees per project
-  - how many skilled people per project
-  - employees with skills per project
-  - staffed project skill count
-dimensions:
-  departments_id:
-  - department ID
-  - department identifier
-  - department key
-  departments_dept_name:
-  - department name
-  - department title
-  - department label
-  - department designation
-  - dept name
-  - team name
-  - division name
-  departments_manager_id:
-  - manager ID
-  - manager identifier
-  - department manager
-  employee_skills_employee_id:
-  - employee ID in skills
-  - skilled employee identifier
-  employee_skills_skill_id:
-  - skill ID
-  - skill identifier
-  - skill key
-  employee_skills_proficiency:
-  - proficiency level
-  - skill level
-  - expertise measure
-  - skill rating
-  - skill score
-  - proficiency score
-  employees_id:
-  - employee ID
-  - employee identifier
-  - employee key
-  - staff ID
-  - worker ID
-  employees_emp_name:
-  - employee name
-  - employee title
-  - employee label
-  - staff name
-  - worker name
-  - person name
-  - who
-  - which employee
-  employees_emp_role:
-  - employee role
-  - job title
-  - position
-  - employee position
-  - job function
-  - role
-  employees_dept_id:
-  - employee department ID
-  - dept ID on employee
-  employees_manager_id:
-  - employee manager ID
-  - reports to
-  - direct manager
-  projects_id:
-  - project ID
-  - project identifier
-  - project key
-  projects_project_name:
-  - project name
-  - project title
-  - project label
-  projects_status:
-  - project status
-  - project state
-  - project phase
-  - project condition
-  projects_dept_id:
-  - project department ID
-  - department of project
-  skills_id:
-  - skill ID
-  - skill identifier
-  - skill key
-  skills_skill_name:
-  - skill name
-  - skill title
-  - skill label
-  - technology name
-  - tool name
-  skills_category:
-  - skill category
-  - skill type
-  - skill classification
-  - skill group
-  - skill domain
-  task_logs_id:
-  - log ID
-  - log identifier
-  - log key
-  task_logs_task_id:
-  - task ID in log
-  - logged task ID
-  task_logs_action:
-  - log action
-  - log event
-  - log activity
-  - what happened
-  task_logs_logged_at:
-  - log timestamp
-  - log date
-  - log time
-  - when logged
-  tasks_id:
-  - task ID
-  - task identifier
-  - task key
-  tasks_task_name:
-  - task name
-  - task title
-  - task label
-  tasks_task_status:
-  - task status
-  - task state
-  - task phase
-  - completion status
-  - done status
-  tasks_project_id:
-  - project ID on task
-  - task project ID
-  tasks_assigned_to:
-  - assigned employee ID
-  - task assignee ID
-  - who is assigned
+# ============================================================
+# Sakila DVD Rental Store — Business Glossary & Ontology
+# Database: MySQL Sakila Sample Database (v1.1)
+# Domain:   DVD Rental / Video Store Operations
+# Tables:   16 base tables | 7 views | 3 procedures | 3 functions
+# ============================================================
+
+metadata:
+  database: sakila
+  domain: DVD Rental Store
+  description: >
+    The Sakila database models a DVD rental store business. It captures
+    the full lifecycle of a rental transaction — from film catalog management,
+    inventory tracking, customer registration, and staff operations, through
+    to rental checkout, return processing, and payment collection.
+    It also covers geographic data for customers, staff, and store locations.
+  version: "1.1"
+  tables:
+    - actor
+    - address
+    - category
+    - city
+    - country
+    - customer
+    - film
+    - film_actor
+    - film_category
+    - film_text
+    - inventory
+    - language
+    - payment
+    - rental
+    - staff
+    - store
+  views:
+    - actor_info
+    - customer_list
+    - film_list
+    - nicer_but_slower_film_list
+    - sales_by_film_category
+    - sales_by_store
+    - staff_list
+  stored_procedures:
+    - film_in_stock
+    - film_not_in_stock
+    - rewards_report
+  stored_functions:
+    - get_customer_balance
+    - inventory_held_by_customer
+    - inventory_in_stock
+
+# ============================================================
+# ONTOLOGY — Entities, Relationships & Business Rules
+# ============================================================
+
 ontology:
+
   entities:
-    departments:
-      description: An organisational unit within the company grouping employees and
-        projects.
+
+    actor:
+      description: >
+        A person who performs in one or more films in the catalog. Actors are
+        linked to films through the film_actor junction table, enabling a
+        many-to-many relationship. Actor names are stored in uppercase.
       synonyms:
-      - department
-      - org unit
-      - team
-      - section
-      - division
-      - group
-    employees:
-      description: An individual who works for the company, belongs to a department,
-        and is assigned tasks.
+        - Actor
+        - Performer
+        - Cast member
+        - Talent
+      primary_key: actor_id
+      business_rules:
+        - An actor can appear in zero or more films.
+        - A film can have zero or more actors.
+        - Actor names are stored separately as first_name and last_name.
+
+    address:
+      description: >
+        A physical address used by customers, staff members, and stores.
+        Addresses are shared across all three entities via foreign key references.
+        Each address links to a city, which in turn links to a country.
       synonyms:
-      - employee
-      - staff member
-      - personnel
-      - worker
-      - associate
-      - team member
-      - person
-      - individual
-    skills:
-      description: A technical or professional capability that employees can possess
-        at varying proficiency levels.
+        - Address
+        - Location
+        - Mailing address
+        - Physical address
+      primary_key: address_id
+      business_rules:
+        - Every customer, staff member, and store must have exactly one address.
+        - An address belongs to exactly one city.
+        - address2 is optional and may be NULL.
+        - postal_code may be NULL where not applicable.
+
+    category:
+      description: >
+        A genre or classification label that can be assigned to films. Categories
+        allow films to be browsed and filtered by genre (e.g., Action, Comedy,
+        Drama). A film may belong to multiple categories.
       synonyms:
-      - skill
-      - capability
-      - competency
-      - expertise
-      - technology
-      - tool
-      - ability
-    projects:
-      description: A scoped body of work owned by a department, containing many tasks.
+        - Category
+        - Genre
+        - Film type
+        - Classification
+      primary_key: category_id
+      business_rules:
+        - A category can be assigned to zero or more films.
+        - A film can belong to one or more categories.
+
+    city:
+      description: >
+        A city within a country used to geo-locate addresses. Part of the
+        three-level geographic hierarchy: country → city → address.
       synonyms:
-      - project
-      - initiative
-      - programme
-      - workstream
-      - engagement
-    tasks:
-      description: A unit of work within a project, assigned to an employee, with
-        a status lifecycle.
+        - City
+        - Town
+        - Municipality
+        - Urban area
+      primary_key: city_id
+      business_rules:
+        - Every city belongs to exactly one country.
+        - A city can be referenced by multiple addresses.
+
+    country:
+      description: >
+        The top-level geographic entity representing a nation. Countries contain
+        cities, which in turn contain addresses linked to customers, staff, and stores.
       synonyms:
-      - task
-      - ticket
-      - item
-      - work item
-      - action item
-      - job
-      - assignment
-      - deliverable
-    task_logs:
-      description: An audit/activity log entry recording an event on a task.
+        - Country
+        - Nation
+        - Territory
+      primary_key: country_id
+      business_rules:
+        - A country can contain zero or more cities.
+        - Country is the top-level node in the geographic hierarchy.
+
+    customer:
+      description: >
+        A person who registers with the store and rents films. Each customer is
+        associated with a home store, a billing address, and a history of rentals
+        and payments. Inactive customers are flagged rather than deleted.
       synonyms:
-      - task log
-      - log entry
-      - activity log
-      - audit log
-      - event log
-      - history entry
+        - Customer
+        - Member
+        - Renter
+        - Account holder
+        - Patron
+      primary_key: customer_id
+      business_rules:
+        - A customer must have a home store (store_id), but may rent from any store.
+        - Inactive customers (active = FALSE) should be excluded from most queries.
+        - A customer must have exactly one address.
+        - create_date is set automatically by the customer_create_date trigger on INSERT.
+        - A customer can have zero or more rentals and payments.
+
+    film:
+      description: >
+        A movie title in the store's catalog. The film table describes the title,
+        language, rental terms (duration and rate), replacement cost, MPAA rating,
+        and special features. The actual physical copies are tracked in inventory.
+      synonyms:
+        - Film
+        - Movie
+        - Title
+        - DVD
+        - Release
+      primary_key: film_id
+      business_rules:
+        - A film must have a primary language (language_id is NOT NULL).
+        - original_language_id is used for dubbed films and may be NULL.
+        - rental_duration is specified in days.
+        - rental_rate is the cost per rental period in USD.
+        - replacement_cost is charged when a film is lost or returned damaged.
+        - rating must be one of G, PG, PG-13, R, NC-17.
+        - special_features may include Trailers, Commentaries, Deleted Scenes, Behind the Scenes.
+        - A film may have zero or more inventory copies across all stores.
+
+    film_actor:
+      description: >
+        A junction/bridge table that resolves the many-to-many relationship between
+        films and actors. Each row represents one actor's participation in one film.
+      synonyms:
+        - Film-actor association
+        - Cast entry
+        - Actor-film link
+      primary_key: [actor_id, film_id]
+      business_rules:
+        - Each combination of actor_id and film_id must be unique.
+        - Deleting an actor or film cascades to this table.
+
+    film_category:
+      description: >
+        A junction/bridge table that resolves the many-to-many relationship between
+        films and categories. Each row assigns one category to one film.
+      synonyms:
+        - Film-category association
+        - Genre assignment
+        - Category tag
+      primary_key: [film_id, category_id]
+      business_rules:
+        - A film can be assigned to multiple categories.
+        - Each film-category combination must be unique.
+
+    film_text:
+      description: >
+        A full-text search mirror of the film table's title and description columns.
+        Kept in sync with the film table via INSERT, UPDATE, and DELETE triggers
+        (ins_film, upd_film, del_film). Do not modify this table directly.
+      synonyms:
+        - Film search index
+        - Full-text film data
+        - Film text index
+      primary_key: film_id
+      business_rules:
+        - Contents must never be modified directly; all changes go through the film table.
+        - Automatically synchronized via database triggers.
+
+    inventory:
+      description: >
+        Represents a single physical copy (disc) of a film held at a specific store.
+        Multiple inventory rows for the same film_id and store_id indicate multiple
+        copies of that film at that store. Inventory is rented out to customers.
+      synonyms:
+        - Inventory item
+        - Physical copy
+        - Disc copy
+        - Stock item
+        - DVD copy
+      primary_key: inventory_id
+      business_rules:
+        - Each inventory row is a unique physical copy of a film at a specific store.
+        - An inventory item can only be rented to one customer at a time.
+        - An item is considered "in stock" when no active (unreturned) rental exists for it.
+
+    language:
+      description: >
+        A lookup table of languages used to identify the spoken language of a film,
+        or the original language before dubbing. Referenced by film.language_id
+        and film.original_language_id.
+      synonyms:
+        - Language
+        - Spoken language
+        - Audio language
+        - Dub language
+      primary_key: language_id
+      business_rules:
+        - Every film must have a language (language_id is NOT NULL).
+        - original_language_id is only populated for dubbed films.
+
+    payment:
+      description: >
+        Records a monetary payment made by a customer. Payments are typically
+        linked to a rental but can also represent outstanding fee settlements.
+        Processed by a staff member at time of transaction.
+      synonyms:
+        - Payment
+        - Transaction
+        - Charge
+        - Fee
+        - Invoice
+      primary_key: payment_id
+      business_rules:
+        - A payment must reference a customer and a staff member.
+        - rental_id may be NULL for payments covering outstanding balances not tied to a specific rental.
+        - payment_date is set automatically by the payment_date trigger on INSERT.
+        - amount represents the dollar value of the payment.
+
+    rental:
+      description: >
+        Records a single rental event: one customer renting one inventory item (DVD copy)
+        on a given date, processed by a staff member. The row is updated when the item
+        is returned. Open rentals (return_date IS NULL) indicate items still checked out.
+      synonyms:
+        - Rental
+        - Checkout
+        - Borrowing
+        - Transaction
+        - Loan
+      primary_key: rental_id
+      business_rules:
+        - rental_date is set automatically by the rental_date trigger on INSERT.
+        - return_date is NULL until the item is returned.
+        - An inventory item cannot be rented to two customers simultaneously.
+        - Overdue rentals are those where rental_date + rental_duration days < TODAY() and return_date IS NULL.
+        - A rental may have zero or one associated payment.
+
+    staff:
+      description: >
+        An employee of the rental store. Staff members process rentals and payments,
+        and one staff member per store serves as the store manager. Inactive staff
+        are flagged rather than deleted.
+      synonyms:
+        - Staff member
+        - Employee
+        - Associate
+        - Clerk
+        - Manager
+      primary_key: staff_id
+      business_rules:
+        - Each staff member is assigned a home store.
+        - active = FALSE marks a former employee; rows are not deleted.
+        - Passwords must be stored as SHA1 hashes.
+        - A staff member can process zero or more rentals and payments.
+        - A staff member can be the manager of at most one store.
+
+    store:
+      description: >
+        A physical retail location of the DVD rental chain. Each store has its own
+        inventory, staff, and a designated manager. Customers and staff are assigned
+        a home store, though transactions can occur across stores.
+      synonyms:
+        - Store
+        - Branch
+        - Location
+        - Outlet
+        - Shop
+      primary_key: store_id
+      business_rules:
+        - Each store must have exactly one manager (manager_staff_id).
+        - Each store must have exactly one address.
+        - Inventory, staff, and customers are linked to specific stores.
+
   relationships:
-  - statement: A department has many employees.
-    from: departments
-    to: employees
-    cardinality: one_to_many
-    natural_language:
-    - a department typically has multiple employees
-    - employees belong to a department
-  - statement: An employee belongs to one department.
-    from: employees
-    to: departments
-    cardinality: many_to_one
-    natural_language:
-    - an employee is usually assigned to one department
-  - statement: An employee can have many skills at varying proficiency levels.
-    from: employees
-    to: employee_skills
-    cardinality: one_to_many
-    natural_language:
-    - employees hold multiple skills
-    - a person can know many technologies
-  - statement: A skill can be held by many employees.
-    from: skills
-    to: employee_skills
-    cardinality: one_to_many
-    natural_language:
-    - many employees can share the same skill
-    - a technology can be known by multiple people
-  - statement: A department owns many projects.
-    from: departments
-    to: projects
-    cardinality: one_to_many
-    natural_language:
-    - projects are owned by departments
-    - a department runs multiple projects
-  - statement: A project has many tasks.
-    from: projects
-    to: tasks
-    cardinality: one_to_many
-    natural_language:
-    - a project contains many tasks
-    - tasks belong to a project
-  - statement: An employee is assigned many tasks.
-    from: employees
-    to: tasks
-    cardinality: one_to_many
-    natural_language:
-    - an employee can be assigned multiple tasks
-    - tasks are assigned to employees
-  - statement: A task has many log entries.
-    from: tasks
-    to: task_logs
-    cardinality: one_to_many
-    natural_language:
-    - every status change generates a log entry
-    - task history is captured in task_logs
+
+    - statement: An actor appears in zero or more films.
+      from: actor
+      to: film
+      via: film_actor
+      cardinality: many_to_many
+      natural_language:
+        - Which films does this actor appear in?
+        - How many films has this actor starred in?
+        - Who are the actors in this film?
+
+    - statement: A film belongs to one or more categories.
+      from: film
+      to: category
+      via: film_category
+      cardinality: many_to_many
+      natural_language:
+        - What genre is this film?
+        - Which films are in the Action category?
+        - How many categories does this film belong to?
+
+    - statement: A film has one primary language and optionally one original language.
+      from: film
+      to: language
+      cardinality: many_to_one
+      natural_language:
+        - What language is this film in?
+        - Which films are in French?
+
+    - statement: An inventory item is one physical copy of a film at a specific store.
+      from: inventory
+      to: film
+      cardinality: many_to_one
+      natural_language:
+        - How many copies of this film does the store have?
+        - Which store stocks this film?
+
+    - statement: A rental links one customer to one inventory item processed by one staff member.
+      from: rental
+      to: [inventory, customer, staff]
+      cardinality: many_to_one
+      natural_language:
+        - Who rented this item?
+        - What did this customer rent?
+        - When was this item last rented?
+        - Is this inventory item currently checked out?
+
+    - statement: A payment is made by a customer, processed by a staff member, and may be tied to a rental.
+      from: payment
+      to: [customer, staff, rental]
+      cardinality: many_to_one
+      natural_language:
+        - How much has this customer paid?
+        - What is this customer's outstanding balance?
+        - Which staff member processed this payment?
+
+    - statement: A customer belongs to a home store and has one address.
+      from: customer
+      to: [store, address]
+      cardinality: many_to_one
+      natural_language:
+        - Which store does this customer belong to?
+        - Where does this customer live?
+
+    - statement: A staff member is assigned to a home store and has one address.
+      from: staff
+      to: [store, address]
+      cardinality: many_to_one
+      natural_language:
+        - Which store does this staff member work at?
+        - Who manages this store?
+
+    - statement: A store has one manager (staff member) and one address.
+      from: store
+      to: [staff, address]
+      cardinality: one_to_one
+      natural_language:
+        - Who manages this store?
+        - Where is this store located?
+
+    - statement: An address belongs to one city; a city belongs to one country.
+      from: address
+      to: city
+      cardinality: many_to_one
+      natural_language:
+        - What city is this address in?
+        - What country is this customer from?
+        - Which customers are in Canada?
+
+# ============================================================
+# DIMENSIONS — Column-level Business Glossary
+# ============================================================
+
+dimensions:
+
+  # --- ACTOR ---
+  actor_actor_id:
+    label: Actor ID
+    synonyms: [Actor identifier, Actor key, Performer ID]
+    description: Surrogate primary key that uniquely identifies each actor.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  actor_first_name:
+    label: Actor first name
+    synonyms: [First name, Given name, Actor given name]
+    description: The first (given) name of the actor. Stored in uppercase.
+    data_type: VARCHAR(45)
+    nullable: false
+
+  actor_last_name:
+    label: Actor last name
+    synonyms: [Last name, Surname, Actor surname, Family name]
+    description: The last (family) name of the actor. Stored in uppercase. Indexed for fast lookup.
+    data_type: VARCHAR(45)
+    nullable: false
+
+  actor_last_update:
+    label: Actor last updated
+    synonyms: [Last updated, Last modified, Row timestamp]
+    description: Timestamp of when this actor row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- ADDRESS ---
+  address_address_id:
+    label: Address ID
+    synonyms: [Address identifier, Address key]
+    description: Surrogate primary key that uniquely identifies each address record.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  address_address:
+    label: Street address (line 1)
+    synonyms: [Address line 1, Street, Street address]
+    description: The first line of the address (street number and name).
+    data_type: VARCHAR(50)
+    nullable: false
+
+  address_address2:
+    label: Street address (line 2)
+    synonyms: [Address line 2, Apartment, Suite, Unit]
+    description: An optional second line of the address (e.g. apartment or suite number).
+    data_type: VARCHAR(50)
+    nullable: true
+
+  address_district:
+    label: District / Region
+    synonyms: [District, State, Province, Prefecture, Region]
+    description: The sub-national region of the address (state, province, prefecture, etc.).
+    data_type: VARCHAR(20)
+    nullable: false
+
+  address_city_id:
+    label: City ID (FK)
+    synonyms: [City identifier, City key]
+    description: Foreign key referencing the city this address is located in.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  address_postal_code:
+    label: Postal / ZIP code
+    synonyms: [Postal code, ZIP code, Post code]
+    description: The postal or ZIP code of the address. May be NULL where not applicable.
+    data_type: VARCHAR(10)
+    nullable: true
+
+  address_phone:
+    label: Phone number
+    synonyms: [Telephone, Contact number, Phone]
+    description: The telephone number associated with this address.
+    data_type: VARCHAR(20)
+    nullable: false
+
+  address_location:
+    label: Geospatial location
+    synonyms: [GPS coordinates, Geometry, Lat/long, Spatial location]
+    description: >
+      A spatial GEOMETRY column storing the geographic coordinates of the address.
+      Only present on MySQL 5.7.5+. Used for proximity-based queries.
+    data_type: GEOMETRY
+    nullable: true
+
+  address_last_update:
+    label: Address last updated
+    synonyms: [Last updated, Last modified]
+    description: Timestamp of when this address row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- CATEGORY ---
+  category_category_id:
+    label: Category ID
+    synonyms: [Category identifier, Genre ID, Category key]
+    description: Surrogate primary key that uniquely identifies each film category.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  category_name:
+    label: Category name
+    synonyms: [Genre name, Category label, Film genre]
+    description: >
+      The name of the genre/category. Known values include: Action, Animation,
+      Children, Classics, Comedy, Documentary, Drama, Family, Foreign, Games,
+      Horror, Music, New, Sci-Fi, Sports, Travel.
+    data_type: VARCHAR(25)
+    nullable: false
+
+  category_last_update:
+    label: Category last updated
+    synonyms: [Last updated, Last modified]
+    description: Timestamp of when this category row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- CITY ---
+  city_city_id:
+    label: City ID
+    synonyms: [City identifier, City key]
+    description: Surrogate primary key that uniquely identifies each city.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  city_city:
+    label: City name
+    synonyms: [City, Town, Municipality]
+    description: The name of the city.
+    data_type: VARCHAR(50)
+    nullable: false
+
+  city_country_id:
+    label: Country ID (FK)
+    synonyms: [Country identifier, Country key]
+    description: Foreign key referencing the country this city belongs to.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  city_last_update:
+    label: City last updated
+    synonyms: [Last updated, Last modified]
+    description: Timestamp of when this city row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- COUNTRY ---
+  country_country_id:
+    label: Country ID
+    synonyms: [Country identifier, Country key]
+    description: Surrogate primary key that uniquely identifies each country.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  country_country:
+    label: Country name
+    synonyms: [Country, Nation, Territory]
+    description: The English name of the country.
+    data_type: VARCHAR(50)
+    nullable: false
+
+  country_last_update:
+    label: Country last updated
+    synonyms: [Last updated, Last modified]
+    description: Timestamp of when this country row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- CUSTOMER ---
+  customer_customer_id:
+    label: Customer ID
+    synonyms: [Customer identifier, Member ID, Account ID, Customer key]
+    description: Surrogate primary key that uniquely identifies each customer.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  customer_store_id:
+    label: Home store ID (FK)
+    synonyms: [Home store, Primary store, Store ID]
+    description: >
+      Foreign key identifying the customer's home store. Customers are not
+      restricted to this store but typically shop here.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  customer_first_name:
+    label: Customer first name
+    synonyms: [First name, Given name]
+    description: The customer's first (given) name.
+    data_type: VARCHAR(45)
+    nullable: false
+
+  customer_last_name:
+    label: Customer last name
+    synonyms: [Last name, Surname, Family name]
+    description: The customer's last (family) name. Indexed for fast lookup.
+    data_type: VARCHAR(45)
+    nullable: false
+
+  customer_email:
+    label: Customer email address
+    synonyms: [Email, Email address, Contact email]
+    description: The customer's email address, used for contact and account identification.
+    data_type: VARCHAR(50)
+    nullable: true
+
+  customer_address_id:
+    label: Customer address ID (FK)
+    synonyms: [Address ID, Billing address]
+    description: Foreign key referencing the customer's address in the address table.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  customer_active:
+    label: Customer active status
+    synonyms: [Active, Active status, Account status, Is active]
+    description: >
+      Indicates whether the customer is currently active (1 = active, 0 = inactive).
+      Inactive customers are soft-deleted; most queries should filter WHERE active = 1.
+    data_type: BOOLEAN
+    nullable: false
+    domain_values:
+      1: Active customer
+      0: Inactive / soft-deleted customer
+
+  customer_create_date:
+    label: Customer creation date
+    synonyms: [Registration date, Account creation date, Sign-up date, Join date]
+    description: >
+      The date the customer was added to the system. Set automatically
+      by the customer_create_date trigger on INSERT.
+    data_type: DATETIME
+    nullable: false
+
+  customer_last_update:
+    label: Customer last updated
+    synonyms: [Last updated, Last modified]
+    description: Timestamp of when this customer row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: true
+
+  # --- FILM ---
+  film_film_id:
+    label: Film ID
+    synonyms: [Film identifier, Movie ID, Title ID, Film key]
+    description: Surrogate primary key that uniquely identifies each film in the catalog.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  film_title:
+    label: Film title
+    synonyms: [Title, Movie title, Film name, Name]
+    description: The title of the film. Full-text indexed via the film_text table.
+    data_type: VARCHAR(255)
+    nullable: false
+
+  film_description:
+    label: Film description
+    synonyms: [Description, Plot summary, Synopsis, Overview]
+    description: >
+      A short description or plot summary of the film. Full-text indexed
+      via the film_text table. May be NULL.
+    data_type: TEXT
+    nullable: true
+
+  film_release_year:
+    label: Release year
+    synonyms: [Year, Year of release, Publication year]
+    description: The year the film was theatrically released.
+    data_type: YEAR
+    nullable: true
+
+  film_language_id:
+    label: Language ID (FK)
+    synonyms: [Language, Audio language, Film language]
+    description: Foreign key identifying the language the film is presented in.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  film_original_language_id:
+    label: Original language ID (FK)
+    synonyms: [Original language, Source language, Pre-dub language]
+    description: >
+      Foreign key identifying the film's original language before dubbing.
+      NULL when the film is in its original language.
+    data_type: TINYINT UNSIGNED
+    nullable: true
+
+  film_rental_duration:
+    label: Rental duration (days)
+    synonyms: [Rental period, Loan period, Duration, Checkout period]
+    description: >
+      The standard rental period for this film, expressed in days.
+      Used to calculate overdue returns.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+    unit: days
+
+  film_rental_rate:
+    label: Rental rate
+    synonyms: [Price, Rental price, Daily rate, Cost to rent, Rental fee]
+    description: >
+      The cost in USD to rent this film for the standard rental_duration period.
+    data_type: DECIMAL(4,2)
+    nullable: false
+    unit: USD
+
+  film_length:
+    label: Film length (minutes)
+    synonyms: [Runtime, Duration, Running time, Length]
+    description: The total runtime of the film in minutes.
+    data_type: SMALLINT UNSIGNED
+    nullable: true
+    unit: minutes
+
+  film_replacement_cost:
+    label: Replacement cost
+    synonyms: [Replacement value, Lost film charge, Damage fee, Liability cost]
+    description: >
+      The amount charged to the customer if the film is lost or returned
+      in a damaged or unacceptable condition.
+    data_type: DECIMAL(5,2)
+    nullable: false
+    unit: USD
+
+  film_rating:
+    label: MPAA rating
+    synonyms: [Rating, Content rating, Age rating, Classification]
+    description: The MPAA content rating assigned to the film.
+    data_type: ENUM
+    nullable: true
+    domain_values:
+      G: General audiences — all ages admitted
+      PG: Parental guidance suggested
+      PG-13: Parents strongly cautioned — some material may be inappropriate for children under 13
+      R: Restricted — under 17 requires accompanying parent or guardian
+      NC-17: No one 17 and under admitted
+
+  film_special_features:
+    label: Special features
+    synonyms: [Extras, Bonus features, DVD extras]
+    description: >
+      A SET column listing bonus content included on the DVD. Possible values:
+      Trailers, Commentaries, Deleted Scenes, Behind the Scenes.
+    data_type: SET
+    nullable: true
+    domain_values:
+      Trailers: Preview trailers for other films
+      Commentaries: Director or cast audio commentary tracks
+      "Deleted Scenes": Scenes removed from the final theatrical cut
+      "Behind the Scenes": Behind-the-scenes production footage
+
+  film_last_update:
+    label: Film last updated
+    synonyms: [Last updated, Last modified]
+    description: Timestamp of when this film row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- FILM_ACTOR ---
+  film_actor_actor_id:
+    label: Actor ID (FK)
+    synonyms: [Actor, Performer]
+    description: Foreign key identifying the actor in this film-actor association.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  film_actor_film_id:
+    label: Film ID (FK)
+    synonyms: [Film, Movie, Title]
+    description: Foreign key identifying the film in this film-actor association.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  film_actor_last_update:
+    label: Film-actor last updated
+    synonyms: [Last updated]
+    description: Timestamp of when this cast row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- FILM_CATEGORY ---
+  film_category_film_id:
+    label: Film ID (FK)
+    synonyms: [Film, Movie]
+    description: Foreign key identifying the film in this film-category association.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  film_category_category_id:
+    label: Category ID (FK)
+    synonyms: [Category, Genre]
+    description: Foreign key identifying the category assigned to the film.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  film_category_last_update:
+    label: Film-category last updated
+    synonyms: [Last updated]
+    description: Timestamp of when this category assignment was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- INVENTORY ---
+  inventory_inventory_id:
+    label: Inventory ID
+    synonyms: [Copy ID, Inventory item, Stock ID, Disc ID]
+    description: Surrogate primary key uniquely identifying each physical copy of a film.
+    data_type: MEDIUMINT UNSIGNED
+    nullable: false
+
+  inventory_film_id:
+    label: Film ID (FK)
+    synonyms: [Film, Movie, Title]
+    description: Foreign key identifying which film this physical copy represents.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  inventory_store_id:
+    label: Store ID (FK)
+    synonyms: [Store, Branch, Location]
+    description: Foreign key identifying which store stocks this physical copy.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  inventory_last_update:
+    label: Inventory last updated
+    synonyms: [Last updated, Last modified]
+    description: Timestamp of when this inventory row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- LANGUAGE ---
+  language_language_id:
+    label: Language ID
+    synonyms: [Language identifier, Language key]
+    description: Surrogate primary key uniquely identifying each language.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  language_name:
+    label: Language name
+    synonyms: [Language, Language label, Spoken language]
+    description: The English name of the language (e.g., English, French, Japanese).
+    data_type: CHAR(20)
+    nullable: false
+
+  language_last_update:
+    label: Language last updated
+    synonyms: [Last updated]
+    description: Timestamp of when this language row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- PAYMENT ---
+  payment_payment_id:
+    label: Payment ID
+    synonyms: [Payment identifier, Transaction ID, Receipt ID]
+    description: Surrogate primary key uniquely identifying each payment record.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  payment_customer_id:
+    label: Customer ID (FK)
+    synonyms: [Customer, Payer, Member]
+    description: Foreign key identifying the customer who made this payment.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  payment_staff_id:
+    label: Staff ID (FK)
+    synonyms: [Staff member, Cashier, Processed by]
+    description: Foreign key identifying the staff member who processed this payment.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  payment_rental_id:
+    label: Rental ID (FK)
+    synonyms: [Rental, Associated rental, Rental reference]
+    description: >
+      Foreign key identifying the rental this payment covers. May be NULL
+      when the payment settles an outstanding balance not tied to a specific rental.
+    data_type: INT
+    nullable: true
+
+  payment_amount:
+    label: Payment amount
+    synonyms: [Amount, Value, Charge, Fee, Total paid]
+    description: The dollar amount of this payment.
+    data_type: DECIMAL(5,2)
+    nullable: false
+    unit: USD
+
+  payment_payment_date:
+    label: Payment date
+    synonyms: [Date paid, Transaction date, Payment timestamp]
+    description: >
+      The date and time the payment was processed. Set automatically
+      by the payment_date trigger on INSERT.
+    data_type: DATETIME
+    nullable: false
+
+  payment_last_update:
+    label: Payment last updated
+    synonyms: [Last updated]
+    description: Timestamp of when this payment row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: true
+
+  # --- RENTAL ---
+  rental_rental_id:
+    label: Rental ID
+    synonyms: [Rental identifier, Transaction ID, Checkout ID, Loan ID]
+    description: Surrogate primary key uniquely identifying each rental transaction.
+    data_type: INT
+    nullable: false
+
+  rental_rental_date:
+    label: Rental date
+    synonyms: [Checkout date, Rental timestamp, Date rented, Start date]
+    description: >
+      The date and time the inventory item was checked out. Set automatically
+      by the rental_date trigger on INSERT.
+    data_type: DATETIME
+    nullable: false
+
+  rental_inventory_id:
+    label: Inventory ID (FK)
+    synonyms: [Copy, Inventory item, DVD copy, Physical copy]
+    description: Foreign key identifying the specific physical copy that was rented.
+    data_type: MEDIUMINT UNSIGNED
+    nullable: false
+
+  rental_customer_id:
+    label: Customer ID (FK)
+    synonyms: [Customer, Renter, Borrower, Member]
+    description: Foreign key identifying the customer who rented the item.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  rental_return_date:
+    label: Return date
+    synonyms: [Date returned, Return timestamp, End date, Returned on]
+    description: >
+      The date and time the item was returned. NULL if the item has not yet
+      been returned. A NULL value indicates an active (open) rental.
+    data_type: DATETIME
+    nullable: true
+
+  rental_staff_id:
+    label: Staff ID (FK)
+    synonyms: [Staff member, Processed by, Clerk]
+    description: Foreign key identifying the staff member who processed the rental checkout.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  rental_last_update:
+    label: Rental last updated
+    synonyms: [Last updated]
+    description: Timestamp of when this rental row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- STAFF ---
+  staff_staff_id:
+    label: Staff ID
+    synonyms: [Staff identifier, Employee ID, Staff key]
+    description: Surrogate primary key uniquely identifying each staff member.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  staff_first_name:
+    label: Staff first name
+    synonyms: [First name, Given name]
+    description: The staff member's first (given) name.
+    data_type: VARCHAR(45)
+    nullable: false
+
+  staff_last_name:
+    label: Staff last name
+    synonyms: [Last name, Surname]
+    description: The staff member's last (family) name.
+    data_type: VARCHAR(45)
+    nullable: false
+
+  staff_address_id:
+    label: Staff address ID (FK)
+    synonyms: [Address, Home address]
+    description: Foreign key identifying the staff member's address.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  staff_picture:
+    label: Staff photo
+    synonyms: [Photo, Picture, Headshot, Employee photo]
+    description: A BLOB containing a photograph of the staff member. May be NULL.
+    data_type: BLOB
+    nullable: true
+
+  staff_email:
+    label: Staff email address
+    synonyms: [Email, Work email, Contact email]
+    description: The staff member's email address.
+    data_type: VARCHAR(50)
+    nullable: true
+
+  staff_store_id:
+    label: Home store ID (FK)
+    synonyms: [Home store, Primary store, Assigned store]
+    description: Foreign key identifying the staff member's assigned home store.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  staff_active:
+    label: Staff active status
+    synonyms: [Active, Employment status, Is active]
+    description: >
+      Indicates whether the staff member is currently employed (1 = active, 0 = inactive).
+      Former employees are soft-deleted by setting this to 0.
+    data_type: BOOLEAN
+    nullable: false
+    domain_values:
+      1: Currently employed
+      0: Former employee (soft-deleted)
+
+  staff_username:
+    label: System username
+    synonyms: [Username, Login name, User ID, System login]
+    description: The username used by the staff member to log into the rental system.
+    data_type: VARCHAR(16)
+    nullable: false
+
+  staff_password:
+    label: System password
+    synonyms: [Password, Login password]
+    description: >
+      The hashed password used to authenticate the staff member.
+      Must be stored as a SHA1 hash. Never stored in plain text.
+    data_type: VARCHAR(40)
+    nullable: true
+    pii: true
+
+  staff_last_update:
+    label: Staff last updated
+    synonyms: [Last updated]
+    description: Timestamp of when this staff row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+  # --- STORE ---
+  store_store_id:
+    label: Store ID
+    synonyms: [Store identifier, Branch ID, Location ID, Store key]
+    description: Surrogate primary key uniquely identifying each store.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  store_manager_staff_id:
+    label: Manager staff ID (FK)
+    synonyms: [Manager, Store manager, Branch manager]
+    description: Foreign key identifying the staff member who manages this store.
+    data_type: TINYINT UNSIGNED
+    nullable: false
+
+  store_address_id:
+    label: Store address ID (FK)
+    synonyms: [Store address, Branch address, Location address]
+    description: Foreign key identifying the physical address of this store.
+    data_type: SMALLINT UNSIGNED
+    nullable: false
+
+  store_last_update:
+    label: Store last updated
+    synonyms: [Last updated]
+    description: Timestamp of when this store row was created or last modified.
+    data_type: TIMESTAMP
+    nullable: false
+
+# ============================================================
+# METRICS — Aggregatable Business Measures
+# ============================================================
+
+metrics:
+
+  # --- Row counts ---
+  actor_row_count:
+    label: Total actors
+    synonyms: [Actor count, Number of actors, How many actors, Total performers]
+    description: Total number of distinct actors in the catalog.
+    calculation: COUNT(*) FROM actor
+
+  film_row_count:
+    label: Total films
+    synonyms: [Film count, Number of films, Catalog size, How many titles, Total titles]
+    description: Total number of distinct films in the catalog.
+    calculation: COUNT(*) FROM film
+
+  inventory_row_count:
+    label: Total inventory copies
+    synonyms: [Total copies, Inventory count, Stock count, Total discs]
+    description: Total number of physical DVD copies across all stores.
+    calculation: COUNT(*) FROM inventory
+
+  customer_row_count:
+    label: Total customers
+    synonyms: [Customer count, Member count, Number of customers, How many customers]
+    description: Total number of registered customers (active and inactive).
+    calculation: COUNT(*) FROM customer
+
+  active_customer_count:
+    label: Active customers
+    synonyms: [Active members, Active accounts, Current customers]
+    description: Number of currently active customers.
+    calculation: COUNT(*) FROM customer WHERE active = 1
+
+  staff_row_count:
+    label: Total staff
+    synonyms: [Staff count, Employee count, Number of employees]
+    description: Total number of staff members (active and inactive).
+    calculation: COUNT(*) FROM staff
+
+  store_row_count:
+    label: Total stores
+    synonyms: [Store count, Number of stores, Branch count, Number of locations]
+    description: Total number of store locations.
+    calculation: COUNT(*) FROM store
+
+  rental_row_count:
+    label: Total rentals
+    synonyms: [Rental count, Number of rentals, Transaction count, Total checkouts]
+    description: Total number of rental transactions ever recorded.
+    calculation: COUNT(*) FROM rental
+
+  active_rental_count:
+    label: Open / active rentals
+    synonyms: [Open rentals, Current checkouts, Items currently rented out, Unreturned rentals]
+    description: Number of rentals where the item has not yet been returned.
+    calculation: COUNT(*) FROM rental WHERE return_date IS NULL
+
+  overdue_rental_count:
+    label: Overdue rentals
+    synonyms: [Late returns, Overdue items, Past-due rentals]
+    description: Number of rentals that are past their due date and not yet returned.
+    calculation: >
+      COUNT(*) FROM rental r
+      JOIN inventory i ON r.inventory_id = i.inventory_id
+      JOIN film f ON i.film_id = f.film_id
+      WHERE r.return_date IS NULL
+      AND DATE_ADD(r.rental_date, INTERVAL f.rental_duration DAY) < CURRENT_DATE()
+
+  payment_row_count:
+    label: Total payments
+    synonyms: [Payment count, Number of transactions, Transaction volume]
+    description: Total number of payment transactions recorded.
+    calculation: COUNT(*) FROM payment
+
+  category_row_count:
+    label: Total categories
+    synonyms: [Genre count, Number of categories, Number of genres]
+    description: Total number of distinct film categories/genres.
+    calculation: COUNT(*) FROM category
+
+  language_row_count:
+    label: Total languages
+    synonyms: [Language count, Number of languages]
+    description: Total number of languages in the lookup table.
+    calculation: COUNT(*) FROM language
+
+  # --- Revenue metrics ---
+  total_revenue:
+    label: Total revenue
+    synonyms: [Total sales, Revenue, Gross revenue, Total income, Total collected]
+    description: Sum of all payment amounts across all transactions and stores.
+    calculation: SUM(amount) FROM payment
+    unit: USD
+
+  revenue_by_store:
+    label: Revenue by store
+    synonyms: [Store revenue, Sales by store, Store income, Branch revenue]
+    description: Total payment amounts grouped by store.
+    calculation: SUM(p.amount) FROM payment p JOIN rental r ON ... JOIN inventory i ON ... GROUP BY i.store_id
+    unit: USD
+
+  revenue_by_category:
+    label: Revenue by film category
+    synonyms: [Category revenue, Genre revenue, Sales by genre]
+    description: Total payment amounts grouped by film category/genre.
+    calculation: See sales_by_film_category view
+    unit: USD
+
+  average_payment_amount:
+    label: Average payment amount
+    synonyms: [Avg payment, Mean transaction value, Average transaction]
+    description: The average dollar value of a single payment transaction.
+    calculation: AVG(amount) FROM payment
+    unit: USD
+
+  customer_lifetime_value:
+    label: Customer lifetime value
+    synonyms: [CLV, LTV, Total customer spend, Customer total spend]
+    description: Total amount a specific customer has paid across all their transactions.
+    calculation: SUM(amount) FROM payment WHERE customer_id = ?
+    unit: USD
+
+  customer_balance:
+    label: Customer balance
+    synonyms: [Outstanding balance, Amount owed, Current balance, Account balance]
+    description: >
+      The current amount owed by a customer. Computed by the get_customer_balance
+      stored function, which factors in rentals and payments up to a given date.
+    calculation: get_customer_balance(customer_id, NOW())
+    unit: USD
+
+  # --- Inventory metrics ---
+  copies_per_film:
+    label: Copies per film
+    synonyms: [Inventory depth, Stock per title, How many copies of a film]
+    description: Number of physical copies of a given film across all stores.
+    calculation: COUNT(*) FROM inventory WHERE film_id = ? GROUP BY film_id
+
+  copies_per_film_per_store:
+    label: Copies per film per store
+    synonyms: [Store inventory per title, In-store stock]
+    description: Number of physical copies of a given film at a specific store.
+    calculation: COUNT(*) FROM inventory WHERE film_id = ? AND store_id = ?
+
+  films_in_stock:
+    label: Films in stock
+    synonyms: [Available films, Films available to rent, In-stock titles]
+    description: Number of distinct film titles currently available (at least one copy not rented out).
+    calculation: Uses inventory_in_stock() function per inventory item
+
+  # --- Activity metrics ---
+  rentals_per_customer:
+    label: Rentals per customer
+    synonyms: [Customer rental frequency, Rentals by customer, Customer activity]
+    description: Total number of rentals made by a specific customer.
+    calculation: COUNT(*) FROM rental WHERE customer_id = ?
+
+  rentals_per_film:
+    label: Rentals per film
+    synonyms: [Film popularity, Times rented, Rental demand, Film demand]
+    description: Total number of times a specific film has been rented.
+    calculation: COUNT(*) FROM rental r JOIN inventory i ON r.inventory_id = i.inventory_id WHERE i.film_id = ?
+
+  rentals_per_store:
+    label: Rentals per store
+    synonyms: [Store activity, Store rental volume, Branch rental count]
+    description: Total number of rentals processed at a specific store.
+    calculation: COUNT(*) FROM rental r JOIN inventory i ON r.inventory_id = i.inventory_id WHERE i.store_id = ?
+
+  films_per_actor:
+    label: Films per actor
+    synonyms: [Actor filmography size, How many films an actor appeared in]
+    description: Number of films a given actor has appeared in.
+    calculation: COUNT(*) FROM film_actor WHERE actor_id = ?
+
+  actors_per_film:
+    label: Actors per film
+    synonyms: [Cast size, Number of actors in a film]
+    description: Number of actors credited in a given film.
+    calculation: COUNT(*) FROM film_actor WHERE film_id = ?
+
+  films_per_category:
+    label: Films per category
+    synonyms: [Titles per genre, Genre catalog size, Category size]
+    description: Number of films assigned to a given category.
+    calculation: COUNT(*) FROM film_category WHERE category_id = ?
+
+  rentals_per_staff:
+    label: Rentals processed per staff member
+    synonyms: [Staff activity, Transactions per employee, Staff productivity]
+    description: Number of rental transactions processed by a specific staff member.
+    calculation: COUNT(*) FROM rental WHERE staff_id = ?
+
+  payments_per_staff:
+    label: Payments processed per staff member
+    synonyms: [Payment volume per staff, Staff payment activity]
+    description: Number of payment transactions processed by a specific staff member.
+    calculation: COUNT(*) FROM payment WHERE staff_id = ?
+
+  average_rental_duration:
+    label: Average rental duration
+    synonyms: [Avg loan period, Mean checkout duration, Average days rented]
+    description: Average number of days between rental_date and return_date for completed rentals.
+    calculation: AVG(DATEDIFF(return_date, rental_date)) FROM rental WHERE return_date IS NOT NULL
+    unit: days
+
+  top_customers_by_spend:
+    label: Top customers by spend
+    synonyms: [Best customers, High-value customers, Reward-eligible customers]
+    description: >
+      Customers ranked by total spend in a given period. Used by the
+      rewards_report stored procedure to identify candidates for loyalty rewards.
+    calculation: SUM(amount) FROM payment GROUP BY customer_id ORDER BY SUM(amount) DESC
+
+# ============================================================
+# INTENT PATTERNS — Natural Language Query Mapping
+# ============================================================
+
 intent_patterns:
-- pattern: Who is the most skilled employee?
-  metric: total_proficiency_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-  limit: 1
-- pattern: Which employee has the highest average skill proficiency?
-  metric: avg_proficiency_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-  limit: 1
-- pattern: Rank employees by total skill score
-  metric: total_proficiency_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-- pattern: Which employee knows the most skills?
-  metric: employee_skills_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-  limit: 1
-- pattern: Top 5 most skilled employees
-  metric: total_proficiency_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-  limit: 5
-- pattern: Most skilled employees by department
-  metric: total_proficiency_per_employee
-  dimensions:
-  - departments_dept_name
-  - employees_emp_name
-  sort: desc
-- pattern: Which department has the highest average skill level?
-  metric: avg_proficiency_per_department
-  dimensions:
-  - departments_dept_name
-  sort: desc
-  limit: 1
-- pattern: Who is the most efficient employee?
-  metric: completion_rate_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-  limit: 1
-- pattern: Which employee has the highest task completion rate?
-  metric: completion_rate_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-  limit: 1
-- pattern: Rank employees by productivity
-  metric: completion_rate_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-- pattern: Who completes the most tasks?
-  metric: done_tasks_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-  limit: 1
-- pattern: Top 5 most efficient employees
-  metric: completion_rate_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-  limit: 5
-- pattern: Most efficient employee per department
-  metric: completion_rate_per_employee
-  dimensions:
-  - departments_dept_name
-  - employees_emp_name
-  sort: desc
-- pattern: Who has the most blocked tasks?
-  metric: blocked_tasks_per_employee
-  dimensions:
-  - employees_emp_name
-  filters:
-  - field: tasks_task_status
-    operator: equals
-    values:
-    - blocked
-  sort: desc
-  limit: 1
-- pattern: Which employee has the most pending work?
-  metric: pending_tasks_per_employee
-  dimensions:
-  - employees_emp_name
-  filters:
-  - field: tasks_task_status
-    operator: equals
-    values:
-    - pending
-  sort: desc
-  limit: 1
-- pattern: Which project has the highest completion rate?
-  metric: completion_rate_per_project
-  dimensions:
-  - projects_project_name
-  sort: desc
-  limit: 1
-- pattern: Who is the busiest employee?
-  metric: task_log_activity_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-  limit: 1
-- pattern: Which employee has the heaviest workload?
-  metric: tasks_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-  limit: 1
-- pattern: Employee workload ranking
-  metric: tasks_per_employee
-  dimensions:
-  - employees_emp_name
-  sort: desc
-- pattern: Which department has the most skill diversity?
-  metric: skill_diversity_per_department
-  dimensions:
-  - departments_dept_name
-  sort: desc
-  limit: 1
-- pattern: Skill diversity by department
-  metric: skill_diversity_per_department
-  dimensions:
-  - departments_dept_name
-  sort: desc
-- pattern: list all departments
-  metric: departments_row_count
-  mode: list
-  dimensions:
-  - departments_id
-  - departments_dept_name
-- pattern: list all employees
-  metric: employees_row_count
-  mode: list
-  dimensions:
-  - employees_id
-  - employees_emp_name
-- pattern: list all projects
-  metric: projects_row_count
-  mode: list
-  dimensions:
-  - projects_id
-  - projects_project_name
-- pattern: list all task_logs
-  metric: task_logs_row_count
-  mode: list
-  dimensions:
-  - task_logs_id
-  - task_logs_action
-- pattern: list all tasks
-  metric: tasks_row_count
-  mode: list
-  dimensions:
-  - tasks_id
-  - tasks_task_name
-- pattern: What is the total count of all tasks?
-  metric: tasks_row_count
-  dimensions:
-  - tasks_task_name
-- pattern: List all projects in a specific department.
-  metric: projects_row_count
-  mode: list
-  dimensions:
-  - projects_project_name
-  - departments_dept_name
-- pattern: What is the total count of skills per employee?
-  metric: employee_skills_per_employee
-  dimensions:
-  - employees_emp_name
-- pattern: What is the total count of tasks per project?
-  metric: tasks_per_project
-  dimensions:
-  - projects_project_name
-  - tasks_task_status
-- pattern: Which project has the most skilled people working on it?
-  metric: total_proficiency_per_project
-  dimensions:
-  - projects_project_name
-  sort: desc
-  limit: 1
-- pattern: Rank projects by team skill level
-  metric: total_proficiency_per_project
-  dimensions:
-  - projects_project_name
-  sort: desc
-- pattern: Which project has the highest average skill proficiency?
-  metric: avg_proficiency_per_project
-  dimensions:
-  - projects_project_name
-  sort: desc
-  limit: 1
-- pattern: Which project has the most skill diversity?
-  metric: distinct_skills_per_project
-  dimensions:
-  - projects_project_name
-  sort: desc
-  limit: 1
-- pattern: Which project has the most skilled team?
-  metric: total_proficiency_per_project
-  dimensions:
-  - projects_project_name
-  sort: desc
-  limit: 1
+
+  - pattern: How many films are in the catalog?
+    metric: film_row_count
+    dimensions: [film_film_id]
+
+  - pattern: What films does the store carry?
+    metric: film_row_count
+    dimensions: [film_film_id, film_title, film_rating, film_rental_rate]
+
+  - pattern: Which actors have appeared in the most films?
+    metric: films_per_actor
+    dimensions: [film_actor_actor_id, actor_first_name, actor_last_name]
+
+  - pattern: What are all the films this actor appeared in?
+    metric: films_per_actor
+    dimensions: [film_actor_actor_id, film_title]
+
+  - pattern: How many copies of this film do we have?
+    metric: copies_per_film
+    dimensions: [inventory_film_id, inventory_store_id]
+
+  - pattern: Is this film in stock at a given store?
+    metric: copies_per_film_per_store
+    dimensions: [inventory_film_id, inventory_store_id]
+    procedure: inventory_in_stock / film_in_stock
+
+  - pattern: What films are currently rented out?
+    metric: active_rental_count
+    dimensions: [rental_inventory_id, rental_customer_id, rental_rental_date]
+
+  - pattern: Which rentals are overdue?
+    metric: overdue_rental_count
+    dimensions: [rental_rental_id, rental_customer_id, rental_rental_date, film_rental_duration]
+
+  - pattern: How much revenue has the store made in total?
+    metric: total_revenue
+    dimensions: [payment_payment_date]
+
+  - pattern: Which store generates the most revenue?
+    metric: revenue_by_store
+    dimensions: [inventory_store_id]
+    view: sales_by_store
+
+  - pattern: Which film category generates the most revenue?
+    metric: revenue_by_category
+    dimensions: [film_category_category_id, category_name]
+    view: sales_by_film_category
+
+  - pattern: Who are our best customers last month?
+    metric: top_customers_by_spend
+    dimensions: [payment_customer_id, customer_first_name, customer_last_name]
+    procedure: rewards_report
+
+  - pattern: What is this customer's current balance?
+    metric: customer_balance
+    dimensions: [payment_customer_id]
+    function: get_customer_balance
+
+  - pattern: How many rentals has this customer made?
+    metric: rentals_per_customer
+    dimensions: [rental_customer_id]
+
+  - pattern: What is the most rented film?
+    metric: rentals_per_film
+    dimensions: [inventory_film_id, film_title]
+
+  - pattern: Which films are in the Action category?
+    metric: films_per_category
+    dimensions: [film_category_category_id, film_title, category_name]
+
+  - pattern: How many active customers do we have?
+    metric: active_customer_count
+    dimensions: [customer_active, customer_store_id]
+
+  - pattern: Which staff member has processed the most rentals?
+    metric: rentals_per_staff
+    dimensions: [rental_staff_id, staff_first_name, staff_last_name]
+
+  - pattern: What is the average rental duration?
+    metric: average_rental_duration
+    dimensions: [rental_rental_date, rental_return_date]
+
+  - pattern: What countries and cities are our customers from?
+    metric: customer_row_count
+    dimensions: [customer_address_id, address_city_id, city_country_id, country_country]
+
+  - pattern: What is the total inventory across all stores?
+    metric: inventory_row_count
+    dimensions: [inventory_store_id, inventory_film_id]
+
+  - pattern: Which films have an R or NC-17 rating?
+    metric: film_row_count
+    dimensions: [film_rating, film_title]
+
+  - pattern: What is the average rental rate across all films?
+    metric: film_row_count
+    dimensions: [film_rental_rate, film_rating, film_language_id]
+
+# ============================================================
+# VIEWS REFERENCE
+# ============================================================
+
+views:
+
+  actor_info:
+    description: >
+      Lists all actors with the films they have appeared in, grouped by category.
+      Joins actor, film, film_actor, film_category, and category tables.
+    use_cases:
+      - Show an actor's full filmography organized by genre
+      - Find which genres an actor specializes in
+
+  customer_list:
+    description: >
+      Combines customer first/last name into a full name and merges address, city,
+      and country into a single readable record. Joins customer, address, city, country.
+    use_cases:
+      - Display customer directory with formatted names and locations
+      - Export customer contact list
+
+  film_list:
+    description: >
+      A formatted view of the film catalog including title, description, category,
+      price, length, rating, and a comma-separated list of actors (in uppercase).
+    use_cases:
+      - Browse the full film catalog
+      - Search films by category or actor
+
+  nicer_but_slower_film_list:
+    description: >
+      Same as film_list but with actor names formatted in title case (first letter
+      capitalized). Slower due to additional string processing.
+    use_cases:
+      - Customer-facing film catalog display
+      - Print-ready film listings
+
+  sales_by_film_category:
+    description: >
+      Aggregates total rental revenue broken down by film category/genre.
+      Note: because a film can belong to multiple categories, totals
+      across categories should not be summed to get total revenue.
+    use_cases:
+      - Identify most profitable genres
+      - Inform category-level purchasing decisions
+
+  sales_by_store:
+    description: >
+      Aggregates total rental revenue broken down by store location.
+      Returns store city, country, manager name, and total sales.
+    use_cases:
+      - Compare store performance
+      - Monthly / yearly store revenue reports
+
+  staff_list:
+    description: >
+      Lists all staff members with their full name, address, city, country, and
+      assigned store ID. Joins staff, address, city, country tables.
+    use_cases:
+      - HR staff directory
+      - Identify store staffing
+
+# ============================================================
+# STORED PROCEDURES & FUNCTIONS REFERENCE
+# ============================================================
+
+stored_procedures:
+
+  film_in_stock:
+    description: >
+      Returns a result set of inventory IDs for all copies of a given film
+      that are currently in stock (not rented out) at a given store.
+      Also returns a count via OUT parameter p_film_count.
+    parameters:
+      p_film_id: ID of the film to check (from film.film_id)
+      p_store_id: ID of the store to check (from store.store_id)
+      p_film_count: OUT — number of copies in stock
+
+  film_not_in_stock:
+    description: >
+      Returns a result set of inventory IDs for all copies of a given film
+      that are currently rented out (not in stock) at a given store.
+      Also returns a count via OUT parameter p_film_count.
+    parameters:
+      p_film_id: ID of the film to check
+      p_store_id: ID of the store to check
+      p_film_count: OUT — number of copies not in stock
+
+  rewards_report:
+    description: >
+      Identifies customers who qualify for a loyalty reward based on a minimum
+      number of rentals and minimum spend in the previous calendar month.
+      Returns qualifying customers and a count via count_rewardees.
+    parameters:
+      min_monthly_purchases: Minimum number of purchases to qualify
+      min_dollar_amount_purchased: Minimum spend in USD to qualify
+      count_rewardees: OUT — number of qualifying customers
+
+stored_functions:
+
+  get_customer_balance:
+    description: >
+      Returns the current outstanding balance on a customer's account as of
+      a specified date. Accounts for all rentals and payments up to that date.
+    parameters:
+      p_customer_id: The customer's ID
+      p_effective_date: The cutoff date for calculating the balance
+    returns: DECIMAL — amount owing in USD
+
+  inventory_held_by_customer:
+    description: >
+      Returns the customer_id of the customer who currently has a given
+      inventory item rented out, or NULL if the item is in stock.
+    parameters:
+      p_inventory_id: The inventory item's ID
+    returns: SMALLINT (customer_id) or NULL
+
+  inventory_in_stock:
+    description: >
+      Returns a boolean indicating whether a given inventory item is
+      currently available to rent (TRUE = in stock, FALSE = rented out).
+    parameters:
+      p_inventory_id: The inventory item's ID
+    returns: BOOLEAN (1 = in stock, 0 = rented out)
+
+# ============================================================
+# TRIGGERS REFERENCE
+# ============================================================
+
+triggers:
+
+  customer_create_date:
+    table: customer
+    event: INSERT
+    description: Automatically sets customer.create_date to NOW() on every new customer insert.
+
+  payment_date:
+    table: payment
+    event: INSERT
+    description: Automatically sets payment.payment_date to NOW() on every new payment insert.
+
+  rental_date:
+    table: rental
+    event: INSERT
+    description: Automatically sets rental.rental_date to NOW() on every new rental insert.
+
+  ins_film:
+    table: film
+    event: INSERT
+    description: Mirrors every INSERT on the film table to the film_text full-text search table.
+
+  upd_film:
+    table: film
+    event: UPDATE
+    description: Mirrors every UPDATE on the film table to the film_text full-text search table.
+
+  del_film:
+    table: film
+    event: DELETE
+    description: Mirrors every DELETE on the film table to the film_text full-text search table.
+
+# ============================================================
+# PII & SENSITIVE FIELDS
+# ============================================================
+
+pii_fields:
+  - table: customer
+    column: email
+    sensitivity: medium
+    notes: Customer email address; use for transactional communications only.
+  - table: customer
+    column: first_name
+    sensitivity: low
+  - table: customer
+    column: last_name
+    sensitivity: low
+  - table: staff
+    column: email
+    sensitivity: medium
+  - table: staff
+    column: password
+    sensitivity: high
+    notes: Stored as SHA1 hash. Never expose or log in plain text.
+  - table: staff
+    column: picture
+    sensitivity: medium
+    notes: Contains biometric photo data.
+  - table: address
+    column: phone
+    sensitivity: medium
+    notes: Phone number linked to customers, staff, and stores.

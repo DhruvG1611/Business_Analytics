@@ -1,0 +1,1408 @@
+[
+  {
+    "pattern": "highest spending customer in each country",
+    "metric": "revenue_by_customer",
+    "dimensions": [
+      "country_country",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "country_country",
+      "order_by": "revenue_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "top customer by spend per country",
+    "metric": "revenue_by_customer",
+    "dimensions": [
+      "country_country",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "country_country",
+      "order_by": "revenue_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "best customer per country by revenue",
+    "metric": "revenue_by_customer",
+    "dimensions": [
+      "country_country",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "country_country",
+      "order_by": "revenue_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "which customer spent the most in each country",
+    "metric": "revenue_by_customer",
+    "dimensions": [
+      "country_country",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "country_country",
+      "order_by": "revenue_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "most valuable customer by country",
+    "metric": "revenue_by_customer",
+    "dimensions": [
+      "country_country",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "country_country",
+      "order_by": "revenue_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "top 3 customers by spend in each country",
+    "metric": "revenue_by_customer",
+    "dimensions": [
+      "country_country",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "country_country",
+      "order_by": "revenue_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "highest spending customer in each city",
+    "metric": "revenue_by_customer",
+    "dimensions": [
+      "city_city",
+      "country_country",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "city_city",
+      "order_by": "revenue_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "best customer per city",
+    "metric": "revenue_by_customer",
+    "dimensions": [
+      "city_city",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "city_city",
+      "order_by": "revenue_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "highest spending customer per store",
+    "metric": "revenue_by_customer",
+    "dimensions": [
+      "customer_store_id",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "customer_store_id",
+      "order_by": "revenue_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "best customer at each store",
+    "metric": "revenue_by_customer",
+    "dimensions": [
+      "customer_store_id",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "customer_store_id",
+      "order_by": "revenue_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "most rented film in each category",
+    "metric": "rentals_per_film",
+    "dimensions": [
+      "category_name",
+      "film_film_id",
+      "film_title",
+      "rental_rental_id"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "category_name",
+      "order_by": "rentals_per_film DESC"
+    }
+  },
+  {
+    "pattern": "top film by rentals per category",
+    "metric": "rentals_per_film",
+    "dimensions": [
+      "category_name",
+      "film_film_id",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "category_name",
+      "order_by": "rentals_per_film DESC"
+    }
+  },
+  {
+    "pattern": "top 3 most rented films in each category",
+    "metric": "rentals_per_film",
+    "dimensions": [
+      "category_name",
+      "film_film_id",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "category_name",
+      "order_by": "rentals_per_film DESC"
+    }
+  },
+  {
+    "pattern": "most rented film per store",
+    "metric": "rentals_per_film",
+    "dimensions": [
+      "inventory_store_id",
+      "film_film_id",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "inventory_store_id",
+      "order_by": "rentals_per_film DESC"
+    }
+  },
+  {
+    "pattern": "most rented film for each rating",
+    "metric": "rentals_per_film",
+    "dimensions": [
+      "film_rating",
+      "film_film_id",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "film_rating",
+      "order_by": "rentals_per_film DESC"
+    }
+  },
+  {
+    "pattern": "customer with most rentals at each store",
+    "metric": "rentals_per_customer",
+    "dimensions": [
+      "customer_store_id",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "customer_store_id",
+      "order_by": "rentals_per_customer DESC"
+    }
+  },
+  {
+    "pattern": "most frequent renter per store",
+    "metric": "rentals_per_customer",
+    "dimensions": [
+      "customer_store_id",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "customer_store_id",
+      "order_by": "rentals_per_customer DESC"
+    }
+  },
+  {
+    "pattern": "customer who rented the most in each country",
+    "metric": "rentals_per_customer",
+    "dimensions": [
+      "country_country",
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "country_country",
+      "order_by": "rentals_per_customer DESC"
+    }
+  },
+  {
+    "pattern": "highest revenue film in each category",
+    "metric": "revenue_by_film",
+    "dimensions": [
+      "category_name",
+      "film_film_id",
+      "film_title",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "category_name",
+      "order_by": "revenue_by_film DESC"
+    }
+  },
+  {
+    "pattern": "best earning film per category",
+    "metric": "revenue_by_film",
+    "dimensions": [
+      "category_name",
+      "film_film_id",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "category_name",
+      "order_by": "revenue_by_film DESC"
+    }
+  },
+  {
+    "pattern": "highest grossing film per rating",
+    "metric": "revenue_by_film",
+    "dimensions": [
+      "film_rating",
+      "film_film_id",
+      "film_title",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "film_rating",
+      "order_by": "revenue_by_film DESC"
+    }
+  },
+  {
+    "pattern": "top earning film at each store",
+    "metric": "revenue_by_film",
+    "dimensions": [
+      "inventory_store_id",
+      "film_film_id",
+      "film_title",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "inventory_store_id",
+      "order_by": "revenue_by_film DESC"
+    }
+  },
+  {
+    "pattern": "best performing category at each store",
+    "metric": "revenue_by_category",
+    "dimensions": [
+      "inventory_store_id",
+      "category_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "inventory_store_id",
+      "order_by": "revenue_by_category DESC"
+    }
+  },
+  {
+    "pattern": "actor who appeared in the most films",
+    "metric": "films_per_actor",
+    "dimensions": [
+      "actor_actor_id",
+      "actor_first_name",
+      "actor_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "films_per_actor DESC"
+    }
+  },
+  {
+    "pattern": "top actors by number of films",
+    "metric": "films_per_actor",
+    "dimensions": [
+      "actor_actor_id",
+      "actor_first_name",
+      "actor_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "films_per_actor DESC"
+    }
+  },
+  {
+    "pattern": "actor whose films have been rented the most",
+    "metric": "rentals_per_film",
+    "dimensions": [
+      "actor_actor_id",
+      "actor_first_name",
+      "actor_last_name",
+      "film_film_id",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "rentals_per_film DESC"
+    }
+  },
+  {
+    "pattern": "actor who generated the most revenue",
+    "metric": "revenue_by_film",
+    "dimensions": [
+      "actor_actor_id",
+      "actor_first_name",
+      "actor_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "revenue_by_film DESC"
+    }
+  },
+  {
+    "pattern": "which two actors have appeared together most often",
+    "metric": "actor_co_appearance_count",
+    "dimensions": [
+      "actor_first_name",
+      "actor_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "actor_co_appearance_count DESC"
+    }
+  },
+  {
+    "pattern": "actor pairs who share the most films",
+    "metric": "actor_co_appearance_count",
+    "dimensions": [
+      "actor_first_name",
+      "actor_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "actor_co_appearance_count DESC"
+    }
+  },
+  {
+    "pattern": "which film earns the most revenue per copy",
+    "metric": "revenue_per_inventory_copy",
+    "dimensions": [
+      "film_film_id",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "revenue_per_inventory_copy DESC"
+    }
+  },
+  {
+    "pattern": "most efficient films by revenue per inventory copy",
+    "metric": "revenue_per_inventory_copy",
+    "dimensions": [
+      "film_film_id",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "revenue_per_inventory_copy DESC"
+    }
+  },
+  {
+    "pattern": "most expensive film to replace per rating",
+    "metric": "average_replacement_cost_by_rating",
+    "dimensions": [
+      "film_rating",
+      "film_film_id",
+      "film_title",
+      "film_replacement_cost"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "film_rating",
+      "order_by": "film_replacement_cost DESC"
+    }
+  },
+  {
+    "pattern": "longest film in each category",
+    "metric": "films_per_category",
+    "dimensions": [
+      "category_name",
+      "film_film_id",
+      "film_title",
+      "film_length"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "category_name",
+      "order_by": "film_length DESC"
+    }
+  },
+  {
+    "pattern": "longest film per rating",
+    "metric": "films_per_rating",
+    "dimensions": [
+      "film_rating",
+      "film_film_id",
+      "film_title",
+      "film_length"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "film_rating",
+      "order_by": "film_length DESC"
+    }
+  },
+  {
+    "pattern": "which store made the most revenue",
+    "metric": "revenue_by_store",
+    "dimensions": [
+      "inventory_store_id"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "revenue_by_store DESC"
+    }
+  },
+  {
+    "pattern": "compare revenue between stores",
+    "metric": "revenue_by_store",
+    "dimensions": [
+      "inventory_store_id",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "revenue_by_store DESC"
+    }
+  },
+  {
+    "pattern": "staff member who processed the most revenue",
+    "metric": "revenue_by_staff",
+    "dimensions": [
+      "staff_staff_id",
+      "staff_first_name",
+      "staff_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "revenue_by_staff DESC"
+    }
+  },
+  {
+    "pattern": "which employee generated the most sales",
+    "metric": "revenue_by_staff",
+    "dimensions": [
+      "staff_staff_id",
+      "staff_first_name",
+      "staff_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "revenue_by_staff DESC"
+    }
+  },
+  {
+    "pattern": "staff member who handled the most rentals",
+    "metric": "rentals_per_staff",
+    "dimensions": [
+      "staff_staff_id",
+      "staff_first_name",
+      "staff_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "rentals_per_staff DESC"
+    }
+  },
+  {
+    "pattern": "best performing staff member at each store",
+    "metric": "revenue_by_staff",
+    "dimensions": [
+      "staff_store_id",
+      "staff_staff_id",
+      "staff_first_name",
+      "staff_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "staff_store_id",
+      "order_by": "revenue_by_staff DESC"
+    }
+  },
+  {
+    "pattern": "customers with overdue rentals",
+    "metric": "overdue_rentals_detail",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "film_title",
+      "rental_rental_date",
+      "film_rental_duration"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "who has not returned their rental",
+    "metric": "overdue_rental_count",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "customers who owe money",
+    "metric": "outstanding_balance_by_customer",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "unpaid rentals per customer",
+    "metric": "outstanding_balance_by_customer",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "customer with the most unpaid rentals",
+    "metric": "outstanding_balance_by_customer",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "outstanding_balance_by_customer DESC"
+    }
+  },
+  {
+    "pattern": "monthly revenue trend",
+    "metric": "revenue_by_month",
+    "dimensions": [
+      "payment_payment_date"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "payment_payment_date ASC"
+    }
+  },
+  {
+    "pattern": "how has revenue changed month over month",
+    "metric": "revenue_by_month",
+    "dimensions": [
+      "payment_payment_date",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "payment_payment_date ASC"
+    }
+  },
+  {
+    "pattern": "which month had the highest revenue",
+    "metric": "revenue_by_month",
+    "dimensions": [
+      "payment_payment_date",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "revenue_by_month DESC"
+    }
+  },
+  {
+    "pattern": "how many rentals did each store process each month",
+    "metric": "rentals_per_store_per_month",
+    "dimensions": [
+      "inventory_store_id",
+      "rental_rental_date"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "rental_rental_date ASC"
+    }
+  },
+  {
+    "pattern": "how long has each customer been renting",
+    "metric": "customer_rental_tenure_days",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "customer_rental_tenure_days DESC"
+    }
+  },
+  {
+    "pattern": "which customers qualify for the loyalty program",
+    "metric": "loyalty_eligible_customers",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "customer_email"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "customers eligible for rewards based on recent activity",
+    "metric": "loyalty_eligible_customers",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name",
+      "customer_email"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "how many films are in the catalog",
+    "metric": "film_row_count",
+    "dimensions": [],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "total number of films",
+    "metric": "film_row_count",
+    "dimensions": [],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "what is the total revenue",
+    "metric": "total_revenue",
+    "dimensions": [],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "how much money has the store made",
+    "metric": "total_revenue",
+    "dimensions": [],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "how many active customers are there",
+    "metric": "active_customer_count",
+    "dimensions": [],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "which films have never been rented",
+    "metric": "never_rented_film_count",
+    "dimensions": [
+      "film_film_id",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "films with zero rentals",
+    "metric": "never_rented_film_count",
+    "dimensions": [
+      "film_film_id",
+      "film_title"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "what films are currently checked out",
+    "metric": "currently_rented_films",
+    "dimensions": [
+      "film_title",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "films currently rented by customers",
+    "metric": "currently_rented_films",
+    "dimensions": [
+      "film_title",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "what is the average rental rate",
+    "metric": "average_rental_rate",
+    "dimensions": [],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "how many films are in each rating category",
+    "metric": "films_per_rating",
+    "dimensions": [
+      "film_rating"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "film count by MPAA rating",
+    "metric": "films_per_rating",
+    "dimensions": [
+      "film_rating"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "revenue by film category",
+    "metric": "revenue_by_category",
+    "dimensions": [
+      "category_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "revenue_by_category DESC"
+    }
+  },
+  {
+    "pattern": "which genre makes the most money",
+    "metric": "revenue_by_category",
+    "dimensions": [
+      "category_name",
+      "payment_amount"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "revenue_by_category DESC"
+    }
+  },
+  {
+    "pattern": "how long do customers keep films on average",
+    "metric": "average_rental_duration_days",
+    "dimensions": [],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "what percentage of inventory is currently in stock",
+    "metric": "inventory_in_stock_pct",
+    "dimensions": [
+      "inventory_store_id"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "how many customers are in each country",
+    "metric": "customers_per_country",
+    "dimensions": [
+      "country_country"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "customers_per_country DESC"
+    }
+  },
+  {
+    "pattern": "which country has the most customers",
+    "metric": "customers_per_country",
+    "dimensions": [
+      "country_country"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "customers_per_country DESC"
+    }
+  },
+  {
+    "pattern": "what is the customer churn rate",
+    "metric": "customer_churn_rate",
+    "dimensions": [],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  },
+  {
+    "pattern": "customers who have rented more than 30 films",
+    "metric": "rentals_per_customer",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "rentals_per_customer DESC"
+    }
+  },
+  {
+    "pattern": "most active customers by rental count",
+    "metric": "rentals_per_customer",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "RANK",
+      "partition_by": "_none_",
+      "order_by": "rentals_per_customer DESC"
+    }
+  },
+  {
+    "pattern": "inventory turnover rate by store",
+    "metric": "inventory_turnover_rate",
+    "dimensions": [
+      "inventory_store_id",
+      "rental_rental_date"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "inventory_turnover_rate DESC"
+    }
+  },
+  {
+    "pattern": "customers who rented more than once in the same month at the same store",
+    "metric": "repeat_rental_rate",
+    "dimensions": [
+      "customer_customer_id",
+      "customer_first_name",
+      "customer_last_name"
+    ],
+    "filters": [],
+    "sort": null,
+    "limit": null,
+    "mode": null,
+    "having_threshold": null,
+    "window": {
+      "function": "_none_",
+      "partition_by": "_none_",
+      "order_by": "_none_"
+    }
+  }
+]

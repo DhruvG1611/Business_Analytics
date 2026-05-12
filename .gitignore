@@ -1,3 +1,5 @@
 model/
 __pycache__/
 *.docx
+.env
+db.py

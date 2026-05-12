@@ -15,16 +15,12 @@ BUSINESS GLOSSARY & ONTOLOGY (read live from bgo.yaml):
 {bgo_context}
 
 RULES:
-1. Return ONLY valid JSON -- no markdown, no explanation.
+1. You must respond only with valid JSON, no explanation, no markdown.
 2. "metric"     : pick ONE key from the metrics list. Use METRIC SYNONYMS above
                   to resolve informal phrasing.
 3. "dimensions" : zero or more keys from the dimensions list. Use DIMENSION
                   SYNONYMS to resolve informal phrasing. Use ENTITY RELATIONSHIPS
                   to decide which dimension to group by.
-                  CRITICAL: NEVER include a dimension whose column appears
-                  inside the chosen metric's compute expression. For example,
-                  if the metric computes COUNT(DISTINCT employee_skills.skill_id),
-                  do NOT include employee_skills_skill_id as a dimension.
 4. "filters"    : ONLY add when a SPECIFIC value is explicitly mentioned.
    Filter format: {{"field": "<dimension_key>", "operator": "equals", "values": ["<value>"]}}
    Supported operators: equals, notEquals, contains, gt, gte, lt, lte
@@ -35,123 +31,59 @@ RULES:
                   When mode=list, include the id dimension (e.g. employees_id)
                   and any name/label dimension in the dimensions array.
 
-METRIC SELECTION GUIDE FOR COMPLEX QUERIES:
-
-  "most skilled / highest skill / best at skills / top talent"
-      -> metric: total_proficiency_per_employee   (SUM of proficiency -- rewards breadth AND depth)
-         dimensions: ["employees_emp_name"], sort: "desc", limit: 1
-
-  "highest average proficiency / best average skill score"
-      -> metric: avg_proficiency_per_employee
-         dimensions: ["employees_emp_name"], sort: "desc", limit: 1
-
-  "knows the most skills / most skills / widest skill set"
-      -> metric: employee_skills_per_employee
-         dimensions: ["employees_emp_name"], sort: "desc", limit: 1
-
-  "most efficient / highest completion rate / most productive / best performer / gets things done"
-      -> metric: completion_rate_per_employee
-         dimensions: ["employees_emp_name"], sort: "desc", limit: 1
-
-  "most tasks completed / most done tasks"
-      -> metric: done_tasks_per_employee
-         dimensions: ["employees_emp_name"], sort: "desc", limit: 1
-
-  "busiest / most active / most log activity"
-      -> metric: task_log_activity_per_employee
-         dimensions: ["employees_emp_name"], sort: "desc", limit: 1
-
-  "heaviest workload / most tasks assigned"
-      -> metric: tasks_per_employee
-         dimensions: ["employees_emp_name"], sort: "desc", limit: 1
-
-  "most blocked / most stuck"
-      -> metric: blocked_tasks_per_employee
-         dimensions: ["employees_emp_name"], sort: "desc", limit: 1
-
-  "skill diversity / most varied skills / most different skills in department"
-      -> metric: skill_diversity_per_department
-         dimensions: ["departments_dept_name"], sort: "desc", limit: 1
-
-  "project completion rate / how complete is project"
-      -> metric: completion_rate_per_project
-         dimensions: ["projects_project_name"], sort: "desc"
-
-DIMENSION SELECTION GUIDE:
-- "per / by employee name"          -> dimensions: ["employees_emp_name"]
-- "per / by department"             -> dimensions: ["departments_dept_name"]
-- "per / by skill"                  -> dimensions: ["skills_skill_name"]
-- "per / by project"                -> dimensions: ["projects_project_name"]
-- "per / by task"                   -> dimensions: ["tasks_task_name"]
-- "per / by role / by job title"    -> dimensions: ["employees_emp_role"]
-- "per / by skill category"         -> dimensions: ["skills_category"]
-- "most / top / highest / max"      -> sort: "desc", limit: 1
-- "least / lowest / fewest / min"   -> sort: "asc",  limit: 1
-- "top N"                           -> sort: "desc", limit: N
-- "rank / ranking / leaderboard"    -> sort: "desc"
-- "list / show / display / all / get all / every" -> mode: "list"
+SELECTION GUIDE:
+- "per / by Employee name / Employee full name / Employee title"  ->  dimensions: ["employees_emp_name"]
+- "per / by Skill name / Skill title / Skill description"  ->  dimensions: ["skills_skill_name"]
+- "per / by Department name / Department description / Department title"  ->  dimensions: ["departments_dept_name"]
+- "per / by Task name / Task title / Task description"  ->  dimensions: ["tasks_task_name"]
+- "per / by Project name / Project title / Project description"  ->  dimensions: ["projects_project_name"]
+- "most / top / highest / max"       ->  sort: "desc", limit: 1
+- "least / lowest / fewest / min"    ->  sort: "asc",  limit: 1
+- "list / show / display / all / get all / every"  ->  mode: "list", dimensions: [<id_col>, <name_col>]
+- No grouping requested (total count)              ->  dimensions: []
 
 EXAMPLES:
 
-Q: "Who is the most skilled employee?"
-A: {{"intent": {{"metric": "total_proficiency_per_employee", "dimensions": ["employees_emp_name"], "filters": [], "limit": 1, "sort": "desc"}}}}
+Q: "What are all the departments?"
+A: {{"intent": {{"metric": "departments_row_count", "dimensions": ["departments_id"], "filters": [], "limit": null, "sort": null}}}}
 
-Q: "Who is the most efficient employee?"
-A: {{"intent": {{"metric": "completion_rate_per_employee", "dimensions": ["employees_emp_name"], "filters": [], "limit": 1, "sort": "desc"}}}}
+Q: "How many tasks are there in total?"
+A: {{"intent": {{"metric": "tasks_row_count", "dimensions": ["tasks_id"], "filters": [], "limit": null, "sort": null}}}}
 
-Q: "Which employee has the highest task completion rate?"
-A: {{"intent": {{"metric": "completion_rate_per_employee", "dimensions": ["employees_emp_name"], "filters": [], "limit": 1, "sort": "desc"}}}}
+Q: "Which employees have the most skills?"
+A: {{"intent": {{"metric": "employee_skills_per_employee", "dimensions": ["employee_skills_employee_id"], "filters": [], "limit": null, "sort": null}}}}
 
-Q: "Rank all employees by productivity"
-A: {{"intent": {{"metric": "completion_rate_per_employee", "dimensions": ["employees_emp_name"], "filters": [], "limit": null, "sort": "desc"}}}}
+Q: "What is the top skill used by employees?"
+A: {{"intent": {{"metric": "employee_skills_per_skill", "dimensions": ["employee_skills_skill_id"], "filters": [], "limit": null, "sort": null}}}}
 
-Q: "Top 5 most skilled employees"
-A: {{"intent": {{"metric": "total_proficiency_per_employee", "dimensions": ["employees_emp_name"], "filters": [], "limit": 5, "sort": "desc"}}}}
+Q: "Who has the most tasks assigned to them?"
+A: {{"intent": {{"metric": "tasks_per_employee", "dimensions": ["tasks_assigned_to"], "filters": [], "limit": null, "sort": null}}}}
 
-Q: "Which department has the best average skill level?"
-A: {{"intent": {{"metric": "avg_proficiency_per_department", "dimensions": ["departments_dept_name"], "filters": [], "limit": 1, "sort": "desc"}}}}
+Q: "Which projects have the most tasks?"
+A: {{"intent": {{"metric": "tasks_per_project", "dimensions": ["tasks_project_id"], "filters": [], "limit": null, "sort": null}}}}
 
-Q: "Which employee knows the most skills?"
-A: {{"intent": {{"metric": "employee_skills_per_employee", "dimensions": ["employees_emp_name"], "filters": [], "limit": 1, "sort": "desc"}}}}
+Q: "What is the total count of task logs?"
+A: {{"intent": {{"metric": "task_logs_row_count", "dimensions": ["task_logs_id"], "filters": [], "limit": null, "sort": null}}}}
 
-Q: "List employees and their count of skills"
-A: {{"intent": {{"metric": "employee_skills_per_employee", "dimensions": ["employees_emp_name"], "filters": [], "limit": null, "sort": null}}}}
+# List mode examples (always emit mode="list" for show/list/display/get questions):
 
-Q: "Who is the busiest employee?"
-A: {{"intent": {{"metric": "task_log_activity_per_employee", "dimensions": ["employees_emp_name"], "filters": [], "limit": 1, "sort": "desc"}}}}
+Q: "list all skills"
+A: {{"intent": {{"metric": "skills_row_count", "dimensions": ["skills_id", "skills_skill_name"], "filters": [], "limit": null, "sort": null, "mode": "list"}}}}
 
-Q: "What is the total count of all tasks?"
-A: {{"intent": {{"metric": "tasks_row_count", "dimensions": ["tasks_task_name"], "filters": [], "limit": null, "sort": null}}}}
+Q: "show me all skills with their id"
+A: {{"intent": {{"metric": "skills_row_count", "dimensions": ["skills_id", "skills_skill_name"], "filters": [], "limit": null, "sort": null, "mode": "list"}}}}
 
-Q: "List all projects in a specific department."
-A: {{"intent": {{"metric": "projects_row_count", "dimensions": ["projects_project_name", "departments_dept_name"], "filters": [], "limit": null, "sort": null, "mode": "list"}}}}
+Q: "list all employee_skills"
+A: {{"intent": {{"metric": "employee_skills_row_count", "dimensions": [], "filters": [], "limit": null, "sort": null, "mode": "list"}}}}
 
-Q: "What is the total count of skills per employee?"
-A: {{"intent": {{"metric": "employee_skills_per_employee", "dimensions": ["employees_emp_name"], "filters": [], "limit": null, "sort": null}}}}
-
-Q: "What is the total count of tasks per project?"
-A: {{"intent": {{"metric": "tasks_per_project", "dimensions": ["projects_project_name", "tasks_task_status"], "filters": [], "limit": null, "sort": null}}}}
-
-Q: "list all departments"
-A: {{"intent": {{"metric": "departments_row_count", "dimensions": ["departments_id", "departments_dept_name"], "filters": [], "limit": null, "sort": null, "mode": "list"}}}}
-
-Q: "list all employees"
-A: {{"intent": {{"metric": "employees_row_count", "dimensions": ["employees_id", "employees_emp_name"], "filters": [], "limit": null, "sort": null, "mode": "list"}}}}
-
-Q: "list all projects"
-A: {{"intent": {{"metric": "projects_row_count", "dimensions": ["projects_id", "projects_project_name"], "filters": [], "limit": null, "sort": null, "mode": "list"}}}}
+Q: "show me all employee_skills with their id"
+A: {{"intent": {{"metric": "employee_skills_row_count", "dimensions": [], "filters": [], "limit": null, "sort": null, "mode": "list"}}}}
 
 Q: "list all task_logs"
 A: {{"intent": {{"metric": "task_logs_row_count", "dimensions": ["task_logs_id", "task_logs_action"], "filters": [], "limit": null, "sort": null, "mode": "list"}}}}
 
-Q: "Which project has the highest completion rate?"
-A: {{"intent": {{"metric": "completion_rate_per_project", "dimensions": ["projects_project_name"], "filters": [], "limit": 1, "sort": "desc"}}}}
-
-Q: "Show me skill diversity by department"
-A: {{"intent": {{"metric": "skill_diversity_per_department", "dimensions": ["departments_dept_name"], "filters": [], "limit": null, "sort": "desc"}}}}
-
-Q: "Who has the most blocked tasks?"
-A: {{"intent": {{"metric": "blocked_tasks_per_employee", "dimensions": ["employees_emp_name"], "filters": [{{"field": "tasks_task_status", "operator": "equals", "values": ["blocked"]}}], "limit": 1, "sort": "desc"}}}}
+Q: "show me all task_logs with their id"
+A: {{"intent": {{"metric": "task_logs_row_count", "dimensions": ["task_logs_id", "task_logs_action"], "filters": [], "limit": null, "sort": null, "mode": "list"}}}}
 
 QUESTION: {question}
 RESPONSE:

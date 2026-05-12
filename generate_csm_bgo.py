@@ -28,9 +28,9 @@ import os
 import re
 import sys
 import yaml
+import mysql.connector
 from itertools import combinations
 
-from sqlalchemy import create_engine, inspect, text
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -39,10 +39,11 @@ from langchain_core.output_parsers import StrOutputParser
 # CONFIG
 # ===========================================================================
 
-DB_URL = os.environ.get(
-    "DATABASE_URL",
-    "mysql+pymysql://root:@localhost:3306/test",
-)
+DB_HOST = "localhost"
+DB_USER = "root"
+DB_PASSWORD = ""
+DB_NAME = "sakila"
+DB_PORT = 3306
 
 OLLAMA_MODEL = "llama3"
 
@@ -51,74 +52,132 @@ FK_HEURISTIC_SUFFIX = ("_id",)
 
 
 # ===========================================================================
+# Database connection helper
+# ===========================================================================
+
+def get_db_connection():
+    """Create a connection to the Sakila database."""
+    return mysql.connector.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME,
+        port=DB_PORT
+    )
+
+
+# ===========================================================================
 # STEP 1 -- Introspect the database
 # ===========================================================================
 
-def introspect_db(engine) -> dict:
-    insp   = inspect(engine)
+def introspect_db() -> dict:
+    """Introspect the database schema using plain mysql.connector queries."""
+    conn = None
+    cursor = None
     tables = {}
-
-    for tname in insp.get_table_names():
-        if tname in EXCLUDE_TABLES:
-            continue
-
-        cols    = insp.get_columns(tname)
-        pk_cols = set(insp.get_pk_constraint(tname).get("constrained_columns", []))
-        fk_map  = {}
-
-        for fk in insp.get_foreign_keys(tname):
-            for local_col, ref_col in zip(fk["constrained_columns"], fk["referred_columns"]):
-                fk_map[local_col] = f"{fk['referred_table']}.{ref_col}"
-
-        for col in cols:
-            cname = col["name"]
-            if cname not in fk_map and cname not in pk_cols:
-                for suffix in FK_HEURISTIC_SUFFIX:
-                    if cname.endswith(suffix) and cname != suffix:
-                        guessed_table = cname[: -len(suffix)] + "s"
-                        fk_map[cname] = f"{guessed_table}.id"
-                        break
-
-        column_meta = []
-        for col in cols:
-            cname = col["name"]
-            column_meta.append({
-                "name":     cname,
-                "type":     str(col["type"]),
-                "pk":       cname in pk_cols,
-                "nullable": col.get("nullable", True),
-                "fk":       fk_map.get(cname),
-            })
-
-        row_count     = 0
-        sample_values = {}
-        try:
-            with engine.connect() as conn:
-                row_count = conn.execute(text(f"SELECT COUNT(*) FROM `{tname}`")).scalar()
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get all table names
+        cursor.execute("""
+            SELECT TABLE_NAME 
+            FROM INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_SCHEMA = %s
+        """, (DB_NAME,))
+        all_tables = [row['TABLE_NAME'] for row in cursor.fetchall()]
+        
+        for tname in all_tables:
+            if tname in EXCLUDE_TABLES:
+                continue
+            
+            # Get column information
+            cursor.execute(f"""
+                SELECT 
+                    COLUMN_NAME,
+                    COLUMN_TYPE,
+                    IS_NULLABLE,
+                    COLUMN_KEY
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+            """, (DB_NAME, tname))
+            columns_raw = cursor.fetchall()
+            
+            # Get primary key columns
+            pk_cols = {row['COLUMN_NAME'] for row in columns_raw if row['COLUMN_KEY'] == 'PRI'}
+            
+            # Get foreign key constraints
+            cursor.execute(f"""
+                SELECT 
+                    COLUMN_NAME,
+                    REFERENCED_TABLE_NAME,
+                    REFERENCED_COLUMN_NAME
+                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+                WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND REFERENCED_TABLE_NAME IS NOT NULL
+            """, (DB_NAME, tname))
+            fk_rows = cursor.fetchall()
+            fk_map = {row['COLUMN_NAME']: f"{row['REFERENCED_TABLE_NAME']}.{row['REFERENCED_COLUMN_NAME']}" 
+                     for row in fk_rows}
+            
+            # Heuristic FK detection for columns ending in _id
+            for col in columns_raw:
+                cname = col['COLUMN_NAME']
+                if cname not in fk_map and cname not in pk_cols:
+                    for suffix in FK_HEURISTIC_SUFFIX:
+                        if cname.endswith(suffix) and cname != suffix:
+                            guessed_table = cname[: -len(suffix)] + "s"
+                            fk_map[cname] = f"{guessed_table}.id"
+                            break
+            
+            # Build column metadata
+            column_meta = []
+            for col in columns_raw:
+                cname = col['COLUMN_NAME']
+                column_meta.append({
+                    "name":     cname,
+                    "type":     col['COLUMN_TYPE'],
+                    "pk":       cname in pk_cols,
+                    "nullable": col['IS_NULLABLE'] == 'YES',
+                    "fk":       fk_map.get(cname),
+                })
+            
+            # Get row count and sample values
+            row_count = 0
+            sample_values = {}
+            try:
+                cursor.execute(f"SELECT COUNT(*) as cnt FROM `{tname}`")
+                row_count = cursor.fetchone()['cnt']
+                
+                # Sample string columns
                 for col in column_meta:
                     if col["pk"] or col["fk"]:
                         continue
                     ctype = col["type"].upper()
                     if any(t in ctype for t in ("CHAR", "TEXT", "ENUM")):
-                        rows = conn.execute(
-                            text(f"SELECT DISTINCT `{col['name']}` FROM `{tname}` LIMIT 5")
-                        ).fetchall()
-                        vals = [r[0] for r in rows if r[0] is not None]
+                        cursor.execute(f"SELECT DISTINCT `{col['name']}` FROM `{tname}` LIMIT 5")
+                        vals = [row[list(row.keys())[0]] for row in cursor.fetchall() if row[list(row.keys())[0]] is not None]
                         if vals:
                             sample_values[col["name"]] = vals
-        except Exception as e:
-            print(f"  [warn] Could not sample {tname}: {e}")
-
-        tables[tname] = {
-            "columns":      column_meta,
-            "foreign_keys": [
-                {"col": c, "ref_table": v.split(".")[0], "ref_col": v.split(".")[1]}
-                for c, v in fk_map.items()
-            ],
-            "row_count":     row_count,
-            "sample_values": sample_values,
-        }
-
+            except Exception as e:
+                print(f"  [warn] Could not sample {tname}: {e}")
+            
+            tables[tname] = {
+                "columns":      column_meta,
+                "foreign_keys": [
+                    {"col": c, "ref_table": v.split(".")[0], "ref_col": v.split(".")[1]}
+                    for c, v in fk_map.items()
+                ],
+                "row_count":     row_count,
+                "sample_values": sample_values,
+            }
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
+    
     return {"tables": tables}
 
 
@@ -625,11 +684,13 @@ def main():
     print("=" * 60)
 
     # 1. Connect
-    print(f"\n[1/5] Connecting to: {DB_URL.split('@')[-1]}")
+    print(f"\n[1/5] Connecting to: {DB_NAME}@{DB_HOST}:{DB_PORT}")
     try:
-        engine = create_engine(DB_URL, future=True)
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        cursor.close()
+        conn.close()
         print("  Connected OK")
     except Exception as e:
         print(f"  ERROR: Cannot connect -- {e}")
@@ -637,7 +698,7 @@ def main():
 
     # 2. Introspect
     print("\n[2/5] Introspecting schema...")
-    schema = introspect_db(engine)
+    schema = introspect_db()
     tables = schema["tables"]
     print(f"  Found {len(tables)} tables: {', '.join(tables.keys())}")
     for tname, tmeta in tables.items():
