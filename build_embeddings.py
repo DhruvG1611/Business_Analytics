@@ -174,7 +174,7 @@ def build_metrics_index(
     with open(out_dir / "metrics_meta.json", "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
-    print(f"  ✓ metrics_index: {index.ntotal} vectors  →  {out_dir}/metrics_index.faiss")
+    print(f"  [OK] metrics_index: {index.ntotal} vectors  ->  {out_dir}/metrics_index.faiss")
 
 
 def build_patterns_index(
@@ -188,9 +188,9 @@ def build_patterns_index(
         embeddings/patterns_index.faiss
         embeddings/patterns_meta.json
     """
-    patterns = csm.get('intent_patterns', [])
+    patterns = csm.get('all_patterns') or csm.get('intent_patterns', [])
     if not patterns:
-        print("  ⚠  No intent_patterns found in CSM — skipping patterns index.")
+        print("  ⚠  No intent_patterns found in CSM/BGO — skipping patterns index.")
         return
 
     texts = [_pattern_to_text(p) for p in patterns]
@@ -222,12 +222,92 @@ def build_patterns_index(
     with open(out_dir / "patterns_meta.json", "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
-    print(f"  ✓ patterns_index: {index.ntotal} vectors  →  {out_dir}/patterns_index.faiss")
+    print(f"  [OK] patterns_index: {index.ntotal} vectors  ->  {out_dir}/patterns_index.faiss")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Entry point
 # ─────────────────────────────────────────────────────────────────────────────
+
+def build(csm_path="csm_enterprise.yaml", out_path="./embeddings", model_name="all-MiniLM-L6-v2"):
+    import os
+    out_dir = Path(out_path)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Load CSM (utf-8 so box-drawing chars in comments don't crash on Windows)
+    print(f"\n[1/4] Loading CSM YAML …")
+    with open(csm_path, encoding="utf-8") as f:
+        csm = yaml.safe_load(f)
+    print(f"      metrics:         {len(csm.get('metrics', {}))}")
+    print(f"      dimensions:      {len(csm.get('dimensions', {}))}")
+    print(f"      intent_patterns: {len(csm.get('intent_patterns', []))}")
+
+    # Load embedding model
+    print(f"\n[2/4] Loading embedding model '{model_name}' …")
+    model = SentenceTransformer(model_name)
+    print(f"      Embedding dim: {model.get_sentence_embedding_dimension()}")
+
+    # Build indexes
+    print(f"\n[3/4] Building metrics + dimensions index …")
+    build_metrics_index(csm, model, out_dir)
+
+    # Load BGO patterns if they exist
+    print(f"\n[4/4] Building intent patterns index (CSM + BGO) …")
+    all_patterns = csm.get('intent_patterns', [])
+    try:
+        with open("bgo.yaml", encoding="utf-8") as f:
+            bgo = yaml.safe_load(f)
+            bgo_patterns = bgo.get('intent_patterns', [])
+            all_patterns.extend(bgo_patterns)
+    except Exception as e:
+        print(f"      Note: Could not load extra patterns from bgo.yaml: {e}")
+
+    # Use a combined dict or just pass the list if we modify build_patterns_index
+    # For minimal impact, let's just temporarily put them in the csm dict
+    csm['all_patterns'] = all_patterns
+    build_patterns_index(csm, model, out_dir)
+
+    # Manifest
+    manifest = {
+        "model":           model_name,
+        "csm_file":        csm_path,
+        "metrics_entries": len(csm.get('metrics', {})) + len(csm.get('dimensions', {})),
+        "pattern_entries": len(csm.get('intent_patterns', [])),
+        "built_at":        os.path.getmtime(csm_path) if os.path.exists(csm_path) else 0,
+        "bgo_built_at":    os.path.getmtime("bgo.yaml") if os.path.exists("bgo.yaml") else 0
+    }
+    with open(out_dir / "manifest.json", "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+
+    print(f"\n[DONE] all indexes written to '{out_dir}/'")
+    print("   Re-run whenever csm_enterprise.yaml changes.")
+
+def embeddings_are_stale(csm_path="csm_enterprise.yaml", out_path="./embeddings") -> bool:
+    import os
+    manifest_path = Path(out_path) / "manifest.json"
+    if not manifest_path.exists():
+        return True
+    try:
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+        csm_mtime = os.path.getmtime(csm_path) if os.path.exists(csm_path) else 0
+        bgo_mtime = os.path.getmtime("bgo.yaml") if os.path.exists("bgo.yaml") else 0
+        return manifest.get("built_at", 0) != csm_mtime or manifest.get("bgo_built_at", 0) != bgo_mtime
+    except Exception:
+        return True
+
+def build_embeddings_if_stale(force=False, csm_path="csm_enterprise.yaml", out_path="./embeddings"):
+    if force or embeddings_are_stale(csm_path, out_path):
+        print("\n  [Embeddings] CSM/BGO changed or FAISS missing. Rebuilding...")
+        build(csm_path=csm_path, out_path=out_path)
+        
+        # Reset the RAG singleton to force reload in runtime
+        try:
+            from core.rag_retriever import _IndexStore
+            _IndexStore._instance = None
+            print("  [Embeddings] RAG singleton reset.")
+        except ImportError:
+            pass
 
 def main():
     parser = argparse.ArgumentParser(description="Build FAISS embeddings for CSM")
@@ -239,43 +319,7 @@ def main():
         help="sentence-transformers model name",
     )
     args = parser.parse_args()
-
-    out_dir = Path(args.out)
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    # Load CSM (utf-8 so box-drawing chars in comments don't crash on Windows)
-    print(f"\n[1/4] Loading CSM YAML …")
-    with open(args.csm, encoding="utf-8") as f:
-        csm = yaml.safe_load(f)
-    print(f"      metrics:         {len(csm.get('metrics', {}))}")
-    print(f"      dimensions:      {len(csm.get('dimensions', {}))}")
-    print(f"      intent_patterns: {len(csm.get('intent_patterns', []))}")
-
-    # Load embedding model
-    print(f"\n[2/4] Loading embedding model '{args.model}' …")
-    model = SentenceTransformer(args.model)
-    print(f"      Embedding dim: {model.get_sentence_embedding_dimension()}")
-
-    # Build indexes
-    print(f"\n[3/4] Building metrics + dimensions index …")
-    build_metrics_index(csm, model, out_dir)
-
-    print(f"\n[4/4] Building intent patterns index …")
-    build_patterns_index(csm, model, out_dir)
-
-    # Manifest
-    manifest = {
-        "model":           args.model,
-        "csm_file":        args.csm,
-        "metrics_entries": len(csm.get('metrics', {})) + len(csm.get('dimensions', {})),
-        "pattern_entries": len(csm.get('intent_patterns', [])),
-    }
-    with open(out_dir / "manifest.json", "w", encoding="utf-8") as f:
-        json.dump(manifest, f, indent=2)
-
-    print(f"\n✅ Done — all indexes written to '{out_dir}/'")
-    print("   Re-run whenever csm_enterprise.yaml changes.")
-
+    build(csm_path=args.csm, out_path=args.out, model_name=args.model)
 
 if __name__ == "__main__":
     main()

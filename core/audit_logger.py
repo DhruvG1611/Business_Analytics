@@ -46,6 +46,7 @@ def log_run(state: dict) -> str:
         and insight != "Insight generation failed."
     )
 
+    cost = state.get("_cost_estimate")
     entry = {
         "run_id": run_id,
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -56,6 +57,14 @@ def log_run(state: dict) -> str:
         "insight_generated": insight_generated,
         "error": error,
         "viz_chart_type": viz_spec.get("chart_type", ""),
+        "cost": {
+            "total_usd":          cost.total_cost_usd   if cost else None,
+            "total_tokens":       cost.total_tokens      if cost else None,
+            "prompt_tokens":      cost.prompt_tokens     if cost else None,
+            "completion_tokens":  cost.completion_tokens if cost else None,
+            "model":              cost.model             if cost else None,
+            "estimated":          cost.estimated         if cost else None,
+        }
     }
 
     with open(_AUDIT_FILE, "a", encoding="utf-8") as f:

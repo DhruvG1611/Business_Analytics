@@ -1,0 +1,1384 @@
+{
+  "5d41d96c0ae13499": {
+    "entity_description": "The actor entity represents individuals who participate in film productions. It stores basic information about each actor, including their name and last update timestamp. This entity is used to manage actor data.",
+    "entity_synonyms": [
+      "performer",
+      "artist",
+      "celebrity",
+      "star",
+      "entertainer"
+    ],
+    "business_rules": [
+      "Each actor must have a unique ID",
+      "Actor names must be in title case",
+      "Last update timestamp must be current",
+      "Actor data must be reviewed regularly"
+    ],
+    "column_descriptions": {
+      "actor_id": "Unique identifier for the actor",
+      "first_name": "The actor's first name",
+      "last_name": "The actor's last name",
+      "last_update": "The timestamp of the last update to the actor's data"
+    },
+    "column_synonyms": {
+      "actor_id": [
+        "id",
+        "identifier",
+        "actor_number"
+      ],
+      "first_name": [
+        "given_name",
+        "forename",
+        "firstname"
+      ],
+      "last_name": [
+        "surname",
+        "family_name",
+        "lastname"
+      ],
+      "last_update": [
+        "update_timestamp",
+        "last_modified",
+        "timestamp"
+      ]
+    },
+    "relationship_questions": {},
+    "intent_patterns": [
+      {
+        "pattern": "What is the total number of actors?",
+        "metric_key": "total_actors",
+        "dimensions": [
+          "actor_id"
+        ]
+      },
+      {
+        "pattern": "How many actors have the last name 'Smith'?",
+        "metric_key": "actors_by_last_name",
+        "dimensions": [
+          "last_name"
+        ]
+      },
+      {
+        "pattern": "What is the average number of actors updated per day?",
+        "metric_key": "average_daily_updates",
+        "dimensions": [
+          "last_update"
+        ]
+      }
+    ]
+  },
+  "bd965ee6f5aa8e24": {
+    "entity_description": "The address entity stores information about physical locations, including street addresses, cities, and postal codes. It serves as a reference point for various business operations, such as shipping and customer management. Accurate address data is crucial for efficient business processes.",
+    "entity_synonyms": [
+      "location",
+      "site",
+      "premises",
+      "residence",
+      "venue"
+    ],
+    "business_rules": [
+      "Each address must have a unique address_id.",
+      "The city_id must exist in the city table.",
+      "The postal_code must be in a valid format.",
+      "The phone number must be in a valid format."
+    ],
+    "column_descriptions": {
+      "address_id": "A unique identifier for each address.",
+      "address": "The street address, including the building number and street name.",
+      "address2": "An optional additional address line, such as an apartment or suite number.",
+      "district": "The district or neighborhood where the address is located.",
+      "city_id": "The identifier of the city where the address is located.",
+      "postal_code": "The postal code or zip code of the address.",
+      "phone": "The phone number associated with the address.",
+      "last_update": "The timestamp of the last update to the address record."
+    },
+    "column_synonyms": {
+      "address_id": [
+        "location_id",
+        "site_id",
+        "address_key"
+      ],
+      "address": [
+        "street_address",
+        "mailing_address",
+        "physical_address"
+      ],
+      "address2": [
+        "apartment_number",
+        "suite_number",
+        "additional_address_line"
+      ],
+      "district": [
+        "neighborhood",
+        "area",
+        "region"
+      ],
+      "city_id": [
+        "city_key",
+        "location_key",
+        "geographic_id"
+      ],
+      "postal_code": [
+        "zip_code",
+        "postcode",
+        "mailing_code"
+      ],
+      "phone": [
+        "telephone_number",
+        "contact_number",
+        "phone_number"
+      ],
+      "last_update": [
+        "last_modified",
+        "update_timestamp",
+        "revision_date"
+      ]
+    },
+    "relationship_questions": {
+      "city_id": [
+        "What city does this address belong to?",
+        "Which city is associated with this address?",
+        "What is the city identifier for this address?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the address of the customer?",
+        "metric_key": "customer_address",
+        "dimensions": [
+          "address_id",
+          "address",
+          "city_id"
+        ]
+      },
+      {
+        "pattern": "What is the postal code of the location?",
+        "metric_key": "location_postal_code",
+        "dimensions": [
+          "postal_code",
+          "address",
+          "city_id"
+        ]
+      },
+      {
+        "pattern": "What is the phone number of the venue?",
+        "metric_key": "venue_phone_number",
+        "dimensions": [
+          "phone",
+          "address",
+          "city_id"
+        ]
+      }
+    ]
+  },
+  "3315fb3f61ac5629": {
+    "entity_description": "The category entity represents a grouping of related products or services. It is used to organize and categorize items for easier searching and browsing. This helps customers find what they are looking for more efficiently.",
+    "entity_synonyms": [
+      "classification",
+      "grouping",
+      "type",
+      "genre",
+      "kind"
+    ],
+    "business_rules": [
+      "Each category must have a unique name",
+      "Category names must be less than 50 characters",
+      "Categories cannot be deleted if they have associated products",
+      "Category updates must be timestamped"
+    ],
+    "column_descriptions": {
+      "category_id": "A unique identifier for the category, used as the primary key.",
+      "name": "The name of the category, used for display and searching purposes.",
+      "last_update": "The timestamp of the last update made to the category."
+    },
+    "column_synonyms": {
+      "category_id": [
+        "id",
+        "category_code",
+        "classification_id"
+      ],
+      "name": [
+        "title",
+        "label",
+        "classification_name"
+      ],
+      "last_update": [
+        "updated_at",
+        "last_modified",
+        "timestamp"
+      ]
+    },
+    "relationship_questions": {},
+    "intent_patterns": [
+      {
+        "pattern": "What is the total number of categories?",
+        "metric_key": "total_categories",
+        "dimensions": []
+      },
+      {
+        "pattern": "What are the top categories by product count?",
+        "metric_key": "top_categories_by_product",
+        "dimensions": [
+          "category_id",
+          "name"
+        ]
+      },
+      {
+        "pattern": "When was the category with id 1 last updated?",
+        "metric_key": "category_last_update",
+        "dimensions": [
+          "category_id",
+          "last_update"
+        ]
+      }
+    ]
+  },
+  "ced7c0d21692e336": {
+    "entity_description": "The city entity represents a geographical location within a country. It contains information about the city name and its relationship to the country. This entity is used to store city data.",
+    "entity_synonyms": [
+      "town",
+      "metropolis",
+      "municipality",
+      "borough",
+      "village"
+    ],
+    "business_rules": [
+      "Each city must be associated with a country",
+      "City names must be unique within a country",
+      "City data must be updated regularly",
+      "Country information must be available for each city"
+    ],
+    "column_descriptions": {
+      "city_id": "Unique identifier for the city",
+      "city": "Name of the city",
+      "country_id": "Identifier of the country where the city is located",
+      "last_update": "Timestamp of the last update to the city data"
+    },
+    "column_synonyms": {
+      "city_id": [
+        "city_code",
+        "city_key",
+        "city_identifier"
+      ],
+      "city": [
+        "town_name",
+        "city_name",
+        "metropolis_name"
+      ],
+      "country_id": [
+        "country_code",
+        "country_key",
+        "nation_id"
+      ],
+      "last_update": [
+        "update_timestamp",
+        "last_modified",
+        "data_refresh"
+      ]
+    },
+    "relationship_questions": {
+      "country_id": [
+        "What country is the city located in?",
+        "Which nation does the city belong to?",
+        "What is the city's country of origin?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the total number of cities in a country?",
+        "metric_key": "total_cities",
+        "dimensions": [
+          "country_id"
+        ]
+      },
+      {
+        "pattern": "What are the top 5 cities by last update?",
+        "metric_key": "recently_updated_cities",
+        "dimensions": [
+          "city_id",
+          "last_update"
+        ]
+      },
+      {
+        "pattern": "How many cities are there in a specific country?",
+        "metric_key": "city_count",
+        "dimensions": [
+          "country_id",
+          "city"
+        ]
+      }
+    ]
+  },
+  "12ce1e14b19bd0eb": {
+    "entity_description": "The country entity represents a nation with its unique identifier and name. It also tracks the last update timestamp for auditing purposes. This entity is crucial for geographical analysis and data localization.",
+    "entity_synonyms": [
+      "nation",
+      "state",
+      "territory",
+      "land",
+      "realm"
+    ],
+    "business_rules": [
+      "Each country must have a unique identifier.",
+      "Country names must be in title case.",
+      "The last update timestamp must be automatically updated whenever the country record is modified.",
+      "Country records cannot be deleted, only marked as inactive."
+    ],
+    "column_descriptions": {
+      "country_id": "A unique identifier for the country, represented as a small integer.",
+      "country": "The name of the country, stored as a variable-length string.",
+      "last_update": "The timestamp when the country record was last updated, automatically maintained by the system."
+    },
+    "column_synonyms": {
+      "country_id": [
+        "nation_id",
+        "state_id",
+        "territory_id"
+      ],
+      "country": [
+        "nation_name",
+        "state_name",
+        "territory_name"
+      ],
+      "last_update": [
+        "last_modified",
+        "update_timestamp",
+        "modification_date"
+      ]
+    },
+    "relationship_questions": {},
+    "intent_patterns": [
+      {
+        "pattern": "What is the total number of countries?",
+        "metric_key": "total_countries",
+        "dimensions": []
+      },
+      {
+        "pattern": "List all countries updated in the last month.",
+        "metric_key": "recently_updated_countries",
+        "dimensions": [
+          "country.country",
+          "country.last_update"
+        ]
+      },
+      {
+        "pattern": "Show me the country with the most recent update.",
+        "metric_key": "most_recently_updated_country",
+        "dimensions": [
+          "country.country",
+          "country.last_update"
+        ]
+      }
+    ]
+  },
+  "d0e3f93c7c7154f9": {
+    "entity_description": "The customer entity represents individuals who have made purchases from our stores. It contains demographic information and purchase history. This data is used to personalize marketing campaigns and improve customer experience.",
+    "entity_synonyms": [
+      "client",
+      "buyer",
+      "purchaser",
+      "consumer",
+      "shopper"
+    ],
+    "business_rules": [
+      "Each customer must have a unique email address.",
+      "A customer can only be associated with one address.",
+      "A customer's active status must be updated when their account is deactivated.",
+      "A customer's last update timestamp must be updated whenever their information is modified."
+    ],
+    "column_descriptions": {
+      "customer_id": "A unique identifier for each customer.",
+      "store_id": "The store where the customer made their first purchase.",
+      "first_name": "The customer's first name.",
+      "last_name": "The customer's last name.",
+      "email": "The customer's email address.",
+      "address_id": "The address associated with the customer.",
+      "active": "A flag indicating whether the customer's account is active.",
+      "create_date": "The date the customer's account was created.",
+      "last_update": "The timestamp of the last update to the customer's information."
+    },
+    "column_synonyms": {
+      "customer_id": [
+        "client_id",
+        "buyer_id",
+        "purchaser_id"
+      ],
+      "store_id": [
+        "retailer_id",
+        "merchant_id"
+      ],
+      "first_name": [
+        "given_name",
+        "forename"
+      ],
+      "last_name": [
+        "surname",
+        "family_name"
+      ],
+      "email": [
+        "email_address",
+        "contact_email"
+      ]
+    },
+    "relationship_questions": {
+      "address_id": [
+        "What is the customer's address?",
+        "Where does the customer live?",
+        "What is the customer's mailing address?"
+      ],
+      "store_id": [
+        "Which store did the customer first purchase from?",
+        "What is the customer's preferred store?",
+        "Where did the customer make their first purchase?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the total number of active customers?",
+        "metric_key": "total_active_customers",
+        "dimensions": [
+          "store_id",
+          "address_id"
+        ]
+      },
+      {
+        "pattern": "What is the average age of customers who have made a purchase in the last month?",
+        "metric_key": "average_age_recent_purchasers",
+        "dimensions": [
+          "create_date",
+          "last_update"
+        ]
+      },
+      {
+        "pattern": "What is the most common first name among customers?",
+        "metric_key": "most_common_first_name",
+        "dimensions": [
+          "first_name",
+          "last_name"
+        ]
+      }
+    ]
+  },
+  "c3a5b74ac385e9d1": {
+    "entity_description": "The film entity represents a movie with various attributes such as title, description, and release year. It is used to store information about films in a database. This information can be used for various purposes such as movie recommendations or film analysis.",
+    "entity_synonyms": [
+      "movie",
+      "film",
+      "picture",
+      "cinema",
+      "motion picture"
+    ],
+    "business_rules": [
+      "Each film must have a unique film_id.",
+      "The rental duration of a film must be between 1 and 10 days.",
+      "The rental rate of a film must be greater than zero.",
+      "The replacement cost of a film must be greater than zero."
+    ],
+    "column_descriptions": {
+      "film_id": "A unique identifier for each film.",
+      "title": "The title of the film.",
+      "description": "A brief description of the film.",
+      "release_year": "The year the film was released.",
+      "language_id": "The language of the film.",
+      "original_language_id": "The original language of the film.",
+      "rental_duration": "The number of days a film can be rented for.",
+      "rental_rate": "The cost of renting a film.",
+      "length": "The length of the film in minutes.",
+      "replacement_cost": "The cost of replacing a film.",
+      "rating": "The rating of the film.",
+      "special_features": "Any special features of the film.",
+      "last_update": "The date and time the film information was last updated."
+    },
+    "column_synonyms": {
+      "film_id": [
+        "movie_id",
+        "film_identifier",
+        "id"
+      ],
+      "title": [
+        "name",
+        "movie_title",
+        "film_name"
+      ],
+      "description": [
+        "summary",
+        "plot",
+        "film_description"
+      ],
+      "release_year": [
+        "year",
+        "release_date",
+        "film_year"
+      ],
+      "language_id": [
+        "language",
+        "film_language",
+        "language_code"
+      ],
+      "original_language_id": [
+        "original_language",
+        "language_origin",
+        "original_language_code"
+      ],
+      "rental_duration": [
+        "rental_period",
+        "rental_time",
+        "film_rental_duration"
+      ],
+      "rental_rate": [
+        "rental_cost",
+        "rental_price",
+        "film_rental_rate"
+      ],
+      "length": [
+        "film_length",
+        "movie_length",
+        "duration"
+      ],
+      "replacement_cost": [
+        "replacement_price",
+        "film_replacement_cost",
+        "cost"
+      ],
+      "rating": [
+        "film_rating",
+        "movie_rating",
+        "rating_code"
+      ],
+      "special_features": [
+        "features",
+        "film_features",
+        "specials"
+      ],
+      "last_update": [
+        "last_updated",
+        "update_date",
+        "last_modified"
+      ]
+    },
+    "relationship_questions": {
+      "language_id": [
+        "What language is the film in?",
+        "What is the language of the film?",
+        "In what language is the film?"
+      ],
+      "original_language_id": [
+        "What is the original language of the film?",
+        "In what language was the film originally made?",
+        "What language was the film first released in?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the average rental rate of films?",
+        "metric_key": "average_rental_rate",
+        "dimensions": [
+          "film_id",
+          "title",
+          "rental_rate"
+        ]
+      },
+      {
+        "pattern": "How many films are in each language?",
+        "metric_key": "film_count_by_language",
+        "dimensions": [
+          "language_id",
+          "film_id",
+          "title"
+        ]
+      },
+      {
+        "pattern": "What is the total replacement cost of all films?",
+        "metric_key": "total_replacement_cost",
+        "dimensions": [
+          "film_id",
+          "title",
+          "replacement_cost"
+        ]
+      }
+    ]
+  },
+  "39eff6d15071c8ed": {
+    "entity_description": "The film_actor entity represents the relationship between actors and films, storing the actor_id and film_id as primary keys. This entity is crucial for managing film casts and actor filmographies. It also tracks the last update timestamp for each record.",
+    "entity_synonyms": [
+      "cast",
+      "filmography",
+      "actor_film",
+      "movie_cast",
+      "film_actor_relationship"
+    ],
+    "business_rules": [
+      "Each actor can be associated with multiple films.",
+      "Each film can have multiple actors.",
+      "The last_update timestamp must be updated whenever a record is inserted or updated.",
+      "The actor_id and film_id must exist in their respective tables before a record can be inserted into the film_actor table."
+    ],
+    "column_descriptions": {
+      "actor_id": "The unique identifier for the actor, referencing the actor_id in the actor table.",
+      "film_id": "The unique identifier for the film, referencing the film_id in the film table.",
+      "last_update": "The timestamp when the record was last updated."
+    },
+    "column_synonyms": {
+      "actor_id": [
+        "actor_identifier",
+        "actor_key",
+        "actor_code"
+      ],
+      "film_id": [
+        "film_identifier",
+        "film_key",
+        "film_code"
+      ],
+      "last_update": [
+        "update_timestamp",
+        "last_modified",
+        "timestamp"
+      ]
+    },
+    "relationship_questions": {
+      "actor_id": [
+        "Which films has an actor been in?",
+        "What is the filmography of an actor?",
+        "Which actors are in a particular film?"
+      ],
+      "film_id": [
+        "Who are the actors in a film?",
+        "What films has an actor been in?",
+        "Which films feature a particular actor?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What films has actor X been in?",
+        "metric_key": "actor_film_count",
+        "dimensions": [
+          "actor_id",
+          "film_id"
+        ]
+      },
+      {
+        "pattern": "How many actors are in film Y?",
+        "metric_key": "film_actor_count",
+        "dimensions": [
+          "film_id",
+          "actor_id"
+        ]
+      },
+      {
+        "pattern": "What is the filmography of actor Z?",
+        "metric_key": "actor_filmography",
+        "dimensions": [
+          "actor_id",
+          "film_id"
+        ]
+      }
+    ]
+  },
+  "2d1d5ea85104300c": {
+    "entity_description": "The film_category entity represents the relationship between films and categories. It allows for the classification of films into different genres. This classification is crucial for film recommendation and analysis.",
+    "entity_synonyms": [
+      "film genre",
+      "movie category",
+      "film type",
+      "movie genre",
+      "category"
+    ],
+    "business_rules": [
+      "Each film can have multiple categories",
+      "Each category can have multiple films",
+      "A film cannot be assigned to a non-existent category",
+      "A category cannot be deleted if it is assigned to a film"
+    ],
+    "column_descriptions": {
+      "film_id": "The unique identifier of the film",
+      "category_id": "The unique identifier of the category",
+      "last_update": "The timestamp of the last update to the film-category relationship"
+    },
+    "column_synonyms": {
+      "film_id": [
+        "film identifier",
+        "movie id",
+        "film code"
+      ],
+      "category_id": [
+        "category identifier",
+        "genre id",
+        "category code"
+      ],
+      "last_update": [
+        "update timestamp",
+        "last modified",
+        "timestamp"
+      ]
+    },
+    "relationship_questions": {
+      "category_id": [
+        "What categories are assigned to a film?",
+        "How many films are in a category?",
+        "What is the category of a film?"
+      ],
+      "film_id": [
+        "What films are in a category?",
+        "How many categories are assigned to a film?",
+        "What is the film with a specific category?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the most popular film in a category?",
+        "metric_key": "most_popular_film",
+        "dimensions": [
+          "film_category.category_id",
+          "film_category.film_id"
+        ]
+      },
+      {
+        "pattern": "How many films are in a specific category?",
+        "metric_key": "film_count",
+        "dimensions": [
+          "film_category.category_id"
+        ]
+      },
+      {
+        "pattern": "What categories are assigned to a film?",
+        "metric_key": "assigned_categories",
+        "dimensions": [
+          "film_category.film_id",
+          "film_category.category_id"
+        ]
+      }
+    ]
+  },
+  "b2245342855e3612": {
+    "entity_description": "The film_text table stores information about movie titles and descriptions. It contains a unique identifier for each film and provides a brief summary of the film's plot. This data can be used to generate movie recommendations or provide users with more information about a particular film.",
+    "entity_synonyms": [
+      "movie",
+      "film",
+      "cinema",
+      "picture",
+      "show"
+    ],
+    "business_rules": [
+      "Each film must have a unique identifier.",
+      "The title of the film must be provided.",
+      "The description of the film must be less than 65535 characters.",
+      "The film_id must be a positive integer."
+    ],
+    "column_descriptions": {
+      "film_id": "A unique identifier for each film in the database.",
+      "title": "The title of the film.",
+      "description": "A brief summary of the film's plot."
+    },
+    "column_synonyms": {
+      "film_id": [
+        "movie_id",
+        "film_identifier",
+        "id"
+      ],
+      "title": [
+        "name",
+        "film_name",
+        "movie_title"
+      ],
+      "description": [
+        "plot",
+        "summary",
+        "film_summary"
+      ]
+    },
+    "relationship_questions": {
+      "film_id": [
+        "What films are available in the database?",
+        "What is the film_id of a particular movie?",
+        "How many films are in the database?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the title of film with id {film_id}?",
+        "metric_key": "film_title",
+        "dimensions": [
+          "film_id",
+          "title"
+        ]
+      },
+      {
+        "pattern": "What is the description of the film {title}?",
+        "metric_key": "film_description",
+        "dimensions": [
+          "title",
+          "description"
+        ]
+      },
+      {
+        "pattern": "What is the id of the film with title {title}?",
+        "metric_key": "film_id",
+        "dimensions": [
+          "title",
+          "film_id"
+        ]
+      }
+    ]
+  },
+  "c37b04b6a6f9fd66": {
+    "entity_description": "The inventory entity represents the stock of films available at each store. It keeps track of the last update time for each film at each store. This information is crucial for managing film rentals and sales.",
+    "entity_synonyms": [
+      "stock",
+      "film stock",
+      "store inventory",
+      "product inventory",
+      "merchandise"
+    ],
+    "business_rules": [
+      "Each film can be stored at multiple stores",
+      "Each store can have multiple films in stock",
+      "The last update time is automatically set when the inventory is updated",
+      "The inventory is updated when a film is added or removed from a store"
+    ],
+    "column_descriptions": {
+      "inventory_id": "Unique identifier for each inventory entry",
+      "film_id": "Foreign key referencing the film table",
+      "store_id": "Foreign key referencing the store table",
+      "last_update": "Timestamp of the last update to the inventory entry"
+    },
+    "column_synonyms": {
+      "inventory_id": [
+        "id",
+        "stock id",
+        "film id"
+      ],
+      "film_id": [
+        "movie id",
+        "film identifier",
+        "movie identifier"
+      ],
+      "store_id": [
+        "store identifier",
+        "location id",
+        "store code"
+      ],
+      "last_update": [
+        "update time",
+        "last modified",
+        "timestamp"
+      ]
+    },
+    "relationship_questions": {
+      "film_id": [
+        "Which films are in stock at each store?",
+        "What is the current stock level of each film?",
+        "Which stores have a particular film in stock?"
+      ],
+      "store_id": [
+        "Which stores have a particular film in stock?",
+        "What is the current stock level of each store?",
+        "Which films are available at each store?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the current stock level of film X at store Y?",
+        "metric_key": "current_stock_level",
+        "dimensions": [
+          "film_id",
+          "store_id"
+        ]
+      },
+      {
+        "pattern": "Which films are in stock at store X?",
+        "metric_key": "films_in_stock",
+        "dimensions": [
+          "store_id"
+        ]
+      },
+      {
+        "pattern": "What is the last update time for film X at store Y?",
+        "metric_key": "last_update_time",
+        "dimensions": [
+          "film_id",
+          "store_id"
+        ]
+      }
+    ]
+  },
+  "d3003b81092090db": {
+    "entity_description": "The language table stores information about different languages, including their unique identifier, name, and last update timestamp. This table serves as a reference for language-related data across the application. It provides a centralized location for language data management.",
+    "entity_synonyms": [
+      "tongue",
+      "dialect",
+      "lingo",
+      "vernacular",
+      "idiom"
+    ],
+    "business_rules": [
+      "Each language must have a unique identifier.",
+      "Language names must be no more than 50 characters long.",
+      "The last update timestamp must be automatically updated whenever the language record is modified.",
+      "Language records cannot be deleted, only updated or marked as inactive."
+    ],
+    "column_descriptions": {
+      "language_id": "A unique identifier for each language, represented as a tinyint.",
+      "name": "The name of the language, stored as a char.",
+      "last_update": "The timestamp when the language record was last updated."
+    },
+    "column_synonyms": {
+      "language_id": [
+        "lang_id",
+        "language_code",
+        "id"
+      ],
+      "name": [
+        "language_name",
+        "lang_name",
+        "title"
+      ],
+      "last_update": [
+        "updated_at",
+        "last_modified",
+        "timestamp"
+      ]
+    },
+    "relationship_questions": {},
+    "intent_patterns": [
+      {
+        "pattern": "What is the language with id {language_id}?",
+        "metric_key": "language_info",
+        "dimensions": [
+          "language_id",
+          "name"
+        ]
+      },
+      {
+        "pattern": "When was the language {name} last updated?",
+        "metric_key": "language_last_update",
+        "dimensions": [
+          "name",
+          "last_update"
+        ]
+      },
+      {
+        "pattern": "What languages have been updated since {date}?",
+        "metric_key": "updated_languages",
+        "dimensions": [
+          "last_update",
+          "name"
+        ]
+      }
+    ]
+  },
+  "8bf7beb2ef42f6cd": {
+    "entity_description": "The payment entity represents a transaction where a customer pays for a rental. This entity is crucial for tracking financial transactions and managing customer accounts. It is also used to monitor staff performance in terms of sales and customer service.",
+    "entity_synonyms": [
+      "transaction",
+      "invoice",
+      "bill",
+      "receipt",
+      "payment slip"
+    ],
+    "business_rules": [
+      "Each payment must be associated with a valid customer",
+      "Each payment must be associated with a valid rental",
+      "Each payment must be associated with a valid staff member",
+      "The payment amount must be greater than zero"
+    ],
+    "column_descriptions": {
+      "payment_id": "A unique identifier for the payment",
+      "customer_id": "The identifier of the customer who made the payment",
+      "staff_id": "The identifier of the staff member who processed the payment",
+      "rental_id": "The identifier of the rental associated with the payment",
+      "amount": "The amount of the payment",
+      "payment_date": "The date and time the payment was made",
+      "last_update": "The date and time the payment record was last updated"
+    },
+    "column_synonyms": {
+      "payment_id": [
+        "payment number",
+        "transaction id",
+        "payment identifier"
+      ],
+      "customer_id": [
+        "customer number",
+        "client id",
+        "account holder id"
+      ],
+      "staff_id": [
+        "staff number",
+        "employee id",
+        "salesperson id"
+      ],
+      "rental_id": [
+        "rental number",
+        "lease id",
+        "agreement id"
+      ],
+      "amount": [
+        "payment amount",
+        "transaction value",
+        "fee"
+      ],
+      "payment_date": [
+        "payment timestamp",
+        "transaction date",
+        "date paid"
+      ],
+      "last_update": [
+        "last modified",
+        "update timestamp",
+        "revision date"
+      ]
+    },
+    "relationship_questions": {
+      "customer_id": [
+        "What customer made the payment?",
+        "Which customer is associated with the payment?",
+        "Who is the account holder for the payment?"
+      ],
+      "rental_id": [
+        "What rental is the payment for?",
+        "Which rental agreement is associated with the payment?",
+        "What lease is the payment related to?"
+      ],
+      "staff_id": [
+        "Who processed the payment?",
+        "Which staff member handled the payment?",
+        "What salesperson was involved in the payment?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the total payment amount for a customer?",
+        "metric_key": "total_payment_amount",
+        "dimensions": [
+          "customer_id",
+          "payment_date"
+        ]
+      },
+      {
+        "pattern": "Which staff member has the most payments?",
+        "metric_key": "staff_payment_count",
+        "dimensions": [
+          "staff_id",
+          "payment_date"
+        ]
+      },
+      {
+        "pattern": "What is the average payment amount for a rental type?",
+        "metric_key": "average_payment_amount",
+        "dimensions": [
+          "rental_id",
+          "payment_date"
+        ]
+      }
+    ]
+  },
+  "a8b8c4447489b497": {
+    "entity_description": "The rental entity represents a single rental transaction, which involves a customer renting an inventory item from a staff member. Each rental has a unique rental id and is associated with a specific inventory item, customer, and staff member. The rental also has a rental date and return date.",
+    "entity_synonyms": [
+      "lease",
+      "rental agreement",
+      "hire",
+      "letting",
+      "contract"
+    ],
+    "business_rules": [
+      "A customer can only rent an inventory item if it is available.",
+      "A staff member must be assigned to each rental.",
+      "The return date must be after the rental date.",
+      "The rental date and return date must be within the store's operating hours."
+    ],
+    "column_descriptions": {
+      "rental_id": "A unique identifier for each rental transaction.",
+      "rental_date": "The date and time when the rental was made.",
+      "inventory_id": "The identifier of the inventory item being rented.",
+      "customer_id": "The identifier of the customer renting the item.",
+      "return_date": "The date and time when the item is expected to be returned.",
+      "staff_id": "The identifier of the staff member who handled the rental.",
+      "last_update": "The timestamp of the last update made to the rental record."
+    },
+    "column_synonyms": {
+      "rental_id": [
+        "lease id",
+        "rental number",
+        "contract id"
+      ],
+      "rental_date": [
+        "lease date",
+        "rental start date",
+        "hire date"
+      ],
+      "inventory_id": [
+        "item id",
+        "product id",
+        "asset id"
+      ],
+      "customer_id": [
+        "client id",
+        "customer number",
+        "account id"
+      ],
+      "return_date": [
+        "lease end date",
+        "rental end date",
+        "return deadline"
+      ],
+      "staff_id": [
+        "employee id",
+        "staff number",
+        "agent id"
+      ],
+      "last_update": [
+        "last modified",
+        "update timestamp",
+        "revision date"
+      ]
+    },
+    "relationship_questions": {
+      "customer_id": [
+        "What is the customer's name?",
+        "What is the customer's contact information?",
+        "What are the customer's rental history?"
+      ],
+      "inventory_id": [
+        "What is the item's description?",
+        "What is the item's category?",
+        "What is the item's availability?"
+      ],
+      "staff_id": [
+        "What is the staff member's name?",
+        "What is the staff member's role?",
+        "What are the staff member's responsibilities?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the total number of rentals made by a customer?",
+        "metric_key": "total_rentals_by_customer",
+        "dimensions": [
+          "customer_id",
+          "rental_date"
+        ]
+      },
+      {
+        "pattern": "What is the most popular inventory item rented?",
+        "metric_key": "most_popular_inventory_item",
+        "dimensions": [
+          "inventory_id",
+          "rental_date"
+        ]
+      },
+      {
+        "pattern": "What is the average rental duration for a staff member?",
+        "metric_key": "average_rental_duration_by_staff",
+        "dimensions": [
+          "staff_id",
+          "rental_date",
+          "return_date"
+        ]
+      }
+    ]
+  },
+  "091fc4ca8500e9c9": {
+    "entity_description": "The staff entity represents employees working in stores, with details about their personal information and work assignments. Staff members are associated with specific stores and addresses. The entity captures key staff attributes and relationships.",
+    "entity_synonyms": [
+      "employees",
+      "personnel",
+      "team members",
+      "workers",
+      "personnel staff"
+    ],
+    "business_rules": [
+      "Each staff member must be assigned to one store.",
+      "Staff members must have a unique username and password combination.",
+      "The active status of a staff member determines their ability to access the system.",
+      "Staff members can only be associated with one address."
+    ],
+    "column_descriptions": {
+      "staff_id": "Unique identifier for each staff member.",
+      "first_name": "The first name of the staff member.",
+      "last_name": "The last name of the staff member.",
+      "address_id": "Foreign key referencing the address of the staff member.",
+      "picture": "A binary image of the staff member.",
+      "email": "The email address of the staff member.",
+      "store_id": "Foreign key referencing the store where the staff member is assigned.",
+      "active": "A flag indicating whether the staff member is active or not.",
+      "username": "The username chosen by the staff member for system access.",
+      "password": "The password chosen by the staff member for system access.",
+      "last_update": "Timestamp of the last update to the staff member's record."
+    },
+    "column_synonyms": {
+      "staff_id": [
+        "employee_id",
+        "personnel_id",
+        "worker_id"
+      ],
+      "first_name": [
+        "given_name",
+        "forename",
+        "personal_name"
+      ],
+      "last_name": [
+        "surname",
+        "family_name",
+        "last_name"
+      ],
+      "address_id": [
+        "location_id",
+        "residence_id",
+        "mailing_id"
+      ],
+      "picture": [
+        "image",
+        "photo",
+        "portrait"
+      ],
+      "email": [
+        "email_address",
+        "contact_email",
+        "staff_email"
+      ],
+      "store_id": [
+        "location_id",
+        "store_number",
+        "outlet_id"
+      ],
+      "active": [
+        "status",
+        "employment_status",
+        "activation_status"
+      ],
+      "username": [
+        "login_name",
+        "user_id",
+        "account_name"
+      ],
+      "password": [
+        "access_code",
+        "login_password",
+        "authentication_key"
+      ],
+      "last_update": [
+        "update_timestamp",
+        "modification_date",
+        "last_modified"
+      ]
+    },
+    "relationship_questions": {
+      "address_id": [
+        "What is the address of the staff member?",
+        "Where does the staff member live?",
+        "What is the mailing address of the staff member?"
+      ],
+      "store_id": [
+        "Which store is the staff member assigned to?",
+        "Where does the staff member work?",
+        "What is the staff member's store location?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the total number of active staff members?",
+        "metric_key": "total_active_staff",
+        "dimensions": [
+          "store_id",
+          "address_id"
+        ]
+      },
+      {
+        "pattern": "Show me the staff members assigned to store number 1.",
+        "metric_key": "staff_by_store",
+        "dimensions": [
+          "store_id",
+          "staff_id"
+        ]
+      },
+      {
+        "pattern": "What is the average number of staff members per store?",
+        "metric_key": "average_staff_per_store",
+        "dimensions": [
+          "store_id"
+        ]
+      }
+    ]
+  },
+  "a36f015781ff78f2": {
+    "entity_description": "A store is a physical location where products are sold to customers. It is managed by a staff member and has a unique address. The store's information is updated regularly.",
+    "entity_synonyms": [
+      "retail_location",
+      "outlet",
+      "shop",
+      "market",
+      "branch"
+    ],
+    "business_rules": [
+      "Each store must have a unique store_id.",
+      "A store can only have one manager staff member.",
+      "A store's address must exist in the address table.",
+      "A store's last_update timestamp must be current."
+    ],
+    "column_descriptions": {
+      "store_id": "A unique identifier for the store.",
+      "manager_staff_id": "The staff member responsible for managing the store.",
+      "address_id": "The unique identifier for the store's address.",
+      "last_update": "The timestamp of the last update to the store's information."
+    },
+    "column_synonyms": {
+      "store_id": [
+        "store_number",
+        "location_id",
+        "outlet_id"
+      ],
+      "manager_staff_id": [
+        "manager_id",
+        "staff_id",
+        "employee_id"
+      ],
+      "address_id": [
+        "location_address",
+        "store_address",
+        "address_number"
+      ],
+      "last_update": [
+        "update_timestamp",
+        "last_modified",
+        "timestamp"
+      ]
+    },
+    "relationship_questions": {
+      "manager_staff_id": [
+        "Who manages this store?",
+        "What is the staff id of the store manager?",
+        "Which staff member is responsible for this store?"
+      ],
+      "address_id": [
+        "What is the address of this store?",
+        "Where is this store located?",
+        "What is the location address of this store?"
+      ]
+    },
+    "intent_patterns": [
+      {
+        "pattern": "What is the total number of stores?",
+        "metric_key": "total_stores",
+        "dimensions": [
+          "store_id"
+        ]
+      },
+      {
+        "pattern": "Which store has the most staff members?",
+        "metric_key": "store_with_most_staff",
+        "dimensions": [
+          "store_id",
+          "manager_staff_id"
+        ]
+      },
+      {
+        "pattern": "What is the average number of stores per address?",
+        "metric_key": "avg_stores_per_address",
+        "dimensions": [
+          "address_id",
+          "store_id"
+        ]
+      }
+    ]
+  }
+}

@@ -26,7 +26,7 @@ _BGO_ALIAS_MAP = {
     "get_customer_balance":       "unpaid_rental_count",
     "inventory_in_stock":         "copies_per_film",
     "inventory_held_by_customer": "active_rental_count",
-    "customer_balance":           "unpaid_rental_count",
+    "customer_balance":           "outstanding_balance_by_customer",
     "outstanding_balance":        "unpaid_rental_count",
     "unpaid_balance":             "unpaid_rental_count",
     "balance":                    "unpaid_rental_count",
@@ -37,6 +37,13 @@ _BGO_ALIAS_MAP = {
     "film_list":                  "film_row_count",
     "nicer_but_slower_film_list": "film_row_count",
     "staff_list":                 "staff_row_count",
+    # Issue 6: orphaned BGO keys mapped to CSM equivalents
+    "average_rental_duration":    "average_rental_duration_days",
+    "films_in_stock":             "inventory_in_stock_pct",
+    "payments_per_staff":         "payments_processed_per_staff",
+    "top_customers_by_spend":     "revenue_by_customer",
+    "customer_lifetime_value":    "revenue_by_customer",
+    "store_row_count":            "customers_per_store",
 }
 
 _SEMANTIC_SYNONYMS = {
@@ -50,17 +57,37 @@ _SEMANTIC_SYNONYMS = {
     "customer_lifetime_value":       "revenue_by_customer",
     "clv":                           "revenue_by_customer",
     "ltv":                           "revenue_by_customer",
+    "total_customer_spend":          "revenue_by_customer",
+    "customer_total_spend":          "revenue_by_customer",
+    "best_customers":                "revenue_by_customer",
+    "high_value_customers":          "revenue_by_customer",
     "unpaid_rentals":                "unpaid_rental_count",
     "rentals_unpaid":                "unpaid_rental_count",
     "outstanding_rentals":           "unpaid_rental_count",
     "customers_with_balance":        "unpaid_rental_count",
     "customers_outstanding":         "unpaid_rental_count",
+    "amount_owed":                   "outstanding_balance_by_customer",
+    "current_balance":               "outstanding_balance_by_customer",
+    "account_balance":               "outstanding_balance_by_customer",
     "revenue":                       "total_revenue",
     "total_revenue_all":             "total_revenue",
     "rental_count":                  "rental_row_count",
     "open_rentals":                  "active_rental_count",
     "current_rentals":               "active_rental_count",
     "checked_out":                   "active_rental_count",
+    "avg_loan_period":               "average_rental_duration_days",
+    "mean_checkout_duration":        "average_rental_duration_days",
+    "average_days_rented":           "average_rental_duration_days",
+    "available_films":               "inventory_in_stock_pct",
+    "in_stock_titles":               "inventory_in_stock_pct",
+    "payment_volume_per_staff":      "payments_processed_per_staff",
+    "staff_payment_activity":        "payments_processed_per_staff",
+    # replacement_cost: plain column for ranking, not aggregate
+    "most_expensive_film":           "replacement_cost",
+    "priciest_film":                 "replacement_cost",
+    "expensive_films":               "replacement_cost",
+    "cost_to_replace":               "replacement_cost",
+    "film_replacement_cost":         "replacement_cost",
 }
 
 _STATUS_MAP = {
@@ -116,12 +143,14 @@ class IntentParser:
         q_lower = question.lower()
 
         intent = self._detect_mode(intent, q_lower)
-        intent = self._normalize_metric(intent)
+        intent = self._detect_set_difference(intent, q_lower)
+        intent = self._normalize_metric(intent, q_lower)
         intent = self._infer_dimensions(intent, q_lower)
         intent = self._apply_safe_rag_hints(intent, q_lower, rag_hints)
         intent = self._validate_dimensions(intent)
         intent = self._filter_irrelevant_dimensions(intent)
         intent = self._inject_status_filter(intent, q_lower)
+        intent = self._validate_metric_type(intent, q_lower)
 
         return {"intent": intent}
 
@@ -129,16 +158,45 @@ class IntentParser:
     # Step 1 — Mode detection
     # -----------------------------------------------------------------------
 
+    def _detect_set_difference(self, intent: dict, q_lower: str) -> dict:
+        print(f"  [DEBUG _detect_set_difference] called with q={q_lower!r}")
+        from core.patterns import SET_DIFFERENCE_PATTERNS
+        if any(re.search(p, q_lower) for p in SET_DIFFERENCE_PATTERNS):
+            intent["mode"] = "set_difference"
+            
+            # Extract store IDs
+            # Heuristic for Sakila: "store 1 but not store 2"
+            matches = re.findall(r"(?:at\s+)?store\s+(\d+)", q_lower)
+            if len(matches) >= 2:
+                # Assuming first is include, second is exclude
+                intent["_include_store"] = matches[0]
+                intent["_exclude_store"] = matches[1]
+            elif len(matches) == 1:
+                # If only one found, check if it's after the difference marker
+                for p in SET_DIFFERENCE_PATTERNS:
+                    parts = re.split(p, q_lower, maxsplit=1)
+                    if len(parts) == 2:
+                        exclude_part = parts[1]
+                        m = re.search(r"store\s+(\d+)", exclude_part)
+                        if m:
+                            intent["_include_store"] = None
+                            intent["_exclude_store"] = m.group(1)
+                            break
+            
+            # Also keep raw for debugging
+            for p in SET_DIFFERENCE_PATTERNS:
+                if re.search(p, q_lower):
+                    print(f"  [DEBUG] pattern matched: {p!r}")
+                parts = re.split(p, q_lower, maxsplit=1)
+                if len(parts) == 2:
+                    intent["_exclusion_raw"] = parts[1].strip()
+                    break
+        return intent
+
     def _detect_mode(self, intent: dict, q_lower: str) -> dict:
-        having_patterns = [
-            (r"at least\s+(\d+)",   "gte"),
-            (r"more than\s+(\d+)",  "gt"),
-            (r"over\s+(\d+)",       "gt"),
-            (r"at most\s+(\d+)",    "lte"),
-            (r"fewer than\s+(\d+)", "lt"),
-            (r"less than\s+(\d+)",  "lt"),
-        ]
-        for pattern, op in having_patterns:
+        print(f"  [DEBUG _detect_mode] q_lower={q_lower!r}")
+        from core.patterns import HAVING_PATTERNS  # single source of truth
+        for pattern, op in HAVING_PATTERNS:
             m = re.search(pattern, q_lower)
             if m:
                 intent["having_threshold"] = {"op": op, "val": int(m.group(1))}
@@ -178,11 +236,43 @@ class IntentParser:
     # Step 2 — Metric normalization
     # -----------------------------------------------------------------------
 
-    def _normalize_metric(self, intent: dict) -> dict:
+    def _normalize_metric(self, intent: dict, q_lower: str) -> dict:
         raw = intent.get("metric", "")
         if isinstance(raw, Enum):
             raw = raw.value
-        intent["metric"] = self._fuzzy_metric_lookup(raw)
+        resolved_key = self._fuzzy_metric_lookup(raw)
+
+        # Aggregate-to-sibling swap: if this is a ranking question and the
+        # resolved metric uses an aggregate (MAX/MIN/AVG/SUM/COUNT), check
+        # whether a plain-column sibling exists for the same source column.
+        # Prevents MAX(film.replacement_cost) being used for "top 10 films".
+        metric_node = self.csm.get("metrics", {}).get(resolved_key, {})
+        compute = metric_node.get("compute", "")
+        is_aggregate = re.match(
+            r"^\s*(MAX|MIN|AVG|SUM|COUNT)\s*\(", compute, re.IGNORECASE
+        )
+        _RANKING_SIGNALS = [
+            "top", "most", "highest", "lowest", "best", "expensive",
+            "cheapest", "worst", "priciest", "costliest",
+        ]
+        is_ranking_question = any(kw in q_lower for kw in _RANKING_SIGNALS)
+
+        if is_aggregate and is_ranking_question:
+            source = metric_node.get("sources", [None])[0]
+            for key, node in self.csm.get("metrics", {}).items():
+                sibling_compute = node.get("compute", "")
+                sibling_source = node.get("sources", [None])[0]
+                if (sibling_source == source
+                        and key != resolved_key
+                        and not re.match(r"^\s*(MAX|MIN|AVG|SUM|COUNT)\s*\(",
+                                         sibling_compute, re.IGNORECASE)):
+                    # Found a plain-column sibling in the same source table
+                    print(f"  [IntentParser] Swapped aggregate metric "
+                          f"'{resolved_key}' -> '{key}' for ranking question")
+                    resolved_key = key
+                    break
+
+        intent["metric"] = resolved_key
         return intent
 
     def _fuzzy_metric_lookup(self, raw_metric: str) -> str:
@@ -264,14 +354,12 @@ class IntentParser:
                 if self.csm.get("dimensions", {}).get(d, {}).get("source") not in ("film", "film_actor", "film_text")
             ]
 
-        # Apply dimensions only if LLM left them empty
+        # Apply dimensions from pattern if high-confidence, else only if empty
+        pattern_score = rag_hints.get("pattern_score", 0.0)
         rag_dims = pattern_intent.get("dimensions") or []
-        if rag_dims and not intent.get("dimensions"):
-            metric_node = self.csm.get('metrics', {}).get(intent.get('metric', ''), {})
-            if metric_node.get('join_path'):
-                print("  [IntentParser] Metric has explicit join_path — skipping RAG dimension override.")
-                return intent
-            intent["dimensions"] = rag_dims
+        if rag_dims:
+            if pattern_score >= 0.72 or not intent.get("dimensions"):
+                intent["dimensions"] = rag_dims
 
         # Copy partition_by from matched pattern — never a name column
         partition_by = [
@@ -290,7 +378,8 @@ class IntentParser:
             if pattern_intent.get("sort") is not None:
                 intent["sort"] = pattern_intent["sort"]
             if pattern_intent.get("limit") is not None:
-                intent["limit"] = pattern_intent["limit"]
+                limit_val = pattern_intent["limit"]
+                intent["limit"] = None if limit_val == "_none_" else limit_val
 
         return intent
 
@@ -306,6 +395,26 @@ class IntentParser:
             elif d.lower() in self.dimension_map:
                 valid.append(self.dimension_map[d.lower()])
         intent["dimensions"] = valid
+        return intent
+
+    def _validate_metric_type(self, intent: dict, q_lower: str) -> dict:
+        metric_key = intent.get("metric")
+        if not metric_key:
+            return intent
+            
+        metric_node = self.csm.get("metrics", {}).get(metric_key, {})
+        compute_type = metric_node.get("compute_type", "aggregate")
+        
+        _RANKING_SIGNALS = [
+            "top", "most", "highest", "lowest", "best", "expensive",
+            "cheapest", "worst", "priciest", "costliest",
+        ]
+        is_ranking_question = any(kw in q_lower for kw in _RANKING_SIGNALS)
+        
+        if is_ranking_question and compute_type == "aggregate":
+            intent["_metric_type_mismatch"] = True
+            print(f"  [IntentParser] Detected metric type mismatch: ranking question paired with aggregate metric '{metric_key}'")
+            
         return intent
 
     def _filter_irrelevant_dimensions(self, intent: dict) -> dict:

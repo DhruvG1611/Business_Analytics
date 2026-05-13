@@ -1,763 +1,546 @@
 """
 generate_csm_bgo.py
 -------------------
-Inspects a live database via SQLAlchemy, then:
-  1. Builds csm_enterprise.yaml  (deterministic, from schema introspection)
-  2. Generates bgo.yaml           (via Ollama)
-  3. Renders decomposition_prompt.txt  (from CSM + BGO, ready for connector.py)
+Introspects a live MySQL database and auto-generates:
+  1. csm_enterprise.yaml  (metrics, dimensions, relationships)
+  2. bgo.yaml             (glossary, ontology, intent patterns, views, PII)
 
-Usage:
-    python generate_csm_bgo.py
-
-Configure DB_URL below (or set env var DATABASE_URL) then run once.
-Re-run whenever your schema changes — all three files are regenerated together.
-
-connector.py loads decomposition_prompt.txt at startup:
-    with open("decomposition_prompt.txt") as f:
-        _PROMPT_TEMPLATE = f.read()
-    decomposition_chain = ChatPromptTemplate.from_template(_PROMPT_TEMPLATE) | llm | JsonOutputParser()
-
-FIXES vs original:
-  - PKs are now included as dimensions (dtype="id") so keys like
-    employees_id are in the CSM and LLM guesses resolve correctly.
-  - build_decomposition_prompt emits a "list" mode example so the LLM
-    learns to return mode="list" for "show / list all" questions.
+Usage:  python generate_csm_bgo.py
 """
 
-import os
-import re
-import sys
-import yaml
+import os, re, json, shutil, hashlib
+from dataclasses import dataclass, field
+from datetime import datetime
+
 import mysql.connector
-from itertools import combinations
+from ruamel.yaml import YAML
+from ruamel.yaml.scalarstring import LiteralScalarString
+from langchain_core.messages import SystemMessage, HumanMessage
+import config
 
-from langchain_ollama import ChatOllama
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+# ── Constants ────────────────────────────────────────────────────────────────
 
-# ===========================================================================
-# CONFIG
-# ===========================================================================
+DB_CONFIG = dict(host="localhost", user="root", password="", database="sakila", port=3306)
+LLM_CACHE_FILE = "llm_cache.json"
+AMOUNT_KEYWORDS = {"amount", "price", "cost", "rate", "salary", "revenue", "fee", "total"}
+PII_PATTERNS = {"email", "phone", "password", "first_name", "last_name", "address", "picture", "photo"}
+PII_SENSITIVITY = {"password": "high", "email": "medium", "phone": "medium", "picture": "medium", "photo": "medium"}
 
-DB_HOST = "localhost"
-DB_USER = "root"
-DB_PASSWORD = ""
-DB_NAME = "sakila"
-DB_PORT = 3306
+# ── Data classes ─────────────────────────────────────────────────────────────
 
-OLLAMA_MODEL = "llama3"
+@dataclass
+class ColumnInfo:
+    table: str
+    name: str
+    data_type: str
+    is_nullable: bool
+    is_pk: bool = False
+    is_fk: bool = False
+    fk_ref_table: str = ""
+    fk_ref_column: str = ""
+    column_key: str = ""
+    extra: str = ""
+    comment: str = ""
+    default: str = ""
+    sample_values: list = field(default_factory=list)
 
-EXCLUDE_TABLES      = {"alembic_version", "django_migrations", "flyway_schema_history"}
-FK_HEURISTIC_SUFFIX = ("_id",)
+@dataclass
+class SchemaInfo:
+    tables: dict = field(default_factory=dict)       # table -> [ColumnInfo]
+    primary_keys: dict = field(default_factory=dict)  # table -> [col_name]
+    foreign_keys: list = field(default_factory=list)  # [{table, column, ref_table, ref_column}]
+    views: list = field(default_factory=list)
+    procedures: list = field(default_factory=list)
+    functions: list = field(default_factory=list)
+    triggers: list = field(default_factory=list)       # [{name, event, table}]
 
+# ── LLM cache ────────────────────────────────────────────────────────────────
 
-# ===========================================================================
-# Database connection helper
-# ===========================================================================
+def _load_cache() -> dict:
+    if os.path.exists(LLM_CACHE_FILE):
+        with open(LLM_CACHE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
 
-def get_db_connection():
-    """Create a connection to the Sakila database."""
-    return mysql.connector.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        database=DB_NAME,
-        port=DB_PORT
-    )
+def _save_cache(cache: dict):
+    with open(LLM_CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump(cache, f, indent=2, ensure_ascii=False)
 
+def _cache_key(table: str, cols: list, fks: list) -> str:
+    blob = json.dumps({"t": table, "c": cols, "f": fks}, sort_keys=True)
+    return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
-# ===========================================================================
-# STEP 1 -- Introspect the database
-# ===========================================================================
+# ── Database introspection ───────────────────────────────────────────────────
 
-def introspect_db() -> dict:
-    """Introspect the database schema using plain mysql.connector queries."""
-    conn = None
-    cursor = None
-    tables = {}
-    
+def _query(conn, sql):
+    cur = conn.cursor(dictionary=True)
+    cur.execute(sql)
+    rows = cur.fetchall()
+    cur.close()
+    return rows
+
+def introspect_schema() -> SchemaInfo:
+    conn = mysql.connector.connect(**DB_CONFIG)
+    schema = SchemaInfo()
+
+    # Columns
+    rows = _query(conn, """
+        SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE,
+               COLUMN_KEY, EXTRA, COLUMN_COMMENT, COLUMN_DEFAULT
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME NOT IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = DATABASE())
+        ORDER BY TABLE_NAME, ORDINAL_POSITION
+    """)
+    for r in rows:
+        tbl = r["TABLE_NAME"]
+        schema.tables.setdefault(tbl, [])
+        schema.tables[tbl].append(ColumnInfo(
+            table=tbl, name=r["COLUMN_NAME"], data_type=r["DATA_TYPE"],
+            is_nullable=(r["IS_NULLABLE"] == "YES"), column_key=r.get("COLUMN_KEY", ""),
+            extra=r.get("EXTRA", ""), comment=r.get("COLUMN_COMMENT", ""),
+            default=str(r.get("COLUMN_DEFAULT", "") or ""),
+        ))
+
+    # Primary keys
+    pks = _query(conn, """
+        SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+        WHERE TABLE_SCHEMA = DATABASE() AND CONSTRAINT_NAME = 'PRIMARY'
+    """)
+    for r in pks:
+        schema.primary_keys.setdefault(r["TABLE_NAME"], []).append(r["COLUMN_NAME"])
+        for c in schema.tables.get(r["TABLE_NAME"], []):
+            if c.name == r["COLUMN_NAME"]:
+                c.is_pk = True
+
+    # Foreign keys
+    fks = _query(conn, """
+        SELECT TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
+        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+        WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL
+    """)
+    for r in fks:
+        schema.foreign_keys.append(r)
+        for c in schema.tables.get(r["TABLE_NAME"], []):
+            if c.name == r["COLUMN_NAME"]:
+                c.is_fk = True
+                c.fk_ref_table = r["REFERENCED_TABLE_NAME"]
+                c.fk_ref_column = r["REFERENCED_COLUMN_NAME"]
+
+    # Views, procedures, functions, triggers
+    schema.views = [r["TABLE_NAME"] for r in _query(conn,
+        "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = DATABASE()")]
+    schema.procedures = [r["ROUTINE_NAME"] for r in _query(conn,
+        "SELECT ROUTINE_NAME FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA = DATABASE() AND ROUTINE_TYPE='PROCEDURE'")]
+    schema.functions = [r["ROUTINE_NAME"] for r in _query(conn,
+        "SELECT ROUTINE_NAME FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA = DATABASE() AND ROUTINE_TYPE='FUNCTION'")]
+    schema.triggers = [{"name": r["TRIGGER_NAME"], "event": r["EVENT_MANIPULATION"], "table": r["EVENT_OBJECT_TABLE"]}
+        for r in _query(conn,
+        "SELECT TRIGGER_NAME, EVENT_MANIPULATION, EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE()")]
+
+    conn.close()
+    return schema
+
+def fetch_sample_values(schema: SchemaInfo) -> dict:
+    conn = mysql.connector.connect(**DB_CONFIG)
+    samples = {}
+    string_types = {"varchar", "char", "text", "enum", "set", "tinytext", "mediumtext", "longtext"}
+    for tbl, cols in schema.tables.items():
+        for c in cols:
+            if c.data_type.lower() in string_types and not c.is_pk:
+                try:
+                    rows = _query(conn, f"SELECT DISTINCT `{c.name}` FROM `{tbl}` WHERE `{c.name}` IS NOT NULL LIMIT 5")
+                    vals = [str(r[c.name]) for r in rows if r[c.name] is not None]
+                    if vals:
+                        samples[f"{tbl}.{c.name}"] = vals
+                        c.sample_values = vals
+                except Exception:
+                    pass
+    conn.close()
+    return samples
+
+# ── LLM calls ────────────────────────────────────────────────────────────────
+
+def call_llm_for_table(table: str, cols: list[ColumnInfo], fk_list: list, cache: dict) -> dict:
+    col_strs = [f"{c.name} ({c.data_type}, {'PK' if c.is_pk else 'FK→'+c.fk_ref_table if c.is_fk else 'regular'})" for c in cols]
+    fk_strs = [f"{f['COLUMN_NAME']} → {f['REFERENCED_TABLE_NAME']}.{f['REFERENCED_COLUMN_NAME']}" for f in fk_list]
+    key = _cache_key(table, [c.name for c in cols], fk_strs)
+    if key in cache:
+        return cache[key]
+
+    prompt = f"""Given a database table "{table}" with columns: {', '.join(col_strs)}
+and foreign keys: {', '.join(fk_strs) if fk_strs else 'none'}
+Generate JSON with these keys:
+- "entity_description": 2-3 sentence business description
+- "entity_synonyms": list of 5 synonyms
+- "business_rules": list of 4 business rules as strings
+- "column_descriptions": dict of {{column_name: "1-2 sentence description"}}
+- "column_synonyms": dict of {{column_name: ["synonym1", "synonym2", "synonym3"]}}
+- "relationship_questions": dict of {{fk_column: ["question1", "question2", "question3"]}}
+- "intent_patterns": list of 3 objects with keys "pattern" (natural language question), "metric_key" (snake_case), "dimensions" (list of dimension keys as table_column)
+Respond ONLY with valid JSON, no markdown, no explanation."""
+
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # Get all table names
-        cursor.execute("""
-            SELECT TABLE_NAME 
-            FROM INFORMATION_SCHEMA.TABLES 
-            WHERE TABLE_SCHEMA = %s
-        """, (DB_NAME,))
-        all_tables = [row['TABLE_NAME'] for row in cursor.fetchall()]
-        
-        for tname in all_tables:
-            if tname in EXCLUDE_TABLES:
-                continue
-            
-            # Get column information
-            cursor.execute(f"""
-                SELECT 
-                    COLUMN_NAME,
-                    COLUMN_TYPE,
-                    IS_NULLABLE,
-                    COLUMN_KEY
-                FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
-            """, (DB_NAME, tname))
-            columns_raw = cursor.fetchall()
-            
-            # Get primary key columns
-            pk_cols = {row['COLUMN_NAME'] for row in columns_raw if row['COLUMN_KEY'] == 'PRI'}
-            
-            # Get foreign key constraints
-            cursor.execute(f"""
-                SELECT 
-                    COLUMN_NAME,
-                    REFERENCED_TABLE_NAME,
-                    REFERENCED_COLUMN_NAME
-                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-                WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND REFERENCED_TABLE_NAME IS NOT NULL
-            """, (DB_NAME, tname))
-            fk_rows = cursor.fetchall()
-            fk_map = {row['COLUMN_NAME']: f"{row['REFERENCED_TABLE_NAME']}.{row['REFERENCED_COLUMN_NAME']}" 
-                     for row in fk_rows}
-            
-            # Heuristic FK detection for columns ending in _id
-            for col in columns_raw:
-                cname = col['COLUMN_NAME']
-                if cname not in fk_map and cname not in pk_cols:
-                    for suffix in FK_HEURISTIC_SUFFIX:
-                        if cname.endswith(suffix) and cname != suffix:
-                            guessed_table = cname[: -len(suffix)] + "s"
-                            fk_map[cname] = f"{guessed_table}.id"
-                            break
-            
-            # Build column metadata
-            column_meta = []
-            for col in columns_raw:
-                cname = col['COLUMN_NAME']
-                column_meta.append({
-                    "name":     cname,
-                    "type":     col['COLUMN_TYPE'],
-                    "pk":       cname in pk_cols,
-                    "nullable": col['IS_NULLABLE'] == 'YES',
-                    "fk":       fk_map.get(cname),
-                })
-            
-            # Get row count and sample values
-            row_count = 0
-            sample_values = {}
-            try:
-                cursor.execute(f"SELECT COUNT(*) as cnt FROM `{tname}`")
-                row_count = cursor.fetchone()['cnt']
-                
-                # Sample string columns
-                for col in column_meta:
-                    if col["pk"] or col["fk"]:
-                        continue
-                    ctype = col["type"].upper()
-                    if any(t in ctype for t in ("CHAR", "TEXT", "ENUM")):
-                        cursor.execute(f"SELECT DISTINCT `{col['name']}` FROM `{tname}` LIMIT 5")
-                        vals = [row[list(row.keys())[0]] for row in cursor.fetchall() if row[list(row.keys())[0]] is not None]
-                        if vals:
-                            sample_values[col["name"]] = vals
-            except Exception as e:
-                print(f"  [warn] Could not sample {tname}: {e}")
-            
-            tables[tname] = {
-                "columns":      column_meta,
-                "foreign_keys": [
-                    {"col": c, "ref_table": v.split(".")[0], "ref_col": v.split(".")[1]}
-                    for c, v in fk_map.items()
-                ],
-                "row_count":     row_count,
-                "sample_values": sample_values,
-            }
-    
-    finally:
-        if cursor:
-            cursor.close()
-        if conn and conn.is_connected():
-            conn.close()
-    
-    return {"tables": tables}
+        resp = config.llm.invoke([
+            SystemMessage(content="You are a data architect. Respond only with valid JSON."),
+            HumanMessage(content=prompt),
+        ])
+        text = resp.content.strip()
+        if text.startswith("```"): text = re.sub(r"^```\w*\n?", "", text)
+        if text.endswith("```"): text = text.rsplit("```", 1)[0]
+        data = json.loads(text.strip())
+        cache[key] = data
+        _save_cache(cache)
+        return data
+    except Exception as e:
+        print(f"  ⚠ LLM failed for {table}: {e}")
+        return {"entity_description": f"Table {table}.", "entity_synonyms": [table],
+                "business_rules": [], "column_descriptions": {}, "column_synonyms": {},
+                "relationship_questions": {}, "intent_patterns": []}
 
+# ── Type mapping ─────────────────────────────────────────────────────────────
 
-# ===========================================================================
-# STEP 2 -- Build CSM deterministically
-# ===========================================================================
+def _sql_to_csm_type(col: ColumnInfo) -> str:
+    if col.is_pk or col.is_fk: return "id"
+    dt = col.data_type.lower()
+    if dt in ("tinyint", "boolean", "bit") and "active" in col.name.lower(): return "boolean"
+    if dt in ("int", "smallint", "tinyint", "mediumint", "bigint", "decimal", "float", "double", "numeric", "year"):
+        return "number"
+    if dt in ("date", "datetime", "timestamp", "time"): return "time"
+    return "string"
 
-def build_csm(schema: dict) -> dict:
-    metrics       = {}
-    dimensions    = {}
+# ── CSM builder ──────────────────────────────────────────────────────────────
+
+def build_csm(schema: SchemaInfo, llm_data: dict) -> dict:
+    metrics = {}
+    dimensions = {}
     relationships = {}
 
-    for tname, tmeta in schema["tables"].items():
-        metrics[f"{tname}_row_count"] = {
-            "compute": "COUNT(*)",
-            "sources": [tname],
-            "label":   f"Total {tname.replace('_', ' ').title()}",
+    # --- Row count metrics ---
+    for tbl in sorted(schema.tables):
+        label_parts = llm_data.get(tbl, {})
+        metrics[f"{tbl}_row_count"] = {
+            "compute": "COUNT(*)", "sources": [tbl],
+            "label": f"Total {tbl.replace('_', ' ').title()}s"
         }
 
-        for col in tmeta["columns"]:
-            cname     = col["name"]
-            ctype_raw = col["type"].upper()
+    # --- Numeric aggregate metrics ---
+    for tbl, cols in schema.tables.items():
+        for c in cols:
+            if c.is_pk or c.is_fk: continue
+            name_lower = c.name.lower()
+            if any(kw in name_lower for kw in AMOUNT_KEYWORDS):
+                if c.data_type.lower() in ("decimal", "float", "double", "int", "smallint", "mediumint", "bigint", "numeric"):
+                    metrics[f"total_{tbl}_{c.name}"] = {
+                        "compute": f"SUM({tbl}.{c.name})", "sources": [tbl],
+                        "label": f"Total {c.name.replace('_', ' ').title()}"
+                    }
+                    metrics[f"avg_{tbl}_{c.name}"] = {
+                        "compute": f"AVG({tbl}.{c.name})", "sources": [tbl],
+                        "label": f"Average {c.name.replace('_', ' ').title()}"
+                    }
 
-            # FIX: PKs are no longer skipped — they get dtype "id" so the LLM
-            # can reference them in "list" queries (e.g. employees_id).
-            if col["pk"]:
-                dtype = "id"
-            elif any(t in ctype_raw for t in ("INT", "BIGINT", "SMALLINT", "TINYINT",
-                                               "DECIMAL", "FLOAT", "DOUBLE", "NUMERIC")):
-                dtype = "number"
-            elif any(t in ctype_raw for t in ("DATE", "TIME", "DATETIME", "TIMESTAMP")):
-                dtype = "time"
-            else:
-                dtype = "string"
-
-            dim_entry = {
-                "source": tname,
-                "column": cname,
-                "type":   dtype,
-                "label":  cname.replace("_", " ").title(),
+    # --- Junction table metrics ---
+    for tbl, cols in schema.tables.items():
+        fk_cols = [c for c in cols if c.is_fk]
+        non_pk_non_fk = [c for c in cols if not c.is_pk and not c.is_fk and c.name != "last_update"]
+        if len(fk_cols) == 2 and len(non_pk_non_fk) == 0:
+            e1, e2 = fk_cols[0], fk_cols[1]
+            key1 = f"{e1.fk_ref_table}_per_{e2.fk_ref_table}"
+            metrics[key1] = {
+                "compute": f"COUNT(DISTINCT {tbl}.{e1.name})", "sources": [tbl, e2.fk_ref_table],
+                "label": f"{e1.fk_ref_table.title()}s per {e2.fk_ref_table.title()}",
+                "join_path": [tbl, e2.fk_ref_table]
             }
-            if dtype == "string" and cname in tmeta.get("sample_values", {}):
-                dim_entry["sample_values"] = tmeta["sample_values"][cname]
-            if col.get("fk"):
-                dim_entry["fk"] = col["fk"]
-
-            dimensions[f"{tname}_{cname}"] = dim_entry
-
-        for fk in tmeta["foreign_keys"]:
-            rel_key = f"{tname}_to_{fk['ref_table']}"
-            relationships[rel_key] = {
-                "from": tname,
-                "to":   fk["ref_table"],
-                "join": f"{tname}.{fk['col']} = {fk['ref_table']}.{fk['ref_col']}",
+            key2 = f"{e2.fk_ref_table}_per_{e1.fk_ref_table}"
+            metrics[key2] = {
+                "compute": f"COUNT(DISTINCT {tbl}.{e2.name})", "sources": [tbl, e1.fk_ref_table],
+                "label": f"{e2.fk_ref_table.title()}s per {e1.fk_ref_table.title()}",
+                "join_path": [tbl, e1.fk_ref_table]
             }
 
-    table_names = list(schema["tables"].keys())
-    for t1, t2 in combinations(table_names, 2):
-        rel_fwd = f"{t1}_to_{t2}"
-        rel_rev = f"{t2}_to_{t1}"
-        if rel_fwd in relationships or rel_rev in relationships:
-            rel    = relationships.get(rel_fwd) or relationships.get(rel_rev)
-            child  = rel["from"]
-            parent = rel["to"]
-            key    = f"{child}_per_{parent.rstrip('s')}"
-            metrics[key] = {
-                "compute": f"COUNT(DISTINCT {child}.id)",
-                "sources": [child, parent],
-                "label":   f"{child.title()} per {parent.rstrip('s').title()}",
+    # --- FK chain revenue metrics ---
+    fk_map = {}
+    for fk in schema.foreign_keys:
+        fk_map.setdefault(fk["TABLE_NAME"], []).append(fk)
+    # Find payment chains
+    if "payment" in schema.tables:
+        def _walk(tbl, path, depth):
+            if depth > 5: return []
+            paths = []
+            for fk in fk_map.get(tbl, []):
+                ref = fk["REFERENCED_TABLE_NAME"]
+                if ref not in path:
+                    new_path = path + [ref]
+                    paths.append(new_path)
+                    paths.extend(_walk(ref, new_path, depth + 1))
+            return paths
+        chains = _walk("payment", ["payment"], 0)
+        for chain in chains:
+            terminal = chain[-1]
+            t_cols = schema.tables.get(terminal, [])
+            str_cols = [c for c in t_cols if _sql_to_csm_type(c) == "string" and c.name != "last_update"]
+            if str_cols and len(chain) >= 3:
+                mkey = f"revenue_by_{terminal}"
+                if mkey not in metrics:
+                    metrics[mkey] = {
+                        "compute": "SUM(payment.amount)", "sources": list(chain),
+                        "label": f"Revenue by {terminal.replace('_', ' ').title()}",
+                        "join_path": list(chain)
+                    }
+
+    # --- Dimensions ---
+    for tbl in sorted(schema.tables):
+        for c in sorted(schema.tables[tbl], key=lambda x: x.name):
+            dim_key = f"{tbl}_{c.name}"
+            entry = {
+                "source": tbl, "column": c.name,
+                "type": _sql_to_csm_type(c),
+                "label": c.name.replace("_", " ").title(),
             }
+            if c.is_nullable: entry["nullable"] = True
+            if c.sample_values: entry["sample_values"] = c.sample_values
+            if c.is_fk: entry["fk"] = f"{c.fk_ref_table}.{c.fk_ref_column}"
+            dimensions[dim_key] = entry
 
-    # ── Auto-generate join_path hints for every multi-source metric ──────────
-    # This ensures the BFS resolver always traverses tables in the exact order
-    # the metric was designed for, preventing wrong-shortcut bugs where a
-    # shorter but semantically incorrect path exists (e.g. going through
-    # departments instead of tasks to reach projects).
-    #
-    # Algorithm: for each metric whose sources list has 2+ tables, find the
-    # shortest BFS path that visits ALL sources in dependency order, starting
-    # from sources[0].  The resulting ordered table list becomes join_path.
-    _rel_graph = {}
-    for rel in relationships.values():
-        _rel_graph.setdefault(rel["from"], set()).add(rel["to"])
-        _rel_graph.setdefault(rel["to"],  set()).add(rel["from"])
-
-    def _bfs_path(start: str, targets: list[str]) -> list[str]:
-        """
-        Return an ordered path [start, t1, t2, ...] that visits all targets
-        using BFS from start, visiting targets in the order they first appear
-        as reachable.  Each hop is to the nearest unvisited target.
-        """
-        path     = [start]
-        visited  = {start}
-        current  = start
-        remaining = list(targets)  # preserve order preference
-
-        while remaining:
-            # BFS from current to find the nearest remaining target
-            queue    = [(current, [current])]
-            bfs_seen = {current}
-            found    = None
-
-            while queue and not found:
-                node, node_path = queue.pop(0)
-                for neighbour in _rel_graph.get(node, []):
-                    if neighbour in bfs_seen:
-                        continue
-                    bfs_seen.add(neighbour)
-                    full_path = node_path + [neighbour]
-                    if neighbour in remaining:
-                        found = (neighbour, full_path)
-                        break
-                    queue.append((neighbour, full_path))
-
-            if not found:
-                break   # unreachable — leave path incomplete
-
-            target_node, sub_path = found
-            # Add the intermediate hops (excluding start which is already in path)
-            for hop in sub_path[1:]:
-                if hop not in visited:
-                    path.append(hop)
-                    visited.add(hop)
-
-            remaining.remove(target_node)
-            current = target_node
-
-        return path
-
-    for m_key, m_val in metrics.items():
-        sources = m_val.get("sources", [])
-        if len(sources) < 2:
-            # Single-source metrics need no join — no hint required
-            continue
-        base    = sources[0]
-        targets = [s for s in sources[1:] if s != base]
-        path    = _bfs_path(base, targets)
-        if len(path) > 1:
-            m_val["join_path"] = path
-            # Also update sources to match the actual traversal order so they
-            # are consistent with join_path
-            ordered_sources = [t for t in path if t in set(sources)]
-            # add any sources that weren't reachable (shouldn't happen but safe)
-            for s in sources:
-                if s not in ordered_sources:
-                    ordered_sources.append(s)
-            m_val["sources"] = ordered_sources
+    # --- Relationships ---
+    seen = set()
+    for fk in schema.foreign_keys:
+        key = f"{fk['TABLE_NAME']}_to_{fk['REFERENCED_TABLE_NAME']}"
+        if key in seen:
+            key += f"_via_{fk['COLUMN_NAME']}"
+        seen.add(key)
+        relationships[key] = {
+            "from": fk["TABLE_NAME"], "to": fk["REFERENCED_TABLE_NAME"],
+            "join": f"{fk['TABLE_NAME']}.{fk['COLUMN_NAME']} = {fk['REFERENCED_TABLE_NAME']}.{fk['REFERENCED_COLUMN_NAME']}"
+        }
 
     return {"metrics": metrics, "dimensions": dimensions, "relationships": relationships}
 
+# ── BGO builder ──────────────────────────────────────────────────────────────
 
-# ===========================================================================
-# STEP 3 -- Generate BGO via Ollama
-# ===========================================================================
+def build_bgo(schema: SchemaInfo, llm_data: dict, csm: dict) -> dict:
+    bgo = {}
 
-def _schema_summary(schema: dict) -> str:
-    lines = []
-    for tname, tmeta in schema["tables"].items():
-        non_pk_cols = [c for c in tmeta["columns"] if not c["pk"]]
-        col_desc    = ", ".join(
-            f"{c['name']} ({c['type']}{'->'+c['fk'] if c.get('fk') else ''})"
-            for c in non_pk_cols
-        )
-        lines.append(f"Table '{tname}' ({tmeta['row_count']} rows): {col_desc}")
-        for col, vals in tmeta.get("sample_values", {}).items():
-            lines.append(f"  sample {col}: {vals}")
-    return "\n".join(lines)
+    # --- Metadata ---
+    db_name = DB_CONFIG["database"]
+    bgo["metadata"] = {
+        "database": db_name, "domain": f"{db_name.title()} Database",
+        "description": f"Auto-generated glossary for the {db_name} database.",
+        "version": "1.0",
+        "tables": sorted(schema.tables.keys()),
+        "views": sorted(schema.views),
+        "stored_procedures": sorted(schema.procedures),
+        "stored_functions": sorted(schema.functions),
+    }
 
+    # --- Ontology ---
+    entities = {}
+    for tbl in sorted(schema.tables):
+        ld = llm_data.get(tbl, {})
+        pk_cols = schema.primary_keys.get(tbl, [])
+        pk = pk_cols if len(pk_cols) > 1 else (pk_cols[0] if pk_cols else "id")
+        entities[tbl] = {
+            "description": ld.get("entity_description", f"Table {tbl}."),
+            "synonyms": ld.get("entity_synonyms", [tbl.title()]),
+            "primary_key": pk,
+            "business_rules": ld.get("business_rules", []),
+        }
 
-def _csm_summary(csm: dict) -> str:
-    lines = ["Metrics: " + ", ".join(csm["metrics"].keys())]
-    lines.append("Dimensions: " + ", ".join(csm["dimensions"].keys()))
-    lines.append("Relationships:")
-    for rv in csm["relationships"].values():
-        lines.append(f"  {rv['from']} -> {rv['to']}  on {rv['join']}")
-    return "\n".join(lines)
+    ont_rels = []
+    fk_by_table = {}
+    for fk in schema.foreign_keys:
+        fk_by_table.setdefault(fk["TABLE_NAME"], []).append(fk)
+    for tbl, fks in sorted(fk_by_table.items()):
+        refs = list({f["REFERENCED_TABLE_NAME"] for f in fks})
+        ld = llm_data.get(tbl, {})
+        rq = ld.get("relationship_questions", {})
+        nls = []
+        for fk in fks:
+            nls.extend(rq.get(fk["COLUMN_NAME"], []))
+        card = "many_to_many" if len(fks) == 2 and all(c.is_pk for c in schema.tables.get(tbl, []) if c.is_fk) else "many_to_one"
+        entry = {
+            "statement": f"A {tbl} references {', '.join(refs)}.",
+            "from": tbl,
+            "to": refs if len(refs) > 1 else refs[0],
+            "cardinality": card,
+        }
+        if nls: entry["natural_language"] = nls[:3]
+        ont_rels.append(entry)
 
+    bgo["ontology"] = {"entities": entities, "relationships": ont_rels}
 
-BGO_PROMPT = """
-You are an expert data analyst and ontologist.
+    # --- Dimensions ---
+    dims = {}
+    for tbl in sorted(schema.tables):
+        ld = llm_data.get(tbl, {})
+        col_descs = ld.get("column_descriptions", {})
+        col_syns = ld.get("column_synonyms", {})
+        for c in sorted(schema.tables[tbl], key=lambda x: x.name):
+            dim_key = f"{tbl}_{c.name}"
+            entry = {
+                "label": c.name.replace("_", " ").title(),
+                "synonyms": col_syns.get(c.name, [c.name.replace("_", " ").title()]),
+                "description": col_descs.get(c.name, f"Column {c.name} in table {tbl}."),
+                "data_type": c.data_type.upper(),
+                "nullable": c.is_nullable,
+            }
+            # Domain values for boolean-like
+            if "active" in c.name.lower() and c.data_type.lower() in ("tinyint", "boolean", "bit"):
+                entry["domain_values"] = {1: "Active", 0: "Inactive"}
+            # PII flag
+            if c.name.lower() in ("password",):
+                entry["pii"] = True
+            dims[dim_key] = entry
+    bgo["dimensions"] = dims
 
-Given the database schema and CSM below, generate a Business Glossary & Ontology
-YAML file. Follow this EXACT structure — no deviations:
+    # --- Metrics ---
+    bgo_metrics = {}
+    for mkey, mval in csm["metrics"].items():
+        ld_table = mval["sources"][0] if mval.get("sources") else ""
+        ld = llm_data.get(ld_table, {})
+        bgo_metrics[mkey] = {
+            "label": mval.get("label", mkey),
+            "synonyms": [mval.get("label", mkey), mkey.replace("_", " ")],
+            "description": mval.get("label", mkey),
+            "calculation": mval.get("compute", ""),
+        }
+    bgo["metrics"] = bgo_metrics
 
-metrics:
-  <csm_metric_key>:
-    - "<natural language synonym 1>"
-    - "<natural language synonym 2>"
+    # --- Intent patterns ---
+    patterns = []
+    for tbl in sorted(schema.tables):
+        ld = llm_data.get(tbl, {})
+        for p in ld.get("intent_patterns", []):
+            if isinstance(p, dict) and "pattern" in p:
+                patterns.append({
+                    "pattern": p["pattern"],
+                    "metric": p.get("metric_key", f"{tbl}_row_count"),
+                    "dimensions": p.get("dimensions", []),
+                })
+    bgo["intent_patterns"] = patterns
 
-dimensions:
-  <csm_dimension_key>:
-    - "<natural language synonym 1>"
-    - "<natural language synonym 2>"
+    # --- Views ---
+    views_dict = {}
+    for v in sorted(schema.views):
+        views_dict[v] = {
+            "description": f"Database view: {v.replace('_', ' ')}.",
+            "use_cases": [f"Query {v.replace('_', ' ')} data"],
+        }
+    bgo["views"] = views_dict
 
-ontology:
-  entities:
-    <table_name>:
-      description: "<one sentence in business terms>"
-      synonyms:
-        - "<synonym>"
+    # --- Stored procedures / functions ---
+    sp_dict = {}
+    for p in sorted(schema.procedures):
+        sp_dict[p] = {"description": f"Stored procedure: {p.replace('_', ' ')}."}
+    bgo["stored_procedures"] = sp_dict
 
-  relationships:
-    - statement: "<plain English, e.g. An employee belongs to one department.>"
-      from: <from_table>
-      to: <to_table>
-      cardinality: many_to_one
-      natural_language:
-        - "<phrase implying this join>"
+    sf_dict = {}
+    for f in sorted(schema.functions):
+        sf_dict[f] = {"description": f"Stored function: {f.replace('_', ' ')}."}
+    bgo["stored_functions"] = sf_dict
 
-intent_patterns:
-  - pattern: "<question template>"
-    metric: "<csm_metric_key>"
-    dimensions:
-      - "<csm_dimension_key>"
+    # --- Triggers ---
+    trig_dict = {}
+    for t in schema.triggers:
+        trig_dict[t["name"]] = {
+            "table": t["table"], "event": t["event"],
+            "description": f"Fires on {t['event']} for table {t['table']}.",
+        }
+    bgo["triggers"] = trig_dict
 
-DATABASE SCHEMA:
-{schema_summary}
+    # --- PII fields ---
+    pii_list = []
+    for tbl, cols in schema.tables.items():
+        for c in cols:
+            if c.name.lower() in PII_PATTERNS:
+                sens = PII_SENSITIVITY.get(c.name.lower(), "low")
+                pii_list.append({"table": tbl, "column": c.name, "sensitivity": sens})
+    bgo["pii_fields"] = pii_list
 
-GENERATED CSM:
-{csm_summary}
+    return bgo
 
-RULES:
-- Output ONLY valid YAML. No markdown fences, no explanation, no preamble.
-- Every metric and dimension key must exactly match the CSM keys above.
-- 4-8 synonyms per metric/dimension.
-- 6-10 intent_patterns covering: list all, total count, per-dimension grouping, top/bottom 1, filter by value.
-- intent_patterns must use only keys that exist in the CSM.
-- For "list all" patterns, add mode: list to the intent_pattern entry.
-"""
+# ── YAML writer ──────────────────────────────────────────────────────────────
 
+def write_yaml(data: dict, path: str, header_comment: str = ""):
+    yaml = YAML()
+    yaml.default_flow_style = False
+    yaml.width = 120
+    yaml.indent(mapping=2, sequence=4, offset=2)
+    with open(path, "w", encoding="utf-8") as f:
+        if header_comment:
+            f.write(header_comment + "\n\n")
+        yaml.dump(data, f)
 
-def generate_bgo_with_ollama(schema: dict, csm: dict) -> dict:
-    llm   = ChatOllama(model=OLLAMA_MODEL, temperature=0.2)
-    chain = ChatPromptTemplate.from_template(BGO_PROMPT) | llm | StrOutputParser()
+def backup_existing_files():
+    for fname in ("csm_enterprise.yaml", "bgo.yaml"):
+        if os.path.exists(fname):
+            shutil.copy2(fname, fname + ".bak")
+            print(f"  ✓ Backed up {fname} → {fname}.bak")
 
-    print("  Calling Ollama to generate BGO (this may take 30-60s)...")
-    raw = chain.invoke({
-        "schema_summary": _schema_summary(schema),
-        "csm_summary":    _csm_summary(csm),
-    })
-
-    raw = re.sub(r"^```(?:yaml)?\s*", "", raw.strip(), flags=re.MULTILINE)
-    raw = re.sub(r"\s*```$",          "", raw.strip(), flags=re.MULTILINE)
-
-    try:
-        bgo = yaml.safe_load(raw)
-        if not isinstance(bgo, dict):
-            raise ValueError("Parsed BGO is not a dict")
-        return bgo
-    except Exception as e:
-        print(f"  [warn] BGO YAML parse failed ({e}) -- saving raw output")
-        with open("bgo_raw_ollama_output.txt", "w") as f:
-            f.write(raw)
-        return {}
-
-
-# ===========================================================================
-# STEP 4 -- Validate CSM
-# ===========================================================================
-
-def validate_csm(csm: dict, schema: dict) -> list[str]:
-    warnings   = []
-    all_tables = set(schema["tables"].keys())
-
-    for m_key, m_val in csm["metrics"].items():
-        for src in m_val.get("sources", []):
-            if src not in all_tables:
-                warnings.append(f"Metric '{m_key}' references unknown table '{src}'")
-
-    for d_key, d_val in csm["dimensions"].items():
-        if d_val["source"] not in all_tables:
-            warnings.append(f"Dimension '{d_key}' references unknown table '{d_val['source']}'")
-        else:
-            col_names = {c["name"] for c in schema["tables"][d_val["source"]]["columns"]}
-            if d_val["column"] not in col_names:
-                warnings.append(
-                    f"Dimension '{d_key}' references unknown column "
-                    f"'{d_val['source']}.{d_val['column']}'"
-                )
-
-    for r_key, r_val in csm["relationships"].items():
-        if r_val["from"] not in all_tables:
-            warnings.append(f"Relationship '{r_key}': from-table '{r_val['from']}' not found")
-        if r_val["to"] not in all_tables:
-            warnings.append(f"Relationship '{r_key}': to-table '{r_val['to']}' not found")
-
-    return warnings
-
-
-# ===========================================================================
-# STEP 5 -- Build decomposition prompt from CSM + BGO
-# ===========================================================================
-
-def _build_selection_guide(csm: dict, glossary: dict) -> str:
-    lines        = ["SELECTION GUIDE:"]
-    bgo_dim_syns = glossary.get("dimensions", {})
-
-    parent_dim: dict[str, str] = {}
-    for rel in csm.get("relationships", {}).values():
-        to_table = rel.get("to", "")
-        if not to_table or to_table in parent_dim:
-            continue
-        for dim_key, dim_val in csm.get("dimensions", {}).items():
-            if dim_val.get("source") == to_table and dim_val.get("type") == "string":
-                parent_dim[to_table] = dim_key
-                break
-
-    for table, dim_key in parent_dim.items():
-        synonyms   = bgo_dim_syns.get(dim_key, [table.rstrip("s")])
-        short_syns = synonyms[:3]
-        phrase     = " / ".join(short_syns)
-        lines.append(f'- "per / by {phrase}"  ->  dimensions: ["{dim_key}"]')
-
-    lines.append('- "most / top / highest / max"       ->  sort: "desc", limit: 1')
-    lines.append('- "least / lowest / fewest / min"    ->  sort: "asc",  limit: 1')
-    lines.append('- "list / show / display / all / get all / every"  ->  mode: "list", dimensions: [<id_col>, <name_col>]')
-    lines.append('- No grouping requested (total count)              ->  dimensions: []')
-    return "\n".join(lines)
-
-
-def _format_intent(metric: str, dims: list, filters: list, sort, limit,
-                   mode: str | None = None) -> str:
-    dims_str = str(dims).replace("'", '"')
-    if not filters:
-        filters_str = "[]"
-    else:
-        parts = []
-        for f in filters:
-            field  = f.get("field", "")
-            op     = f.get("operator", "equals")
-            values = f.get("values", ["<value>"])
-            val    = values[0] if values else "<value>"
-            parts.append(f'{{"field": "{field}", "operator": "{op}", "values": ["{val}"]}}')
-        filters_str = "[" + ", ".join(parts) + "]"
-
-    limit_str = "null" if limit is None else str(limit)
-    sort_str  = "null" if sort  is None else f'"{sort}"'
-    mode_part = f', "mode": "{mode}"' if mode else ''
-    return (
-        f'{{"metric": "{metric}", "dimensions": {dims_str}, '
-        f'"filters": {filters_str}, "limit": {limit_str}, "sort": {sort_str}{mode_part}}}'
-    )
-
-
-def _build_examples(csm: dict, glossary: dict) -> str:
-    lines    = ["EXAMPLES:"]
-    metrics  = csm.get("metrics", {})
-    dims     = csm.get("dimensions", {})
-    patterns = glossary.get("intent_patterns", [])
-    m_syns   = glossary.get("metrics", {})
-
-    if patterns:
-        for p in patterns:
-            m_key     = p.get("metric", "")
-            p_dims    = [d for d in p.get("dimensions", []) if d in dims]
-            p_filters = p.get("filters", [])
-            p_sort    = p.get("sort")
-            p_limit   = p.get("limit", 1) if p_sort else None
-            p_mode    = p.get("mode")
-
-            if m_key not in metrics:
-                continue
-
-            entity = m_key.split("_")[0]
-            q      = p.get("pattern", f"list all {entity}").replace("{entity}", entity)
-
-            lines.append(f'\nQ: "{q}"')
-            lines.append(
-                f'A: {{"intent": {_format_intent(m_key, p_dims, p_filters, p_sort, p_limit, p_mode)}}}'
-            )
-    else:
-        # Minimal fallback — one list + one count example per table
-        for m_key, m_val in list(metrics.items())[:8]:
-            if "_per_" in m_key:
-                continue
-            source   = m_val.get("sources", [""])[0]
-            id_dim   = f"{source}_id"
-            name_dim = next(
-                (k for k, v in dims.items()
-                 if v.get("source") == source and v.get("type") == "string"),
-                None
-            )
-            q_syns = m_syns.get(m_key, [])
-            q      = q_syns[0] if q_syns else f"list all {source}"
-
-            list_dims = []
-            if id_dim in dims:
-                list_dims.append(id_dim)
-            if name_dim:
-                list_dims.append(name_dim)
-
-            lines.append(f'\nQ: "{q}"')
-            lines.append(
-                f'A: {{"intent": {_format_intent(m_key, list_dims, [], None, None, "list")}}}'
-            )
-
-            # Also add a count example
-            lines.append(f'\nQ: "how many {source} are there?"')
-            lines.append(
-                f'A: {{"intent": {_format_intent(m_key, [], [], None, None, None)}}}'
-            )
-
-    # FIX: Always append a hard-coded list example so the LLM knows the pattern
-    lines.append('\n# List mode examples (always emit mode="list" for show/list/display/get questions):')
-    for tname in list({v["source"] for v in csm.get("dimensions", {}).values()})[:3]:
-        id_dim   = f"{tname}_id"
-        name_dim = next(
-            (k for k, v in dims.items()
-             if v.get("source") == tname and v.get("type") == "string"),
-            None
-        )
-        count_metric = f"{tname}_row_count"
-        if count_metric not in metrics:
-            continue
-        list_dims = []
-        if id_dim in dims:
-            list_dims.append(id_dim)
-        if name_dim:
-            list_dims.append(name_dim)
-        lines.append(f'\nQ: "list all {tname}"')
-        lines.append(
-            f'A: {{"intent": {_format_intent(count_metric, list_dims, [], None, None, "list")}}}'
-        )
-        lines.append(f'\nQ: "show me all {tname} with their id"')
-        lines.append(
-            f'A: {{"intent": {_format_intent(count_metric, list_dims, [], None, None, "list")}}}'
-        )
-
-    return "\n".join(lines)
-
-
-def _escape_braces(text: str) -> str:
-    return text.replace("{", "{{").replace("}", "}}")
-
-
-def build_decomposition_prompt(csm: dict, glossary: dict) -> str:
-    selection_guide = _escape_braces(_build_selection_guide(csm, glossary))
-    examples        = _escape_braces(_build_examples(csm, glossary))
-    filter_example  = '{{"field": "<dimension_key>", "operator": "equals", "values": ["<value>"]}}'
-
-    parts = [
-        "You are a precise semantic parser for a business analytics system.",
-        "Translate the user's question into a JSON intent object using ONLY the provided",
-        "metrics and dimensions. Resolve synonyms using the Business Glossary below.",
-        "",
-        "Available metrics (use exactly as written):",
-        "{metrics_list}",
-        "",
-        "Available dimensions (use exactly as written):",
-        "{dimensions_list}",
-        "",
-        "DATA MODEL CONTEXT (from CSM YAML):",
-        "{schema_context}",
-        "",
-        "BUSINESS GLOSSARY & ONTOLOGY (read live from bgo.yaml):",
-        "{bgo_context}",
-        "",
-        "RULES:",
-        "1. Return ONLY valid JSON -- no markdown, no explanation.",
-        "2. \"metric\"     : pick ONE key from the metrics list. Use METRIC SYNONYMS above",
-        "                  to resolve informal phrasing.",
-        "3. \"dimensions\" : zero or more keys from the dimensions list. Use DIMENSION",
-        "                  SYNONYMS to resolve informal phrasing. Use ENTITY RELATIONSHIPS",
-        "                  to decide which dimension to group by.",
-        "4. \"filters\"    : ONLY add when a SPECIFIC value is explicitly mentioned.",
-        f"   Filter format: {filter_example}",
-        "   Supported operators: equals, notEquals, contains, gt, gte, lt, lte",
-        "5. \"limit\"      : integer or null.",
-        "6. \"sort\"       : \"asc\" | \"desc\" | null.",
-        "7. \"mode\"       : \"list\" when the question asks to show/list/display/get rows.",
-        "                  Omit (or null) for aggregate/count questions.",
-        "                  When mode=list, include the id dimension (e.g. employees_id)",
-        "                  and any name/label dimension in the dimensions array.",
-        "",
-        selection_guide,
-        "",
-        examples,
-        "",
-        "QUESTION: {question}",
-        "RESPONSE:",
-    ]
-
-    return "\n".join(parts)
-
-
-# ===========================================================================
-# HELPERS
-# ===========================================================================
-
-def _dump_yaml(data: dict, path: str):
-    with open(path, "w") as f:
-        yaml.dump(data, f, default_flow_style=False, allow_unicode=True,
-                  sort_keys=False, indent=2)
-    print(f"  Written: {path}")
-
-
-# ===========================================================================
-# MAIN
-# ===========================================================================
+# ── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
     print("=" * 60)
-    print("CSM + BGO + Prompt Generator")
+    print("  CSM & BGO Generator")
     print("=" * 60)
 
-    # 1. Connect
-    print(f"\n[1/5] Connecting to: {DB_NAME}@{DB_HOST}:{DB_PORT}")
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1")
-        cursor.close()
-        conn.close()
-        print("  Connected OK")
-    except Exception as e:
-        print(f"  ERROR: Cannot connect -- {e}")
-        sys.exit(1)
+    # Step 1: Backup
+    backup_existing_files()
 
-    # 2. Introspect
-    print("\n[2/5] Introspecting schema...")
-    schema = introspect_db()
-    tables = schema["tables"]
-    print(f"  Found {len(tables)} tables: {', '.join(tables.keys())}")
-    for tname, tmeta in tables.items():
-        col_names = [c["name"] for c in tmeta["columns"]]
-        fks       = [f"{f['col']} -> {f['ref_table']}.{f['ref_col']}" for f in tmeta["foreign_keys"]]
-        print(f"    {tname}: cols={col_names}" + (f"  FKs={fks}" if fks else ""))
+    # Step 2: Introspect
+    print("\n[1/5] Introspecting database schema...")
+    schema = introspect_schema()
+    total_cols = sum(len(v) for v in schema.tables.values())
+    print(f"  ✓ Found {len(schema.tables)} tables, {total_cols} columns, {len(schema.foreign_keys)} foreign keys")
+    print(f"  ✓ Found {len(schema.views)} views, {len(schema.procedures)} procedures, {len(schema.functions)} functions, {len(schema.triggers)} triggers")
 
-    # 3. Build + validate CSM
-    print("\n[3/5] Building CSM...")
-    csm = build_csm(schema)
-    print(f"  Metrics: {len(csm['metrics'])}  "
-          f"Dimensions: {len(csm['dimensions'])}  "
-          f"Relationships: {len(csm['relationships'])}")
+    # Step 3: Sample values
+    print("\n[2/5] Fetching sample values...")
+    samples = fetch_sample_values(schema)
+    print(f"  ✓ Sampled {len(samples)} string columns")
 
-    warnings = validate_csm(csm, schema)
-    if warnings:
-        print("  VALIDATION WARNINGS:")
-        for w in warnings:
-            print(f"    - {w}")
-    else:
-        print("  Validation: OK")
+    # Step 4: LLM enrichment
+    print("\n[3/5] LLM enrichment per table...")
+    cache = _load_cache()
+    cache_before = len(cache)
+    llm_data = {}
+    for tbl in sorted(schema.tables):
+        cols = schema.tables[tbl]
+        fk_list = [f for f in schema.foreign_keys if f["TABLE_NAME"] == tbl]
+        data = call_llm_for_table(tbl, cols, fk_list, cache)
+        llm_data[tbl] = data
+        print(f"  ✓ {tbl}")
+    cache_hits = cache_before
+    cache_new = len(cache) - cache_before
+    print(f"  ✓ LLM processed {len(schema.tables)} tables ({cache_hits} from cache, {cache_new} new)")
 
-    _dump_yaml(csm, "csm_enterprise.yaml")
+    # Step 5: Build CSM
+    print("\n[4/5] Building CSM...")
+    csm_data = build_csm(schema, llm_data)
+    print(f"  ✓ Generated {len(csm_data['metrics'])} metrics, {len(csm_data['dimensions'])} dimensions, {len(csm_data['relationships'])} relationships")
 
-    # 4. Generate BGO
-    print("\n[4/5] Generating BGO via Ollama...")
-    bgo = generate_bgo_with_ollama(schema, csm)
+    # Step 6: Build BGO
+    print("\n[5/5] Building BGO...")
+    bgo_data = build_bgo(schema, llm_data, csm_data)
+    print(f"  ✓ Generated {len(bgo_data.get('intent_patterns', []))} intent patterns")
 
-    if bgo:
-        bgo.setdefault("metrics", {})
-        bgo.setdefault("dimensions", {})
-        for mk in csm["metrics"]:
-            bgo["metrics"].setdefault(mk, [mk.replace("_", " ")])
-        for dk in csm["dimensions"]:
-            bgo["dimensions"].setdefault(dk, [dk.replace("_", " ")])
-        _dump_yaml(bgo, "bgo.yaml")
-    else:
-        print("  BGO generation failed -- check bgo_raw_ollama_output.txt")
-        print("  Generating prompt with stub BGO...")
-        bgo = {
-            "metrics":    {mk: [mk.replace("_", " ")] for mk in csm["metrics"]},
-            "dimensions": {dk: [dk.replace("_", " ")] for dk in csm["dimensions"]},
-            "ontology":   {"entities": {}, "relationships": []},
-            "intent_patterns": [],
-        }
+    # Step 7: Write YAML
+    csm_header = "# ============================================================\n# CSM Enterprise — Auto-Generated\n# Database: {}\n# Generated: {}\n# ============================================================".format(
+        DB_CONFIG["database"], datetime.now().isoformat()[:19])
+    bgo_header = "# ============================================================\n# Business Glossary & Ontology — Auto-Generated\n# Database: {}\n# Generated: {}\n# ============================================================".format(
+        DB_CONFIG["database"], datetime.now().isoformat()[:19])
 
-    # 5. Build decomposition prompt
-    print("\n[5/5] Building decomposition prompt...")
-    prompt = build_decomposition_prompt(csm, bgo)
+    write_yaml(csm_data, "csm_enterprise.yaml", csm_header)
+    write_yaml(bgo_data, "bgo.yaml", bgo_header)
 
-    with open("decomposition_prompt.txt", "w", encoding="utf-8") as f:
-        f.write(prompt)
-    print("  Written: decomposition_prompt.txt")
-
-    print("\nDone. Files written:")
-    print("  csm_enterprise.yaml")
-    print("  bgo.yaml")
-    print("  decomposition_prompt.txt")
-
+    print("\n" + "=" * 60)
+    print(f"✓ Introspected {len(schema.tables)} tables, {total_cols} columns, {len(schema.foreign_keys)} foreign keys")
+    print(f"✓ LLM processed {len(schema.tables)} tables ({cache_hits} from cache, {cache_new} new)")
+    print(f"✓ Generated {len(csm_data['metrics'])} metrics, {len(csm_data['dimensions'])} dimensions, {len(csm_data['relationships'])} relationships")
+    print(f"✓ Generated {len(bgo_data.get('intent_patterns', []))} intent patterns")
+    print(f"✓ Written csm_enterprise.yaml and bgo.yaml")
+    print("=" * 60)
 
 if __name__ == "__main__":
     main()

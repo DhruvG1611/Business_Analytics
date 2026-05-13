@@ -28,7 +28,7 @@ def build_lineage(state: dict) -> dict:
     results = state.get("results", {})
     row_count = results.get("row_count", 0)
 
-    return {
+    lineage = {
         "question": state.get("question", ""),
         "metric_key": metric_key,
         "compute_expr": compute_expr,
@@ -37,6 +37,13 @@ def build_lineage(state: dict) -> dict:
         "final_sql": state.get("sql", ""),
         "row_count": row_count,
     }
+
+    cost = state.get("_cost_estimate")
+    if cost:
+        lineage["cost_usd"]     = cost.total_cost_usd
+        lineage["total_tokens"] = cost.total_tokens
+
+    return lineage
 
 
 def explain(lineage: dict) -> str:

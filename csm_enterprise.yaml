@@ -8,69 +8,117 @@ metrics:
     sources: [actor]
     label: Total Actors
     covers: [E10]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   address_row_count:
     compute: COUNT(*)
     sources: [address]
     label: Total Addresses
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   category_row_count:
     compute: COUNT(*)
     sources: [category]
     label: Total Categories
     covers: [E5]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   city_row_count:
     compute: COUNT(*)
     sources: [city]
     label: Total Cities
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   country_row_count:
     compute: COUNT(*)
     sources: [country]
     label: Total Countries
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   customer_row_count:
     compute: COUNT(*)
     sources: [customer]
     label: Total Customers
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   active_customer_count:
     compute: COUNT(*)
     compute_where: customer.active = 1
     sources: [customer]
     label: Active Customers
     covers: [E2]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   film_row_count:
     compute: COUNT(*)
     sources: [film]
     label: Total Films
     covers: [E1]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   inventory_row_count:
     compute: COUNT(*)
     sources: [inventory]
     label: Total Inventory Copies
     covers: [E7]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   language_row_count:
     compute: COUNT(*)
     sources: [language]
     label: Total Languages
     covers: [E6]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   payment_row_count:
     compute: COUNT(*)
     sources: [payment]
     label: Total Payments
     covers: [E9]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   rental_row_count:
     compute: COUNT(*)
     sources: [rental]
     label: Total Rentals
     covers: [E8]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   active_rental_count:
     compute: COUNT(*)
@@ -78,18 +126,30 @@ metrics:
     sources: [rental]
     label: Open / Active Rentals
     covers: [E15]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   staff_row_count:
     compute: COUNT(*)
     sources: [staff]
     label: Total Staff
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   active_staff_count:
     compute: COUNT(*)
     compute_where: staff.active = 1
     sources: [staff]
     label: Active Staff
     covers: [E4]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   # ════════════════════════════════════════════════════════
   # RENTAL STATUS METRICS  (Medium M9, M14; Hard H1, H5)
@@ -97,7 +157,8 @@ metrics:
 
   never_rented_film_count:
     compute: COUNT(DISTINCT film.film_id)
-    compute_where: film.film_id NOT IN (SELECT DISTINCT i.film_id FROM inventory i JOIN rental r ON r.inventory_id = i.inventory_id)
+    compute_where: film.film_id NOT IN (SELECT DISTINCT i.film_id FROM inventory
+      i JOIN rental r ON r.inventory_id = i.inventory_id)
     sources: [film]
     label: Films Never Rented
     covers: [M9]
@@ -105,6 +166,10 @@ metrics:
       Anti-join: films with no inventory copy that ever appears in the rental table.
       Returns film_id + title for listing; count for summary.
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   currently_rented_films:
     compute: COUNT(DISTINCT inventory.film_id)
     compute_where: rental.return_date IS NULL
@@ -116,6 +181,10 @@ metrics:
       Group by film.film_id + film.title + customer to list which titles
       are out and who has them.
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   overdue_rental_count:
     compute: COUNT(DISTINCT rental.rental_id)
     compute_where: >
@@ -125,6 +194,10 @@ metrics:
     label: Overdue Rentals
     join_path: [rental, inventory, film]
     covers: [H1]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   overdue_rentals_detail:
     compute: COUNT(DISTINCT rental.rental_id)
@@ -134,102 +207,168 @@ metrics:
     sources: [rental, inventory, film, customer]
     label: Overdue Rentals (with Customer & Film Detail)
     join_path: [rental, inventory, film, rental_to_customer, customer]
-    group_by:
-      [
-        customer.customer_id,
-        customer.first_name,
-        customer.last_name,
-        film.title,
-        rental.rental_date,
-        film.rental_duration,
-      ]
+    group_by: [customer.customer_id, customer.first_name, customer.last_name, 
+        film.title, rental.rental_date, film.rental_duration]
     covers: [H1]
     notes: >
-      Use DATEDIFF(CURRENT_DATE(), DATE_ADD(rental.rental_date, INTERVAL film.rental_duration DAY))
+      Use DATEDIFF(CURRENT_DATE(), DATE_ADD(rental.rental_date, INTERVAL film.rental_duration
+      DAY))
       as days_overdue column.
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   unpaid_rental_count:
     compute: COUNT(DISTINCT rental.rental_id)
-    compute_where: rental.rental_id NOT IN (SELECT rental_id FROM payment WHERE rental_id IS NOT NULL)
+    compute_where: rental.rental_id NOT IN (SELECT rental_id FROM payment WHERE 
+      rental_id IS NOT NULL)
     sources: [rental, customer]
     label: Rentals Without a Payment (Unpaid)
     join_path: [rental, customer]
     covers: [H5-summary]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   outstanding_balance_by_customer:
     compute: COUNT(DISTINCT rental.rental_id)
-    compute_where: rental.rental_id NOT IN (SELECT rental_id FROM payment WHERE rental_id IS NOT NULL)
+    compute_where: rental.rental_id NOT IN (SELECT rental_id FROM payment WHERE 
+      rental_id IS NOT NULL)
     sources: [rental, customer]
     label: Unpaid Rental Count per Customer
     join_path: [rental, customer]
-    group_by:
-      [
-        customer.customer_id,
-        customer.first_name,
-        customer.last_name,
-        customer.store_id,
-        rental.return_date,
-      ]
+    group_by: [customer.customer_id, customer.first_name, customer.last_name, 
+        customer.store_id, rental.return_date]
     covers: [H5]
     notes: >
-      Multiply unpaid_count by film.rental_rate (via inventory join) for estimated amount owed.
-      Split by return_date IS NULL vs IS NOT NULL to separate "open + unpaid" from "returned + unpaid".
+      Multiply unpaid_count by film.rental_rate (via inventory join) for estimated
+      amount owed.
+      Split by return_date IS NULL vs IS NOT NULL to separate "open + unpaid" from
+      "returned + unpaid".
 
   # ════════════════════════════════════════════════════════
   # REVENUE METRICS  (Easy E11; Medium M1–M5, M11, M13, M17; Hard H2, H3, H6, H7, H10)
   # ════════════════════════════════════════════════════════
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   total_revenue:
     compute: SUM(payment.amount)
     sources: [payment]
     label: Total Revenue
     covers: [E11]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   average_payment_amount:
     compute: AVG(payment.amount)
     sources: [payment]
     label: Average Payment Amount
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   revenue_by_store:
     compute: SUM(payment.amount)
-    sources: [payment, rental, inventory, store]
-    label: Revenue by Store
-    join_path: [payment, rental, inventory, store]
-    group_by: [inventory.store_id]
-    covers: [M1]
-
+    sources:
+    - payment
+    - store
+    join_path:
+    - payment
+    - customer
+    - store
+    group_by:
+    - store.store_id
+    label: Revenue By Store
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - Revenue By Store
+    - total revenue_by_store
+    - revenue_by_store summary
   revenue_by_category:
     compute: SUM(payment.amount)
-    sources: [payment, rental, inventory, film, film_category, category]
-    label: Revenue by Film Category
-    join_path: [payment, rental, inventory, film, film_category, category]
-    group_by: [category.category_id, category.name]
-    covers: [M3]
-
+    sources:
+    - payment
+    - category
+    join_path:
+    - payment
+    - rental
+    - inventory
+    - film
+    - film_category
+    - category
+    group_by:
+    - category.name
+    label: Revenue By Category
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - Revenue By Category
+    - total revenue_by_category
+    - revenue_by_category summary
   revenue_by_film:
     compute: SUM(payment.amount)
-    sources: [payment, rental, inventory, film]
-    label: Revenue by Film
-    join_path: [payment, rental, inventory, film]
-    group_by: [film.film_id, film.title]
-
+    sources:
+    - payment
+    - film
+    join_path:
+    - payment
+    - rental
+    - inventory
+    - film
+    group_by:
+    - film.title
+    label: Revenue By Film
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - Revenue By Film
+    - total revenue_by_film
+    - revenue_by_film summary
   revenue_by_customer:
     compute: SUM(payment.amount)
-    sources: [payment, customer, address, city, country]
-    label: Revenue by Customer (CLV)
-    join_path: [payment, customer, address, city, country]
-    group_by: [customer.customer_id, customer.first_name, customer.last_name]
-    covers: [M4, H2]
-    description: Total spend per customer partitioned by geography
-
+    sources:
+    - payment
+    - customer
+    join_path:
+    - payment
+    - customer
+    group_by:
+    - customer.first_name
+    - customer.last_name
+    label: Revenue By Customer
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - Revenue By Customer
+    - total revenue_by_customer
+    - revenue_by_customer summary
   revenue_by_staff:
     compute: SUM(payment.amount)
-    sources: [payment, staff]
-    label: Revenue Processed by Staff Member
-    join_path: [payment, staff]
-    group_by: [staff.staff_id, staff.first_name, staff.last_name]
-    covers: [M11]
-
+    sources:
+    - payment
+    - staff
+    join_path:
+    - payment
+    - staff
+    group_by:
+    - staff.first_name
+    - staff.last_name
+    label: Revenue By Staff
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - Revenue By Staff
+    - total revenue_by_staff
+    - revenue_by_staff summary
   revenue_by_month:
     compute: SUM(payment.amount)
     compute_group: YEAR(payment.payment_date), MONTH(payment.payment_date)
@@ -237,6 +376,10 @@ metrics:
     label: Monthly Revenue
     group_by: [YEAR(payment.payment_date), MONTH(payment.payment_date)]
     covers: [M5]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   revenue_by_rating:
     compute: SUM(payment.amount)
@@ -245,6 +388,10 @@ metrics:
     join_path: [payment, rental, inventory, film]
     group_by: [film.rating]
     covers: [H10]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   revenue_per_inventory_copy:
     compute: SUM(payment.amount) / COUNT(DISTINCT inventory.inventory_id)
@@ -258,6 +405,10 @@ metrics:
       Denominator: total distinct inventory copies for that film_id.
       Rank DESC to find most efficient titles.
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   revenue_density_per_store:
     compute: SUM(payment.amount) / COUNT(DISTINCT inventory.inventory_id)
     sources: [payment, rental, inventory, store]
@@ -265,6 +416,10 @@ metrics:
     join_path: [payment, rental, inventory, store]
     group_by: [inventory.store_id]
     covers: [H7]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   average_payment_per_rental_by_category:
     compute: AVG(payment.amount)
@@ -273,6 +428,10 @@ metrics:
     join_path: [payment, rental, inventory, film, film_category, category]
     group_by: [category.category_id, category.name]
     covers: [H13]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   # ════════════════════════════════════════════════════════
   # FILM METRICS  (Easy E12–E13; Medium M13, M17, M20)
@@ -285,6 +444,10 @@ metrics:
     join_path: [film_category, category]
     group_by: [category.category_id, category.name]
     covers: [E14]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   films_per_actor:
     compute: COUNT(DISTINCT film_actor.film_id)
@@ -293,6 +456,10 @@ metrics:
     join_path: [film_actor, actor]
     group_by: [actor.actor_id, actor.first_name, actor.last_name]
     covers: [M6]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   films_per_language:
     compute: COUNT(DISTINCT film.film_id)
@@ -300,6 +467,10 @@ metrics:
     label: Films per Language
     join_path: [film, language]
     group_by: [language.language_id, language.name]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   films_per_rating:
     compute: COUNT(DISTINCT film.film_id)
@@ -307,53 +478,100 @@ metrics:
     label: Films per Rating
     group_by: [film.rating]
     covers: [E13]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   average_rental_rate:
     compute: AVG(film.rental_rate)
     sources: [film]
     label: Average Rental Rate
     covers: [E12]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   average_film_length:
     compute: AVG(film.length)
     sources: [film]
     label: Average Film Length (Minutes)
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   average_replacement_cost:
     compute: AVG(film.replacement_cost)
     sources: [film]
     label: Average Replacement Cost (all films)
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   average_replacement_cost_by_rating:
     compute: AVG(film.replacement_cost)
     sources: [film]
     label: Average Replacement Cost by Rating
     group_by: [film.rating]
     covers: [M13]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   max_replacement_cost:
     compute: MAX(film.replacement_cost)
     sources: [film]
     label: Maximum Replacement Cost
+    description: >
+      Aggregate metric. Use only for single-value questions like
+      'what is the highest replacement cost'. Do NOT use for ranking
+      individual films — use replacement_cost instead.
     covers: [M17]
     notes: >
       To return the film title, use:
-      SELECT title, replacement_cost FROM film ORDER BY replacement_cost DESC LIMIT 1
+      SELECT title, replacement_cost FROM film ORDER BY replacement_cost DESC LIMIT
+      1
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
+  replacement_cost:
+    compute: film.replacement_cost
+    sources: [film]
+    label: Film Replacement Cost
+    description: >
+      The replacement cost of an individual film.
+      Use for ranking or listing, not aggregation.
+
+    compute_type: scalar
+    usage_hint: Use for ranking or listing individual records (e.g. top N, most 
+      expensive, highest per film). Never use for single-value summary 
+      questions.
   films_above_length_threshold:
     compute: COUNT(DISTINCT film.film_id)
     compute_where: film.length > 120
     sources: [film]
     label: Films Longer Than 2 Hours
-    group_by:
-      [film.film_id, film.title, film.length, film.rental_rate, film.rating]
+    group_by: [film.film_id, film.title, film.length, film.rental_rate, 
+        film.rating]
     covers: [M20]
     notes: >
       Threshold is parameterised; default 120 minutes (2 hours).
-      Returns listing rows, not just a count — project title, length, rental_rate, rating.
+      Returns listing rows, not just a count — project title, length, rental_rate,
+      rating.
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   rank_films_within_category:
-    compute: RANK() OVER (PARTITION BY category.category_id ORDER BY COUNT(DISTINCT rental.rental_id) DESC)
+    compute: RANK() OVER (PARTITION BY category.category_id ORDER BY 
+      COUNT(DISTINCT rental.rental_id) DESC)
     sources: [rental, inventory, film, film_category, category]
     label: Rental Rank of Film Within Its Category
     join_path: [rental, inventory, film, film_category, category]
@@ -367,12 +585,20 @@ metrics:
   # ACTOR METRICS  (Hard H9)
   # ════════════════════════════════════════════════════════
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   actors_per_film:
     compute: COUNT(DISTINCT film_actor.actor_id)
     sources: [film_actor, film]
     label: Actors per Film
     join_path: [film_actor, film]
     group_by: [film.film_id, film.title]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   actor_co_appearance_count:
     compute: COUNT(DISTINCT fa1.film_id)
@@ -382,11 +608,16 @@ metrics:
     group_by: [fa1.actor_id, fa2.actor_id]
     covers: [H9]
     notes: >
-      Self-join: film_actor fa1 JOIN film_actor fa2 ON fa1.film_id = fa2.film_id AND fa1.actor_id < fa2.actor_id
+      Self-join: film_actor fa1 JOIN film_actor fa2 ON fa1.film_id = fa2.film_id AND
+      fa1.actor_id < fa2.actor_id
       GROUP BY fa1.actor_id, fa2.actor_id
       ORDER BY COUNT(*) DESC
       Join back to actor twice (a1, a2) for names.
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   actors_never_in_action:
     compute: COUNT(DISTINCT actor.actor_id)
     compute_where: >
@@ -399,18 +630,27 @@ metrics:
     sources: [actor]
     label: Actors Who Never Acted in Action Movies
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   actors_in_all_categories:
     compute: COUNT(DISTINCT film_category.category_id)
     sources: [actor, film_actor, film_category]
     label: Actors Working in All Categories
     join_path: [actor, film_actor, film_category]
     group_by: [actor.actor_id, actor.first_name, actor.last_name]
-    compute_having: COUNT(DISTINCT film_category.category_id) = (SELECT COUNT(category_id) FROM category)
+    compute_having: COUNT(DISTINCT film_category.category_id) = (SELECT 
+      COUNT(category_id) FROM category)
 
   # ════════════════════════════════════════════════════════
   # RENTAL METRICS  (Medium M2, M7, M10, M16, M19; Hard H4, H11, H12, H15)
   # ════════════════════════════════════════════════════════
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   rentals_per_customer:
     compute: COUNT(DISTINCT rental.rental_id)
     sources: [rental, customer]
@@ -423,6 +663,10 @@ metrics:
       Remove compute_having for full listing. Add it back (threshold parameterisable)
       to answer "customers who rented more than N films".
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   rentals_per_film:
     compute: COUNT(DISTINCT rental.rental_id)
     sources: [rental, inventory, film]
@@ -430,6 +674,10 @@ metrics:
     join_path: [rental, inventory, film]
     group_by: [film.film_id, film.title]
     covers: [M2]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   rentals_per_store:
     compute: COUNT(DISTINCT rental.rental_id)
@@ -437,15 +685,23 @@ metrics:
     label: Rentals per Store
     join_path: [rental, inventory, store]
     group_by: [inventory.store_id]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   rentals_per_store_per_month:
     compute: COUNT(DISTINCT rental.rental_id)
     sources: [rental, inventory, store]
     label: Rentals per Store per Month
     join_path: [rental, inventory, store]
-    group_by:
-      [inventory.store_id, YEAR(rental.rental_date), MONTH(rental.rental_date)]
+    group_by: [inventory.store_id, YEAR(rental.rental_date), 
+        MONTH(rental.rental_date)]
     covers: [M16]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   rentals_by_month:
     compute: COUNT(DISTINCT rental.rental_id)
@@ -453,36 +709,24 @@ metrics:
     sources: [rental]
     label: Rentals by Month
     group_by: [YEAR(rental.rental_date), MONTH(rental.rental_date)]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   rentals_by_category_and_country:
     compute: COUNT(DISTINCT rental.rental_id)
-    sources:
-      [
-        rental,
-        inventory,
-        film,
-        film_category,
-        category,
-        customer,
-        address,
-        city,
-        country,
-      ]
+    sources: [rental, inventory, film, film_category, category, customer, 
+        address, city, country]
     label: Rentals by Category and Country
-    join_path:
-      [
-        rental,
-        inventory,
-        film,
-        film_category,
-        category,
-        customer,
-        address,
-        city,
-        country,
-      ]
-    group_by:
-      [country.country_id, country.country, category.category_id, category.name]
+    join_path: [rental, inventory, film, film_category, category, customer, 
+        address, city, country]
+    group_by: [country.country_id, country.country, category.category_id, 
+        category.name]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   rentals_per_staff:
     compute: COUNT(DISTINCT rental.rental_id)
@@ -491,6 +735,10 @@ metrics:
     join_path: [rental, staff]
     group_by: [staff.staff_id, staff.first_name, staff.last_name]
     covers: [M19]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   rentals_per_category:
     compute: COUNT(DISTINCT rental.rental_id)
@@ -498,6 +746,10 @@ metrics:
     label: Rentals per Category
     join_path: [rental, inventory, film, film_category, category]
     group_by: [category.category_id, category.name]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   average_rental_duration_days:
     compute: AVG(DATEDIFF(rental.return_date, rental.rental_date))
@@ -505,6 +757,10 @@ metrics:
     sources: [rental]
     label: Average Rental Duration (Days)
     covers: [M7]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   avg_rental_duration_per_category:
     compute: AVG(DATEDIFF(rental.return_date, rental.rental_date))
@@ -512,6 +768,10 @@ metrics:
     label: Average Rental Duration per Category
     join_path: [rental, inventory, film, film_category, category]
     group_by: [category.category_id, category.name]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   repeat_rental_rate:
     compute: COUNT(DISTINCT rental.customer_id)
@@ -531,6 +791,10 @@ metrics:
       For rate: divide by active_customer_count.
       For monthly trend: add YEAR/MONTH grouping to the outer query.
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   customer_rental_tenure_days:
     compute: DATEDIFF(MAX(rental.rental_date), MIN(rental.rental_date))
     sources: [rental, customer]
@@ -539,22 +803,32 @@ metrics:
     group_by: [customer.customer_id, customer.first_name, customer.last_name]
     covers: [H11]
     notes: >
-      Also surface MIN(rental.rental_date) AS first_rental and MAX(rental.rental_date) AS last_rental
+      Also surface MIN(rental.rental_date) AS first_rental and MAX(rental.rental_date)
+      AS last_rental
       as companion columns.
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   rentals_per_inventory_item:
     compute: COUNT(DISTINCT rental.rental_id)
     sources: [rental, inventory, film]
     label: Total Rentals per Inventory Copy
     join_path: [rental, inventory, film]
-    group_by:
-      [inventory.inventory_id, film.film_id, film.title, inventory.store_id]
+    group_by: [inventory.inventory_id, film.film_id, film.title, 
+        inventory.store_id]
     covers: [H12]
     notes: >
       Add a derived column:
-        CASE WHEN EXISTS (SELECT 1 FROM rental r2 WHERE r2.inventory_id = inventory.inventory_id AND r2.return_date IS NULL)
+        CASE WHEN EXISTS (SELECT 1 FROM rental r2 WHERE r2.inventory_id = inventory.inventory_id
+      AND r2.return_date IS NULL)
              THEN 'rented_out' ELSE 'in_stock' END AS current_status
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   loyalty_eligible_customers:
     compute: COUNT(DISTINCT customer.customer_id)
     compute_where: >
@@ -562,37 +836,47 @@ metrics:
     sources: [rental, payment, customer]
     label: Loyalty-Eligible Customers (7+ rentals, $20+ spend, last 30 days)
     join_path: [rental, payment, customer]
-    group_by:
-      [
-        customer.customer_id,
-        customer.first_name,
-        customer.last_name,
-        customer.email,
-      ]
-    compute_having: COUNT(DISTINCT rental.rental_id) >= 7 AND SUM(payment.amount) >= 20.00
+    group_by: [customer.customer_id, customer.first_name, customer.last_name, 
+        customer.email]
+    compute_having: COUNT(DISTINCT rental.rental_id) >= 7 AND 
+      SUM(payment.amount) >= 20.00
     covers: [H15]
     notes: >
-      Thresholds are parameterisable: min_rentals (default 7), min_spend (default 20.00).
+      Thresholds are parameterisable: min_rentals (default 7), min_spend (default
+      20.00).
       Corresponds to the rewards_report stored procedure logic in Sakila.
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   films_rented_by_all_customers:
     compute: COUNT(DISTINCT rental.rental_id)
     sources: [film, inventory, rental]
     label: Films Rented by All Customers
     join_path: [film, inventory, rental]
     group_by: [film.film_id, film.title]
-    compute_having: COUNT(DISTINCT rental.customer_id) = (SELECT COUNT(customer_id) FROM customer)
+    compute_having: COUNT(DISTINCT rental.customer_id) = (SELECT 
+      COUNT(customer_id) FROM customer)
 
   # ════════════════════════════════════════════════════════
   # INVENTORY METRICS  (Medium M8, M15; Hard H14)
   # ════════════════════════════════════════════════════════
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   copies_per_film:
     compute: COUNT(DISTINCT inventory.inventory_id)
     sources: [inventory, film]
     label: Copies per Film (all stores)
     join_path: [inventory, film]
     group_by: [film.film_id, film.title]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   copies_per_film_per_store:
     compute: COUNT(DISTINCT inventory.inventory_id)
@@ -601,6 +885,10 @@ metrics:
     join_path: [inventory, film, store]
     group_by: [film.film_id, film.title, inventory.store_id]
     covers: [M8]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   inventory_per_store:
     compute: COUNT(DISTINCT inventory.inventory_id)
@@ -608,6 +896,10 @@ metrics:
     label: Total Inventory per Store
     join_path: [inventory, store]
     group_by: [inventory.store_id]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   inventory_in_stock_pct:
     compute: >
@@ -621,16 +913,23 @@ metrics:
     notes: >
       Uses the inventory_in_stock() stored function.
       Alternative without the function:
-        SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM rental r WHERE r.inventory_id = inventory.inventory_id AND r.return_date IS NULL) THEN 1 ELSE 0 END)
+        SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM rental r WHERE r.inventory_id = inventory.inventory_id
+      AND r.return_date IS
+      NULL) THEN 1 ELSE 0 END)
         / COUNT(*) * 100
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   inventory_turnover_rate:
-    compute: COUNT(DISTINCT rental.rental_id) / COUNT(DISTINCT inventory.inventory_id)
+    compute: COUNT(DISTINCT rental.rental_id) / COUNT(DISTINCT 
+      inventory.inventory_id)
     sources: [rental, inventory, store]
     label: Inventory Turnover Rate (Rentals per Copy per Month)
     join_path: [rental, inventory, store]
-    group_by:
-      [inventory.store_id, YEAR(rental.rental_date), MONTH(rental.rental_date)]
+    group_by: [inventory.store_id, YEAR(rental.rental_date), 
+        MONTH(rental.rental_date)]
     covers: [H14]
     notes: >
       Numerator: total rentals processed at the store in the month.
@@ -641,12 +940,20 @@ metrics:
   # CUSTOMER METRICS  (Medium M12, M18; Hard H8, H15)
   # ════════════════════════════════════════════════════════
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   customers_per_store:
     compute: COUNT(DISTINCT customer.customer_id)
     sources: [customer, store]
     label: Customers per Store
     join_path: [customer, store]
     group_by: [customer.store_id]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   active_customers_per_store:
     compute: COUNT(DISTINCT customer.customer_id)
@@ -656,6 +963,10 @@ metrics:
     join_path: [customer, store]
     group_by: [customer.store_id]
     covers: [M18-active]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   inactive_customers_per_store:
     compute: COUNT(DISTINCT customer.customer_id)
@@ -665,6 +976,10 @@ metrics:
     join_path: [customer, store]
     group_by: [customer.store_id]
     covers: [M18-inactive]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   customers_per_country:
     compute: COUNT(DISTINCT customer.customer_id)
@@ -673,6 +988,10 @@ metrics:
     join_path: [customer, address, city, country]
     group_by: [country.country_id, country.country]
     covers: [M12]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   customers_per_city:
     compute: COUNT(DISTINCT customer.customer_id)
@@ -680,6 +999,10 @@ metrics:
     label: Customers per City
     join_path: [customer, address, city]
     group_by: [city.city_id, city.city]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
   customer_churn_rate:
     compute: >
@@ -692,22 +1015,34 @@ metrics:
     notes: >
       CTE approach:
         prev_month AS (SELECT DISTINCT customer_id FROM rental
-                       WHERE rental_date BETWEEN DATE_SUB(LAST_DAY(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH)), INTERVAL DAY(LAST_DAY(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH)))-1 DAY)
-                                             AND LAST_DAY(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))),
+                       WHERE rental_date BETWEEN DATE_SUB(LAST_DAY(DATE_SUB(CURRENT_DATE(),
+      INTERVAL 1 MONTH)), INTERVAL DAY(LAST_DAY(DATE_SUB(CURRENT_DATE(),
+      INTERVAL 1 MONTH)))-1 DAY)
+                                             AND LAST_DAY(DATE_SUB(CURRENT_DATE(),
+      INTERVAL 1 MONTH))),
         curr_month AS (SELECT DISTINCT customer_id FROM rental
-                       WHERE rental_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL DAY(CURRENT_DATE())-1 DAY)
+                       WHERE rental_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL
+      DAY(CURRENT_DATE())-1 DAY)
                                              AND CURRENT_DATE())
         SELECT COUNT(p.customer_id) AS churned,
                COUNT(p.customer_id) / COUNT(*) * 100 AS churn_pct
         FROM prev_month p LEFT JOIN curr_month c ON p.customer_id = c.customer_id
         WHERE c.customer_id IS NULL
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   customers_with_no_rentals:
     compute: COUNT(DISTINCT customer.customer_id)
     compute_where: customer.customer_id NOT IN (SELECT customer_id FROM rental)
     sources: [customer]
     label: Customers With No Rentals
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   customers_above_avg_spend:
     compute: SUM(payment.amount)
     sources: [payment, customer]
@@ -721,29 +1056,280 @@ metrics:
         ) AS avg_query
       )
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   customers_rented_all_categories:
     compute: COUNT(DISTINCT rental.rental_id)
     sources: [customer, rental, inventory, film_category]
     label: Customers Who Rented From All Categories
     join_path: [customer, rental, inventory, film_category]
     group_by: [customer.customer_id, customer.first_name, customer.last_name]
-    compute_having: COUNT(DISTINCT film_category.category_id) = (SELECT COUNT(category_id) FROM category)
+    compute_having: COUNT(DISTINCT film_category.category_id) = (SELECT 
+      COUNT(category_id) FROM category)
 
   # ════════════════════════════════════════════════════════
   # STAFF METRICS
   # ════════════════════════════════════════════════════════
 
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
   payments_processed_per_staff:
     compute: COUNT(DISTINCT payment.payment_id)
     sources: [payment, staff]
     label: Payments Processed per Staff Member
     join_path: [payment, staff]
     group_by: [staff.staff_id, staff.first_name, staff.last_name]
+    compute_type: aggregate
+    usage_hint: Use for summary questions only (e.g. what is the overall 
+      maximum, total, or average). Never use for ranking or listing individual 
+      records.
 
 # ════════════════════════════════════════════════════════════
 # DIMENSIONS
 # ════════════════════════════════════════════════════════════
 
+  rentals_by_film:
+    compute: COUNT(rental.rental_id)
+    sources:
+    - rental
+    - film
+    join_path:
+    - rental
+    - inventory
+    - film
+    group_by:
+    - film.title
+    label: Rentals By Film
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - rentals_by_film
+    - total rentals_by_film
+    - rentals_by_film summary
+  average_revenue_by_film:
+    compute: AVG(payment.amount)
+    sources:
+    - payment
+    - film
+    join_path:
+    - payment
+    - rental
+    - inventory
+    - film
+    group_by:
+    - film.title
+    label: Average Revenue By Film
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - Average Revenue By Film
+    - total average_revenue_by_film
+    - average_revenue_by_film summary
+  rentals_by_store:
+    compute: COUNT(rental.rental_id)
+    sources:
+    - rental
+    - store
+    join_path:
+    - rental
+    - inventory
+    - store
+    group_by:
+    - store.store_id
+    label: Rentals By Store
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - rentals_by_store
+    - total rentals_by_store
+    - rentals_by_store summary
+  average_revenue_by_store:
+    compute: AVG(payment.amount)
+    sources:
+    - payment
+    - store
+    join_path:
+    - payment
+    - customer
+    - store
+    group_by:
+    - store.store_id
+    label: Average Revenue By Store
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - Average Revenue By Store
+    - total average_revenue_by_store
+    - average_revenue_by_store summary
+  rentals_by_staff:
+    compute: COUNT(rental.rental_id)
+    sources:
+    - rental
+    - staff
+    join_path:
+    - rental
+    - staff
+    group_by:
+    - staff.first_name
+    - staff.last_name
+    label: Rentals By Staff
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - rentals_by_staff
+    - total rentals_by_staff
+    - rentals_by_staff summary
+  average_revenue_by_staff:
+    compute: AVG(payment.amount)
+    sources:
+    - payment
+    - staff
+    join_path:
+    - payment
+    - staff
+    group_by:
+    - staff.first_name
+    - staff.last_name
+    label: Average Revenue By Staff
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - Average Revenue By Staff
+    - total average_revenue_by_staff
+    - average_revenue_by_staff summary
+  rentals_by_category:
+    compute: COUNT(rental.rental_id)
+    sources:
+    - rental
+    - category
+    join_path:
+    - rental
+    - inventory
+    - film
+    - film_category
+    - category
+    group_by:
+    - category.name
+    label: Rentals By Category
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - rentals_by_category
+    - total rentals_by_category
+    - rentals_by_category summary
+  rentals_by_customer:
+    compute: COUNT(rental.rental_id)
+    sources:
+    - rental
+    - customer
+    join_path:
+    - rental
+    - customer
+    group_by:
+    - customer.first_name
+    - customer.last_name
+    label: Rentals By Customer
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - rentals_by_customer
+    - total rentals_by_customer
+    - rentals_by_customer summary
+  film_count_by_category:
+    compute: COUNT(film_category.film_id)
+    sources:
+    - film_category
+    - category
+    join_path:
+    - film_category
+    - category
+    group_by:
+    - category.name
+    label: Film Count By Category
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - film_count_by_category
+    - total film_count_by_category
+    - film_count_by_category summary
+  inventory_count_by_store:
+    compute: COUNT(inventory.inventory_id)
+    sources:
+    - inventory
+    - store
+    join_path:
+    - inventory
+    - store
+    group_by:
+    - store.store_id
+    label: Inventory Count By Store
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - inventory_count_by_store
+    - total inventory_count_by_store
+    - inventory_count_by_store summary
+  customer_count_by_city:
+    compute: COUNT(customer.customer_id)
+    sources:
+    - customer
+    - city
+    join_path:
+    - customer
+    - address
+    - city
+    group_by:
+    - city.city_id
+    label: Customer Count By City
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - customer_count_by_city
+    - total customer_count_by_city
+    - customer_count_by_city summary
+  average_revenue_by_category:
+    compute: AVG(payment.amount)
+    sources:
+    - payment
+    - category
+    join_path:
+    - payment
+    - rental
+    - inventory
+    - film
+    - film_category
+    - category
+    group_by:
+    - category.name
+    label: Average Revenue By Category
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - Average Revenue By Category
+    - total average_revenue_by_category
+    - average_revenue_by_category summary
+  average_revenue_by_customer:
+    compute: AVG(payment.amount)
+    sources:
+    - payment
+    - customer
+    join_path:
+    - payment
+    - customer
+    group_by:
+    - customer.first_name
+    - customer.last_name
+    label: Average Revenue By Customer
+    compute_type: grouped_aggregate
+    usage_hint: Use for summary questions only. Can be grouped by dimensions.
+    synonyms:
+    - Average Revenue By Customer
+    - total average_revenue_by_customer
+    - average_revenue_by_customer summary
 dimensions:
   # ── ACTOR ──────────────────────────────────────────────────────────────────
 
@@ -840,25 +1426,9 @@ dimensions:
     column: name
     type: string
     label: Category Name
-    sample_values:
-      [
-        Action,
-        Animation,
-        Children,
-        Classics,
-        Comedy,
-        Documentary,
-        Drama,
-        Family,
-        Foreign,
-        Games,
-        Horror,
-        Music,
-        New,
-        Sci-Fi,
-        Sports,
-        Travel,
-      ]
+    sample_values: [Action, Animation, Children, Classics, Comedy, Documentary, 
+        Drama, Family, Foreign, Games, Horror, Music, New, Sci-Fi, Sports, 
+        Travel]
 
   category_last_update:
     source: category
@@ -907,17 +1477,8 @@ dimensions:
     column: country
     type: string
     label: Country Name
-    sample_values:
-      [
-        Afghanistan,
-        Brazil,
-        Canada,
-        China,
-        Germany,
-        India,
-        Japan,
-        "United States",
-      ]
+    sample_values: [Afghanistan, Brazil, Canada, China, Germany, India, Japan, "United
+        States"]
 
   country_last_update:
     source: country
@@ -1007,14 +1568,8 @@ dimensions:
     column: title
     type: string
     label: Film Title
-    sample_values:
-      [
-        ACADEMY DINOSAUR,
-        ACE GOLDFINGER,
-        ADAPTATION HOLES,
-        AFFAIR PREJUDICE,
-        AFRICAN EGG,
-      ]
+    sample_values: [ACADEMY DINOSAUR, ACE GOLDFINGER, ADAPTATION HOLES, AFFAIR 
+        PREJUDICE, AFRICAN EGG]
 
   film_description:
     source: film
@@ -1210,7 +1765,8 @@ dimensions:
     label: Inventory Current Status (In Stock / Rented Out)
     domain_values:
       in_stock: No open rental exists for this inventory_id
-      rented_out: An open rental (return_date IS NULL) exists for this inventory_id
+      rented_out: An open rental (return_date IS NULL) exists for this 
+        inventory_id
     notes: >
       Derived via:
       CASE WHEN EXISTS (SELECT 1 FROM rental r
@@ -1269,7 +1825,8 @@ dimensions:
     fk: rental.rental_id
     nullable: true
     notes: >
-      NULL means the payment covers an outstanding balance not tied to a specific rental.
+      NULL means the payment covers an outstanding balance not tied to a specific
+      rental.
       Use IS NOT NULL filter when joining payment to rental for per-rental analysis.
 
   payment_amount:
@@ -1326,7 +1883,8 @@ dimensions:
     type: time
     label: Return Date
     nullable: true
-    notes: NULL indicates the item has not yet been returned (open / active rental).
+    notes: NULL indicates the item has not yet been returned (open / active 
+      rental).
     filter_hints:
       open_rentals: "rental.return_date IS NULL"
       returned_rentals: "rental.return_date IS NOT NULL"
@@ -1606,1193 +2164,1256 @@ intent_patterns:
   # CORE 16 EXERCISES (LEVEL 1 TO LEVEL 4)
   # ──────────────────────────────────────────────────────────────────────────
 
-  - id: level1_q1_top_rented_films
-    pattern: Which films have been rented the most? Show top 10.
-    metric: rentals_per_film
-    dimensions:
-      - film_film_id
-      - film_title
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: rentals_per_film DESC
-    filter: rnk <= 10
+- id: level1_q1_top_rented_films
+  pattern: Which films have been rented the most? Show top 10.
+  metric: rentals_per_film
+  dimensions:
+  - film_film_id
+  - film_title
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: rentals_per_film DESC
+  filter: rnk <= 10
 
-  - id: level1_q2_revenue_per_category
-    pattern: What is the total revenue generated by each film category?
-    metric: revenue_by_category
-    dimensions:
-      - category_name
-      - payment_amount
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: revenue_by_category DESC
-    filter: _none_
+- id: level1_q2_revenue_per_category
+  pattern: What is the total revenue generated by each film category?
+  metric: revenue_by_category
+  dimensions:
+  - category_name
+  - payment_amount
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: revenue_by_category DESC
+  filter: _none_
 
-  - id: level1_q3_top_customers_spending
-    pattern: Who are the top 5 customers by total spending?
-    metric: revenue_by_customer
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: revenue_by_customer DESC
-    filter: rnk <= 5
+- id: revenue_per_category_p1
+  pattern: "which film categories generate the most total revenue list all categories
+    with their revenue best first"
+  metric: revenue_by_category
+  dimensions:
+  - category_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: revenue_by_category DESC
+  filter: _none_
+  limit: _none_
 
-  - id: level1_q4_rentals_per_month
-    pattern: How many rentals were made each month?
-    metric: rentals_by_month
-    dimensions:
-      - rental_rental_month
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: revenue_per_category_p2
+  pattern: "which category generates the most revenue"
+  metric: revenue_by_category
+  dimensions:
+  - category_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: revenue_by_category DESC
+  filter: _none_
+  limit: _none_
 
-  - id: level2_q5_actors_in_most_films
-    pattern: Which actors have appeared in the most films?
-    metric: films_per_actor
-    dimensions:
-      - actor_actor_id
-      - actor_first_name
-      - actor_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: films_per_actor DESC
-    filter: rnk = 1
+- id: revenue_per_category_p3
+  pattern: "total revenue per category best first"
+  metric: revenue_by_category
+  dimensions:
+  - category_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: revenue_by_category DESC
+  filter: _none_
+  limit: _none_
 
-  - id: level2_q6_films_never_rented
-    pattern: List all films that have never been rented.
-    metric: never_rented_film_count
-    dimensions:
-      - film_film_id
-      - film_title
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: revenue_per_category_p4
+  pattern: "list all categories by revenue"
+  metric: revenue_by_category
+  dimensions:
+  - category_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: revenue_by_category DESC
+  filter: _none_
+  limit: _none_
 
-  - id: level2_q7_customers_no_rentals
-    pattern: Which customers have never rented a film?
-    metric: customers_with_no_rentals
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: revenue_per_category_p5
+  pattern: "category revenue breakdown highest first"
+  metric: revenue_by_category
+  dimensions:
+  - category_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: revenue_by_category DESC
+  filter: _none_
+  limit: _none_
 
-  - id: level2_q8_avg_rental_duration_category
-    pattern: What is the average rental duration for each film category?
-    metric: avg_rental_duration_per_category
-    dimensions:
-      - category_category_id
-      - category_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: level1_q3_top_customers_spending
+  pattern: Who are the top 5 customers by total spending?
+  metric: revenue_by_customer
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: revenue_by_customer DESC
+  filter: rnk <= 5
 
-  - id: level3_q9_highest_spending_customer_per_country
-    pattern: Find the highest spending customer in each country.
-    metric: revenue_by_customer
-    dimensions:
-      - country_country
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: country_country
-      order_by: revenue_by_customer DESC
-    filter: rnk = 1
+- id: level1_q4_rentals_per_month
+  pattern: How many rentals were made each month?
+  metric: rentals_by_month
+  dimensions:
+  - rental_rental_month
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: level3_q10_most_popular_category_per_country
-    pattern: Which film category is most popular in each country?
-    metric: rentals_by_category_and_country
-    dimensions:
-      - country_country
-      - category_name
-    window:
-      function: RANK
-      partition_by: country_country
-      order_by: rentals_by_category_and_country DESC
-    filter: rnk = 1
+- id: level2_q5_actors_in_most_films
+  pattern: Which actors have appeared in the most films?
+  metric: films_per_actor
+  dimensions:
+  - actor_actor_id
+  - actor_first_name
+  - actor_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: films_per_actor DESC
+  filter: rnk = 1
 
-  - id: level3_q11_actors_never_in_action
-    pattern: List actors who have never appeared in Action films.
-    metric: actors_never_in_action
-    dimensions:
-      - actor_actor_id
-      - actor_first_name
-      - actor_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: level2_q6_films_never_rented
+  pattern: List all films that have never been rented.
+  metric: never_rented_film_count
+  dimensions:
+  - film_film_id
+  - film_title
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: level3_q12_customers_above_average_spend
-    pattern: Find customers whose total spending is above the average spending of all customers.
-    metric: customers_above_avg_spend
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: level2_q7_customers_no_rentals
+  pattern: Which customers have never rented a film?
+  metric: customers_with_no_rentals
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: level4_q13_second_highest_spending_customer_per_country
-    pattern: Find the second highest spending customer in each country.
-    metric: revenue_by_customer
-    dimensions:
-      - country_country
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: country_country
-      order_by: revenue_by_customer DESC
-    filter: rnk = 2
+- id: level2_q8_avg_rental_duration_category
+  pattern: What is the average rental duration for each film category?
+  metric: avg_rental_duration_per_category
+  dimensions:
+  - category_category_id
+  - category_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: level4_q14_films_rented_by_all_customers
-    pattern: List films that have been rented by every customer.
-    metric: films_rented_by_all_customers
-    dimensions:
-      - film_film_id
-      - film_title
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: level3_q9_highest_spending_customer_per_country
+  pattern: Find the highest spending customer in each country.
+  metric: revenue_by_customer
+  dimensions:
+  - country_country
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: country_country
+    order_by: revenue_by_customer DESC
+  filter: rnk = 1
 
-  - id: level4_q15_actors_working_in_all_categories
-    pattern: Find actors who have acted in films from every category.
-    metric: actors_in_all_categories
-    dimensions:
-      - actor_actor_id
-      - actor_first_name
-      - actor_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: level3_q10_most_popular_category_per_country
+  pattern: Which film category is most popular in each country?
+  metric: rentals_by_category_and_country
+  dimensions:
+  - country_country
+  - category_name
+  window:
+    function: RANK
+    partition_by: country_country
+    order_by: rentals_by_category_and_country DESC
+  filter: rnk = 1
 
-  - id: level4_q16_customers_who_rented_from_all_categories
-    pattern: Find customers who have rented at least one film from every category.
-    metric: customers_rented_all_categories
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: level3_q11_actors_never_in_action
+  pattern: List actors who have never appeared in Action films.
+  metric: actors_never_in_action
+  dimensions:
+  - actor_actor_id
+  - actor_first_name
+  - actor_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
+
+- id: level3_q12_customers_above_average_spend
+  pattern: Find customers whose total spending is above the average spending of 
+    all customers.
+  metric: customers_above_avg_spend
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
+
+- id: level4_q13_second_highest_spending_customer_per_country
+  pattern: Find the second highest spending customer in each country.
+  metric: revenue_by_customer
+  dimensions:
+  - country_country
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: country_country
+    order_by: revenue_by_customer DESC
+  filter: rnk = 2
+
+- id: level4_q14_films_rented_by_all_customers
+  pattern: List films that have been rented by every customer.
+  metric: films_rented_by_all_customers
+  dimensions:
+  - film_film_id
+  - film_title
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
+
+- id: level4_q15_actors_working_in_all_categories
+  pattern: Find actors who have acted in films from every category.
+  metric: actors_in_all_categories
+  dimensions:
+  - actor_actor_id
+  - actor_first_name
+  - actor_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
+
+- id: level4_q16_customers_who_rented_from_all_categories
+  pattern: Find customers who have rented at least one film from every category.
+  metric: customers_rented_all_categories
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
   # ──────────────────────────────────────────────────────────────────────────
   # GEOGRAPHY-SCOPED CUSTOMER / REVENUE RANKINGS
   # ──────────────────────────────────────────────────────────────────────────
 
-  - id: top_customer_by_spend_per_country_v2
-    pattern: top customer by spend per country
-    metric: revenue_by_customer
-    dimensions:
-      - country_country
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: country_country
-      order_by: revenue_by_customer DESC
-    filter: rnk = 1
+- id: top_customer_by_spend_per_country_v2
+  pattern: top customer by spend per country
+  metric: revenue_by_customer
+  dimensions:
+  - country_country
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: country_country
+    order_by: revenue_by_customer DESC
+  filter: rnk = 1
 
-  - id: top_customer_by_spend_per_country_v3
-    pattern: best customer per country by revenue
-    metric: revenue_by_customer
-    dimensions:
-      - country_country
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: country_country
-      order_by: revenue_by_customer DESC
-    filter: rnk = 1
+- id: top_customer_by_spend_per_country_v3
+  pattern: best customer per country by revenue
+  metric: revenue_by_customer
+  dimensions:
+  - country_country
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: country_country
+    order_by: revenue_by_customer DESC
+  filter: rnk = 1
 
-  - id: top_customer_by_spend_per_country_v4
-    pattern: which customer spent the most in each country
-    metric: revenue_by_customer
-    dimensions:
-      - country_country
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: country_country
-      order_by: revenue_by_customer DESC
-    filter: rnk = 1
+- id: top_customer_by_spend_per_country_v4
+  pattern: which customer spent the most in each country
+  metric: revenue_by_customer
+  dimensions:
+  - country_country
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: country_country
+    order_by: revenue_by_customer DESC
+  filter: rnk = 1
 
-  - id: top_customer_by_spend_per_country_v5
-    pattern: most valuable customer by country
-    metric: revenue_by_customer
-    dimensions:
-      - country_country
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: country_country
-      order_by: revenue_by_customer DESC
-    filter: rnk = 1
+- id: top_customer_by_spend_per_country_v5
+  pattern: most valuable customer by country
+  metric: revenue_by_customer
+  dimensions:
+  - country_country
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: country_country
+    order_by: revenue_by_customer DESC
+  filter: rnk = 1
 
-  - id: top3_customers_per_country
-    pattern: top 3 customers by spend in each country
-    metric: revenue_by_customer
-    dimensions:
-      - country_country
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: country_country
-      order_by: revenue_by_customer DESC
-    filter: rnk <= 3
+- id: top3_customers_per_country
+  pattern: top 3 customers by spend in each country
+  metric: revenue_by_customer
+  dimensions:
+  - country_country
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: country_country
+    order_by: revenue_by_customer DESC
+  filter: rnk <= 3
 
-  - id: top_customer_per_city
-    pattern: highest spending customer in each city
-    metric: revenue_by_customer
-    dimensions:
-      - city_city
-      - country_country
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: city_city
-      order_by: revenue_by_customer DESC
-    filter: rnk = 1
+- id: top_customer_per_city
+  pattern: highest spending customer in each city
+  metric: revenue_by_customer
+  dimensions:
+  - city_city
+  - country_country
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: city_city
+    order_by: revenue_by_customer DESC
+  filter: rnk = 1
 
-  - id: top_customer_per_city_v2
-    pattern: best customer per city
-    metric: revenue_by_customer
-    dimensions:
-      - city_city
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: city_city
-      order_by: revenue_by_customer DESC
-    filter: rnk = 1
+- id: top_customer_per_city_v2
+  pattern: best customer per city
+  metric: revenue_by_customer
+  dimensions:
+  - city_city
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: city_city
+    order_by: revenue_by_customer DESC
+  filter: rnk = 1
 
-  - id: top_customer_per_store
-    pattern: highest spending customer per store
-    metric: revenue_by_customer
-    dimensions:
-      - customer_store_id
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: customer_store_id
-      order_by: revenue_by_customer DESC
-    filter: rnk = 1
+- id: top_customer_per_store
+  pattern: highest spending customer per store
+  metric: revenue_by_customer
+  dimensions:
+  - customer_store_id
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: customer_store_id
+    order_by: revenue_by_customer DESC
+  filter: rnk = 1
 
-  - id: top_customer_per_store_v2
-    pattern: best customer at each store
-    metric: revenue_by_customer
-    dimensions:
-      - customer_store_id
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: customer_store_id
-      order_by: revenue_by_customer DESC
-    filter: rnk = 1
+- id: top_customer_per_store_v2
+  pattern: best customer at each store
+  metric: revenue_by_customer
+  dimensions:
+  - customer_store_id
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: customer_store_id
+    order_by: revenue_by_customer DESC
+  filter: rnk = 1
 
   # ──────────────────────────────────────────────────────────────────────────
   # TOP RENTALS PER GROUP
   # ──────────────────────────────────────────────────────────────────────────
 
-  - id: most_rented_film_per_category
-    pattern: most rented film in each category
-    metric: rentals_per_film
-    dimensions:
-      - category_name
-      - film_film_id
-      - film_title
-      - rental_rental_id
-    window:
-      function: RANK
-      partition_by: category_name
-      order_by: rentals_per_film DESC
-    filter: rnk = 1
+- id: most_rented_film_per_category
+  pattern: most rented film in each category
+  metric: rentals_per_film
+  dimensions:
+  - category_name
+  - film_film_id
+  - film_title
+  - rental_rental_id
+  window:
+    function: RANK
+    partition_by: category_name
+    order_by: rentals_per_film DESC
+  filter: rnk = 1
 
-  - id: most_rented_film_per_category_v2
-    pattern: top film by rentals per category
-    metric: rentals_per_film
-    dimensions:
-      - category_name
-      - film_film_id
-      - film_title
-    window:
-      function: RANK
-      partition_by: category_name
-      order_by: rentals_per_film DESC
-    filter: rnk = 1
+- id: most_rented_film_per_category_v2
+  pattern: top film by rentals per category
+  metric: rentals_per_film
+  dimensions:
+  - category_name
+  - film_film_id
+  - film_title
+  window:
+    function: RANK
+    partition_by: category_name
+    order_by: rentals_per_film DESC
+  filter: rnk = 1
 
-  - id: top3_films_per_category
-    pattern: top 3 most rented films in each category
-    metric: rentals_per_film
-    dimensions:
-      - category_name
-      - film_film_id
-      - film_title
-    window:
-      function: RANK
-      partition_by: category_name
-      order_by: rentals_per_film DESC
-    filter: rnk <= 3
+- id: top3_films_per_category
+  pattern: top 3 most rented films in each category
+  metric: rentals_per_film
+  dimensions:
+  - category_name
+  - film_film_id
+  - film_title
+  window:
+    function: RANK
+    partition_by: category_name
+    order_by: rentals_per_film DESC
+  filter: rnk <= 3
 
-  - id: most_rented_film_per_store
-    pattern: most rented film per store
-    metric: rentals_per_film
-    dimensions:
-      - inventory_store_id
-      - film_film_id
-      - film_title
-    window:
-      function: RANK
-      partition_by: inventory_store_id
-      order_by: rentals_per_film DESC
-    filter: rnk = 1
+- id: most_rented_film_per_store
+  pattern: most rented film per store
+  metric: rentals_per_film
+  dimensions:
+  - inventory_store_id
+  - film_film_id
+  - film_title
+  window:
+    function: RANK
+    partition_by: inventory_store_id
+    order_by: rentals_per_film DESC
+  filter: rnk = 1
 
-  - id: most_rented_film_per_rating
-    pattern: most rented film for each rating
-    metric: rentals_per_film
-    dimensions:
-      - film_rating
-      - film_film_id
-      - film_title
-    window:
-      function: RANK
-      partition_by: film_rating
-      order_by: rentals_per_film DESC
-    filter: rnk = 1
+- id: most_rented_film_per_rating
+  pattern: most rented film for each rating
+  metric: rentals_per_film
+  dimensions:
+  - film_rating
+  - film_film_id
+  - film_title
+  window:
+    function: RANK
+    partition_by: film_rating
+    order_by: rentals_per_film DESC
+  filter: rnk = 1
 
-  - id: most_active_customer_per_store
-    pattern: customer with most rentals at each store
-    metric: rentals_per_customer
-    dimensions:
-      - customer_store_id
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: RANK
-      partition_by: customer_store_id
-      order_by: rentals_per_customer DESC
-    filter: rnk = 1
+- id: most_active_customer_per_store
+  pattern: customer with most rentals at each store
+  metric: rentals_per_customer
+  dimensions:
+  - customer_store_id
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: RANK
+    partition_by: customer_store_id
+    order_by: rentals_per_customer DESC
+  filter: rnk = 1
 
-  - id: most_active_customer_per_store_v2
-    pattern: most frequent renter per store
-    metric: rentals_per_customer
-    dimensions:
-      - customer_store_id
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: RANK
-      partition_by: customer_store_id
-      order_by: rentals_per_customer DESC
-    filter: rnk = 1
+- id: most_active_customer_per_store_v2
+  pattern: most frequent renter per store
+  metric: rentals_per_customer
+  dimensions:
+  - customer_store_id
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: RANK
+    partition_by: customer_store_id
+    order_by: rentals_per_customer DESC
+  filter: rnk = 1
 
-  - id: most_active_customer_per_country
-    pattern: customer who rented the most in each country
-    metric: rentals_per_customer
-    dimensions:
-      - country_country
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: RANK
-      partition_by: country_country
-      order_by: rentals_per_customer DESC
-    filter: rnk = 1
+- id: most_active_customer_per_country
+  pattern: customer who rented the most in each country
+  metric: rentals_per_customer
+  dimensions:
+  - country_country
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: RANK
+    partition_by: country_country
+    order_by: rentals_per_customer DESC
+  filter: rnk = 1
 
   # ──────────────────────────────────────────────────────────────────────────
   # TOP REVENUE PER GROUP
   # ──────────────────────────────────────────────────────────────────────────
 
-  - id: highest_revenue_film_per_category
-    pattern: highest revenue film in each category
-    metric: revenue_by_film
-    dimensions:
-      - category_name
-      - film_film_id
-      - film_title
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: category_name
-      order_by: revenue_by_film DESC
-    filter: rnk = 1
+- id: highest_revenue_film_per_category
+  pattern: highest revenue film in each category
+  metric: revenue_by_film
+  dimensions:
+  - category_name
+  - film_film_id
+  - film_title
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: category_name
+    order_by: revenue_by_film DESC
+  filter: rnk = 1
 
-  - id: highest_revenue_film_per_category_v2
-    pattern: best earning film per category
-    metric: revenue_by_film
-    dimensions:
-      - category_name
-      - film_film_id
-      - film_title
-    window:
-      function: RANK
-      partition_by: category_name
-      order_by: revenue_by_film DESC
-    filter: rnk = 1
+- id: highest_revenue_film_per_category_v2
+  pattern: best earning film per category
+  metric: revenue_by_film
+  dimensions:
+  - category_name
+  - film_film_id
+  - film_title
+  window:
+    function: RANK
+    partition_by: category_name
+    order_by: revenue_by_film DESC
+  filter: rnk = 1
 
-  - id: highest_revenue_film_per_rating
-    pattern: highest grossing film per rating
-    metric: revenue_by_film
-    dimensions:
-      - film_rating
-      - film_film_id
-      - film_title
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: film_rating
-      order_by: revenue_by_film DESC
-    filter: rnk = 1
+- id: highest_revenue_film_per_rating
+  pattern: highest grossing film per rating
+  metric: revenue_by_film
+  dimensions:
+  - film_rating
+  - film_film_id
+  - film_title
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: film_rating
+    order_by: revenue_by_film DESC
+  filter: rnk = 1
 
-  - id: highest_revenue_film_per_store
-    pattern: top earning film at each store
-    metric: revenue_by_film
-    dimensions:
-      - inventory_store_id
-      - film_film_id
-      - film_title
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: inventory_store_id
-      order_by: revenue_by_film DESC
-    filter: rnk = 1
+- id: highest_revenue_film_per_store
+  pattern: top earning film at each store
+  metric: revenue_by_film
+  dimensions:
+  - inventory_store_id
+  - film_film_id
+  - film_title
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: inventory_store_id
+    order_by: revenue_by_film DESC
+  filter: rnk = 1
 
-  - id: top_revenue_category_per_store
-    pattern: best performing category at each store
-    metric: revenue_by_category
-    dimensions:
-      - inventory_store_id
-      - category_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: inventory_store_id
-      order_by: revenue_by_category DESC
-    filter: rnk = 1
+- id: top_revenue_category_per_store
+  pattern: best performing category at each store
+  metric: revenue_by_category
+  dimensions:
+  - inventory_store_id
+  - category_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: inventory_store_id
+    order_by: revenue_by_category DESC
+  filter: rnk = 1
 
   # ──────────────────────────────────────────────────────────────────────────
   # ACTOR PATTERNS
   # ──────────────────────────────────────────────────────────────────────────
 
-  - id: most_films_per_actor
-    pattern: actor who appeared in the most films
-    metric: films_per_actor
-    dimensions:
-      - actor_actor_id
-      - actor_first_name
-      - actor_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: films_per_actor DESC
-    filter: rnk = 1
-    notes: No partition — this is a global top-1 ranking across all actors.
+- id: most_films_per_actor
+  pattern: actor who appeared in the most films
+  metric: films_per_actor
+  dimensions:
+  - actor_actor_id
+  - actor_first_name
+  - actor_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: films_per_actor DESC
+  filter: rnk = 1
+  notes: No partition — this is a global top-1 ranking across all actors.
 
-  - id: most_films_per_actor_v2
-    pattern: top actors by number of films
-    metric: films_per_actor
-    dimensions:
-      - actor_actor_id
-      - actor_first_name
-      - actor_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: films_per_actor DESC
-    filter: rnk <= 10
+- id: most_films_per_actor_v2
+  pattern: top actors by number of films
+  metric: films_per_actor
+  dimensions:
+  - actor_actor_id
+  - actor_first_name
+  - actor_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: films_per_actor DESC
+  filter: rnk <= 10
 
-  - id: actor_most_rentals
-    pattern: actor whose films have been rented the most
-    metric: rentals_per_film
-    dimensions:
-      - actor_actor_id
-      - actor_first_name
-      - actor_last_name
-      - film_film_id
-      - film_title
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: rentals_per_film DESC
-    filter: rnk = 1
+- id: actor_most_rentals
+  pattern: actor whose films have been rented the most
+  metric: rentals_per_film
+  dimensions:
+  - actor_actor_id
+  - actor_first_name
+  - actor_last_name
+  - film_film_id
+  - film_title
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: rentals_per_film DESC
+  filter: rnk = 1
 
-  - id: actor_most_revenue
-    pattern: actor who generated the most revenue
-    metric: revenue_by_film
-    dimensions:
-      - actor_actor_id
-      - actor_first_name
-      - actor_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: revenue_by_film DESC
-    filter: rnk = 1
+- id: actor_most_revenue
+  pattern: actor who generated the most revenue
+  metric: revenue_by_film
+  dimensions:
+  - actor_actor_id
+  - actor_first_name
+  - actor_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: revenue_by_film DESC
+  filter: rnk = 1
 
-  - id: actor_co_appearance_top
-    pattern: which two actors have appeared together most often
-    metric: actor_co_appearance_count
-    dimensions:
-      - actor_first_name
-      - actor_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: actor_co_appearance_count DESC
-    filter: rnk = 1
+- id: actor_co_appearance_top
+  pattern: which two actors have appeared together most often
+  metric: actor_co_appearance_count
+  dimensions:
+  - actor_first_name
+  - actor_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: actor_co_appearance_count DESC
+  filter: rnk = 1
 
-  - id: actor_co_appearance_top_v2
-    pattern: actor pairs who share the most films
-    metric: actor_co_appearance_count
-    dimensions:
-      - actor_first_name
-      - actor_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: actor_co_appearance_count DESC
-    filter: rnk <= 5
+- id: actor_co_appearance_top_v2
+  pattern: actor pairs who share the most films
+  metric: actor_co_appearance_count
+  dimensions:
+  - actor_first_name
+  - actor_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: actor_co_appearance_count DESC
+  filter: rnk <= 5
 
   # ──────────────────────────────────────────────────────────────────────────
   # FILM / INVENTORY PATTERNS
   # ──────────────────────────────────────────────────────────────────────────
 
-  - id: most_efficient_film_by_revenue_per_copy
-    pattern: which film earns the most revenue per copy
-    metric: revenue_per_inventory_copy
-    dimensions:
-      - film_film_id
-      - film_title
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: revenue_per_inventory_copy DESC
-    filter: rnk = 1
+- id: most_efficient_film_by_revenue_per_copy
+  pattern: which film earns the most revenue per copy
+  metric: revenue_per_inventory_copy
+  dimensions:
+  - film_film_id
+  - film_title
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: revenue_per_inventory_copy DESC
+  filter: rnk = 1
 
-  - id: most_efficient_film_by_revenue_per_copy_v2
-    pattern: most efficient films by revenue per inventory copy
-    metric: revenue_per_inventory_copy
-    dimensions:
-      - film_film_id
-      - film_title
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: revenue_per_inventory_copy DESC
-    filter: rnk <= 10
+- id: most_efficient_film_by_revenue_per_copy_v2
+  pattern: most efficient films by revenue per inventory copy
+  metric: revenue_per_inventory_copy
+  dimensions:
+  - film_film_id
+  - film_title
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: revenue_per_inventory_copy DESC
+  filter: rnk <= 10
 
-  - id: highest_replacement_cost_per_rating
-    pattern: most expensive film to replace per rating
-    metric: average_replacement_cost_by_rating
-    dimensions:
-      - film_rating
-      - film_film_id
-      - film_title
-      - film_replacement_cost
-    window:
-      function: RANK
-      partition_by: film_rating
-      order_by: film_replacement_cost DESC
-    filter: rnk = 1
+- id: highest_replacement_cost_per_rating
+  pattern: most expensive film to replace per rating
+  metric: average_replacement_cost_by_rating
+  dimensions:
+  - film_rating
+  - film_film_id
+  - film_title
+  - film_replacement_cost
+  window:
+    function: RANK
+    partition_by: film_rating
+    order_by: film_replacement_cost DESC
+  filter: rnk = 1
 
-  - id: longest_film_per_category
-    pattern: longest film in each category
-    metric: films_per_category
-    dimensions:
-      - category_name
-      - film_film_id
-      - film_title
-      - film_length
-    window:
-      function: RANK
-      partition_by: category_name
-      order_by: film_length DESC
-    filter: rnk = 1
+- id: longest_film_per_category
+  pattern: longest film in each category
+  metric: films_per_category
+  dimensions:
+  - category_name
+  - film_film_id
+  - film_title
+  - film_length
+  window:
+    function: RANK
+    partition_by: category_name
+    order_by: film_length DESC
+  filter: rnk = 1
 
-  - id: longest_film_per_rating
-    pattern: longest film per rating
-    metric: films_per_rating
-    dimensions:
-      - film_rating
-      - film_film_id
-      - film_title
-      - film_length
-    window:
-      function: RANK
-      partition_by: film_rating
-      order_by: film_length DESC
-    filter: rnk = 1
+- id: longest_film_per_rating
+  pattern: longest film per rating
+  metric: films_per_rating
+  dimensions:
+  - film_rating
+  - film_film_id
+  - film_title
+  - film_length
+  window:
+    function: RANK
+    partition_by: film_rating
+    order_by: film_length DESC
+  filter: rnk = 1
 
   # ──────────────────────────────────────────────────────────────────────────
   # STORE / STAFF PATTERNS
   # ──────────────────────────────────────────────────────────────────────────
 
-  - id: highest_revenue_store
-    pattern: which store made the most revenue
-    metric: revenue_by_store
-    dimensions:
-      - inventory_store_id
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: revenue_by_store DESC
-    filter: rnk = 1
+- id: highest_revenue_store
+  pattern: which store made the most revenue
+  metric: revenue_by_store
+  dimensions:
+  - inventory_store_id
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: revenue_by_store DESC
+  filter: rnk = 1
 
-  - id: store_revenue_comparison
-    pattern: compare revenue between stores
-    metric: revenue_by_store
-    dimensions:
-      - inventory_store_id
-      - payment_amount
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: revenue_by_store DESC
-    filter: _none_
+- id: store_revenue_comparison
+  pattern: compare revenue between stores
+  metric: revenue_by_store
+  dimensions:
+  - inventory_store_id
+  - payment_amount
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: revenue_by_store DESC
+  filter: _none_
 
-  - id: top_staff_by_revenue
-    pattern: staff member who processed the most revenue
-    metric: revenue_by_staff
-    dimensions:
-      - staff_staff_id
-      - staff_first_name
-      - staff_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: revenue_by_staff DESC
-    filter: rnk = 1
+- id: top_staff_by_revenue
+  pattern: staff member who processed the most revenue
+  metric: revenue_by_staff
+  dimensions:
+  - staff_staff_id
+  - staff_first_name
+  - staff_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: revenue_by_staff DESC
+  filter: rnk = 1
 
-  - id: top_staff_by_revenue_v2
-    pattern: which employee generated the most sales
-    metric: revenue_by_staff
-    dimensions:
-      - staff_staff_id
-      - staff_first_name
-      - staff_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: revenue_by_staff DESC
-    filter: rnk = 1
+- id: top_staff_by_revenue_v2
+  pattern: which employee generated the most sales
+  metric: revenue_by_staff
+  dimensions:
+  - staff_staff_id
+  - staff_first_name
+  - staff_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: revenue_by_staff DESC
+  filter: rnk = 1
 
-  - id: top_staff_by_rentals
-    pattern: staff member who handled the most rentals
-    metric: rentals_per_staff
-    dimensions:
-      - staff_staff_id
-      - staff_first_name
-      - staff_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: rentals_per_staff DESC
-    filter: rnk = 1
+- id: top_staff_by_rentals
+  pattern: staff member who handled the most rentals
+  metric: rentals_per_staff
+  dimensions:
+  - staff_staff_id
+  - staff_first_name
+  - staff_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: rentals_per_staff DESC
+  filter: rnk = 1
 
-  - id: top_staff_per_store
-    pattern: best performing staff member at each store
-    metric: revenue_by_staff
-    dimensions:
-      - staff_store_id
-      - staff_staff_id
-      - staff_first_name
-      - staff_last_name
-    window:
-      function: RANK
-      partition_by: staff_store_id
-      order_by: revenue_by_staff DESC
-    filter: rnk = 1
+- id: top_staff_per_store
+  pattern: best performing staff member at each store
+  metric: revenue_by_staff
+  dimensions:
+  - staff_store_id
+  - staff_staff_id
+  - staff_first_name
+  - staff_last_name
+  window:
+    function: RANK
+    partition_by: staff_store_id
+    order_by: revenue_by_staff DESC
+  filter: rnk = 1
 
   # ──────────────────────────────────────────────────────────────────────────
   # OVERDUE / OUTSTANDING PATTERNS
   # ──────────────────────────────────────────────────────────────────────────
 
-  - id: overdue_rentals_by_customer
-    pattern: customers with overdue rentals
-    metric: overdue_rentals_detail
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - film_title
-      - rental_rental_date
-      - film_rental_duration
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: overdue_rentals_by_customer
+  pattern: customers with overdue rentals
+  metric: overdue_rentals_detail
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - film_title
+  - rental_rental_date
+  - film_rental_duration
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: overdue_rentals_by_customer_v2
-    pattern: who has not returned their rental
-    metric: overdue_rental_count
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - film_title
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: overdue_rentals_by_customer_v2
+  pattern: who has not returned their rental
+  metric: overdue_rental_count
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - film_title
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: customers_with_unpaid_rentals
-    pattern: customers who owe money
-    metric: outstanding_balance_by_customer
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: customers_with_unpaid_rentals
+  pattern: customers who owe money
+  metric: outstanding_balance_by_customer
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: customers_with_unpaid_rentals_v2
-    pattern: unpaid rentals per customer
-    metric: outstanding_balance_by_customer
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: customers_with_unpaid_rentals_v2
+  pattern: unpaid rentals per customer
+  metric: outstanding_balance_by_customer
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: most_indebted_customer
-    pattern: customer with the most unpaid rentals
-    metric: outstanding_balance_by_customer
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: outstanding_balance_by_customer DESC
-    filter: rnk = 1
+- id: most_indebted_customer
+  pattern: customer with the most unpaid rentals
+  metric: outstanding_balance_by_customer
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: outstanding_balance_by_customer DESC
+  filter: rnk = 1
 
   # ──────────────────────────────────────────────────────────────────────────
   # TEMPORAL / TREND PATTERNS
   # ──────────────────────────────────────────────────────────────────────────
 
-  - id: revenue_by_month_trend
-    pattern: monthly revenue trend
-    metric: revenue_by_month
-    dimensions:
-      - payment_payment_date
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: payment_payment_date ASC
-    filter: _none_
+- id: revenue_by_month_trend
+  pattern: monthly revenue trend
+  metric: revenue_by_month
+  dimensions:
+  - payment_payment_date
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: payment_payment_date ASC
+  filter: _none_
 
-  - id: revenue_by_month_trend_v2
-    pattern: how has revenue changed month over month
-    metric: revenue_by_month
-    dimensions:
-      - payment_payment_date
-      - payment_amount
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: payment_payment_date ASC
-    filter: _none_
+- id: revenue_by_month_trend_v2
+  pattern: how has revenue changed month over month
+  metric: revenue_by_month
+  dimensions:
+  - payment_payment_date
+  - payment_amount
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: payment_payment_date ASC
+  filter: _none_
 
-  - id: best_revenue_month
-    pattern: which month had the highest revenue
-    metric: revenue_by_month
-    dimensions:
-      - payment_payment_date
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: revenue_by_month DESC
-    filter: rnk = 1
+- id: best_revenue_month
+  pattern: which month had the highest revenue
+  metric: revenue_by_month
+  dimensions:
+  - payment_payment_date
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: revenue_by_month DESC
+  filter: rnk = 1
 
-  - id: rentals_per_store_monthly
-    pattern: how many rentals did each store process each month
-    metric: rentals_per_store_per_month
-    dimensions:
-      - inventory_store_id
-      - rental_rental_date
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: rental_rental_date ASC
-    filter: _none_
+- id: rentals_per_store_monthly
+  pattern: how many rentals did each store process each month
+  metric: rentals_per_store_per_month
+  dimensions:
+  - inventory_store_id
+  - rental_rental_date
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: rental_rental_date ASC
+  filter: _none_
 
-  - id: customer_rental_tenure
-    pattern: how long has each customer been renting
-    metric: customer_rental_tenure_days
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: customer_rental_tenure_days DESC
-    filter: _none_
+- id: customer_rental_tenure
+  pattern: how long has each customer been renting
+  metric: customer_rental_tenure_days
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: customer_rental_tenure_days DESC
+  filter: _none_
 
-  - id: loyalty_eligible
-    pattern: which customers qualify for the loyalty program
-    metric: loyalty_eligible_customers
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - customer_email
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: loyalty_eligible
+  pattern: which customers qualify for the loyalty program
+  metric: loyalty_eligible_customers
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - customer_email
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: loyalty_eligible_v2
-    pattern: customers eligible for rewards based on recent activity
-    metric: loyalty_eligible_customers
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-      - customer_email
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: loyalty_eligible_v2
+  pattern: customers eligible for rewards based on recent activity
+  metric: loyalty_eligible_customers
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  - customer_email
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
   # ──────────────────────────────────────────────────────────────────────────
   # SIMPLE AGGREGATE / COUNT PATTERNS (easy queries)
   # ──────────────────────────────────────────────────────────────────────────
 
-  - id: total_films
-    pattern: how many films are in the catalog
-    metric: film_row_count
-    dimensions: []
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: total_films
+  pattern: how many films are in the catalog
+  metric: film_row_count
+  dimensions: []
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: total_films_v2
-    pattern: total number of films
-    metric: film_row_count
-    dimensions: []
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: total_films_v2
+  pattern: total number of films
+  metric: film_row_count
+  dimensions: []
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: total_revenue_simple
-    pattern: what is the total revenue
-    metric: total_revenue
-    dimensions: []
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: total_revenue_simple
+  pattern: what is the total revenue
+  metric: total_revenue
+  dimensions: []
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: total_revenue_simple_v2
-    pattern: how much money has the store made
-    metric: total_revenue
-    dimensions: []
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: total_revenue_simple_v2
+  pattern: how much money has the store made
+  metric: total_revenue
+  dimensions: []
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: active_customers_count
-    pattern: how many active customers are there
-    metric: active_customer_count
-    dimensions: []
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: active_customers_count
+  pattern: how many active customers are there
+  metric: active_customer_count
+  dimensions: []
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: never_rented
-    pattern: which films have never been rented
-    metric: never_rented_film_count
-    dimensions:
-      - film_film_id
-      - film_title
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: never_rented
+  pattern: which films have never been rented
+  metric: never_rented_film_count
+  dimensions:
+  - film_film_id
+  - film_title
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: never_rented_v2
-    pattern: films with zero rentals
-    metric: never_rented_film_count
-    dimensions:
-      - film_film_id
-      - film_title
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: never_rented_v2
+  pattern: films with zero rentals
+  metric: never_rented_film_count
+  dimensions:
+  - film_film_id
+  - film_title
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: currently_out
-    pattern: what films are currently checked out
-    metric: currently_rented_films
-    dimensions:
-      - film_title
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: currently_out
+  pattern: what films are currently checked out
+  metric: currently_rented_films
+  dimensions:
+  - film_title
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: currently_out_v2
-    pattern: films currently rented by customers
-    metric: currently_rented_films
-    dimensions:
-      - film_title
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: currently_out_v2
+  pattern: films currently rented by customers
+  metric: currently_rented_films
+  dimensions:
+  - film_title
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: avg_rental_rate_simple
-    pattern: what is the average rental rate
-    metric: average_rental_rate
-    dimensions: []
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: avg_rental_rate_simple
+  pattern: what is the average rental rate
+  metric: average_rental_rate
+  dimensions: []
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: films_by_rating
-    pattern: how many films are in each rating category
-    metric: films_per_rating
-    dimensions:
-      - film_rating
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: films_by_rating
+  pattern: how many films are in each rating category
+  metric: films_per_rating
+  dimensions:
+  - film_rating
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: films_by_rating_v2
-    pattern: film count by MPAA rating
-    metric: films_per_rating
-    dimensions:
-      - film_rating
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: films_by_rating_v2
+  pattern: film count by MPAA rating
+  metric: films_per_rating
+  dimensions:
+  - film_rating
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: revenue_by_category_simple
-    pattern: revenue by film category
-    metric: revenue_by_category
-    dimensions:
-      - category_name
-      - payment_amount
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: revenue_by_category DESC
-    filter: _none_
+- id: revenue_by_category_simple
+  pattern: revenue by film category
+  metric: revenue_by_category
+  dimensions:
+  - category_name
+  - payment_amount
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: revenue_by_category DESC
+  filter: _none_
 
-  - id: revenue_by_category_v2
-    pattern: which genre makes the most money
-    metric: revenue_by_category
-    dimensions:
-      - category_name
-      - payment_amount
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: revenue_by_category DESC
-    filter: rnk = 1
+- id: revenue_by_category_v2
+  pattern: which genre makes the most money
+  metric: revenue_by_category
+  dimensions:
+  - category_name
+  - payment_amount
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: revenue_by_category DESC
+  filter: rnk = 1
 
-  - id: avg_rental_duration
-    pattern: how long do customers keep films on average
-    metric: average_rental_duration_days
-    dimensions: []
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: avg_rental_duration
+  pattern: how long do customers keep films on average
+  metric: average_rental_duration_days
+  dimensions: []
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: inventory_in_stock
-    pattern: what percentage of inventory is currently in stock
-    metric: inventory_in_stock_pct
-    dimensions:
-      - inventory_store_id
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: inventory_in_stock
+  pattern: what percentage of inventory is currently in stock
+  metric: inventory_in_stock_pct
+  dimensions:
+  - inventory_store_id
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: customers_per_country_simple
-    pattern: how many customers are in each country
-    metric: customers_per_country
-    dimensions:
-      - country_country
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: customers_per_country DESC
-    filter: _none_
+- id: customers_per_country_simple
+  pattern: how many customers are in each country
+  metric: customers_per_country
+  dimensions:
+  - country_country
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: customers_per_country DESC
+  filter: _none_
 
-  - id: customers_per_country_top
-    pattern: which country has the most customers
-    metric: customers_per_country
-    dimensions:
-      - country_country
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: customers_per_country DESC
-    filter: rnk = 1
+- id: customers_per_country_top
+  pattern: which country has the most customers
+  metric: customers_per_country
+  dimensions:
+  - country_country
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: customers_per_country DESC
+  filter: rnk = 1
 
-  - id: churn_rate_simple
-    pattern: what is the customer churn rate
-    metric: customer_churn_rate
-    dimensions: []
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: churn_rate_simple
+  pattern: what is the customer churn rate
+  metric: customer_churn_rate
+  dimensions: []
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_
 
-  - id: heavy_renters
-    pattern: customers who have rented more than 30 films
-    metric: rentals_per_customer
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: rentals_per_customer DESC
-    filter: rentals > 30
+- id: heavy_renters
+  pattern: customers who have rented more than 30 films
+  metric: rentals_per_customer
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: rentals_per_customer DESC
+  filter: rentals > 30
 
-  - id: heavy_renters_v2
-    pattern: most active customers by rental count
-    metric: rentals_per_customer
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: RANK
-      partition_by: _none_
-      order_by: rentals_per_customer DESC
-    filter: rnk <= 10
+- id: heavy_renters_v2
+  pattern: most active customers by rental count
+  metric: rentals_per_customer
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: RANK
+    partition_by: _none_
+    order_by: rentals_per_customer DESC
+  filter: rnk <= 10
 
-  - id: inventory_turnover_by_store
-    pattern: inventory turnover rate by store
-    metric: inventory_turnover_rate
-    dimensions:
-      - inventory_store_id
-      - rental_rental_date
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: inventory_turnover_rate DESC
-    filter: _none_
+- id: inventory_turnover_by_store
+  pattern: inventory turnover rate by store
+  metric: inventory_turnover_rate
+  dimensions:
+  - inventory_store_id
+  - rental_rental_date
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: inventory_turnover_rate DESC
+  filter: _none_
 
-  - id: repeat_renters
-    pattern: customers who rented more than once in the same month at the same store
-    metric: repeat_rental_rate
-    dimensions:
-      - customer_customer_id
-      - customer_first_name
-      - customer_last_name
-    window:
-      function: _none_
-      partition_by: _none_
-      order_by: _none_
-    filter: _none_
+- id: repeat_renters
+  pattern: customers who rented more than once in the same month at the same 
+    store
+  metric: repeat_rental_rate
+  dimensions:
+  - customer_customer_id
+  - customer_first_name
+  - customer_last_name
+  window:
+    function: _none_
+    partition_by: _none_
+    order_by: _none_
+  filter: _none_

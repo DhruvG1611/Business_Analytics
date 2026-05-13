@@ -12,6 +12,14 @@ import re
 import networkx as nx
 import config
 
+_AGG_PATTERN = re.compile(
+    r"\b(COUNT|SUM|AVG|MAX|MIN|RANK)\s*\(", re.IGNORECASE
+)
+
+def _is_aggregate_compute(compute: str) -> bool:
+    """True if the compute expression contains an SQL aggregate function."""
+    return bool(_AGG_PATTERN.search(compute))
+
 
 class SchemaGraphResolver:
     def __init__(self):
@@ -69,8 +77,16 @@ def _default_dims_for_metric(metric_node: dict) -> list[str]:
 
 
 def rag_plus_plus_resolver(raw_intent: dict) -> dict:
-    data    = raw_intent.get("intent", raw_intent)
-    m_key   = data.get("metric", "")
+    """
+    Constructs a logical query plan based on the intent structure.
+    Handles mode detection and specialized plan construction.
+    """
+    data = raw_intent.get("intent", raw_intent)
+    
+    print(f"  [DEBUG graph_resolver] mode={data.get('mode')!r}")
+    print(f"  [DEBUG graph_resolver] set_difference={data.get('set_difference')!r}")
+
+    m_key = data.get("metric", "")
     mode    = data.get("mode", "simple")
     metric_node = config.csm["metrics"].get(m_key)
 
@@ -114,6 +130,9 @@ def rag_plus_plus_resolver(raw_intent: dict) -> dict:
             required_tables.add(f_dim["source"])
             valid_filters.append(f)
 
+    if mode == "set_difference":
+        required_tables.add("store")
+
     # ── Graph join pathfinding ───────────────────────────────────────────────
     graph        = SchemaGraphResolver()
     active_joins = []
@@ -147,11 +166,24 @@ def rag_plus_plus_resolver(raw_intent: dict) -> dict:
     # ── Assemble plan ────────────────────────────────────────────────────────
     dim_col_refs = [f"{node['source']}.{node['column']}" for _, node in dim_nodes]
 
+    # Issue 1+2 fix: if CSM compute is non-aggregate (plain column ref),
+    # strip GROUP BY and use the raw column directly — grouping every row
+    # by itself is pointless and breaks ranked queries like "top 10 most
+    # expensive films".
+    is_agg = _is_aggregate_compute(compute_expr)
+    if not is_agg and dim_col_refs:
+        # Plain column ref — no grouping needed
+        select_items = dim_col_refs + [f"{compute_expr} AS result"]
+        group_by = []
+    else:
+        select_items = dim_col_refs + [f"{compute_expr} AS result"]
+        group_by = dim_col_refs if dim_col_refs else []
+
     plan = {
-        "select":           dim_col_refs + [f"{compute_expr} AS result"],
+        "select":           select_items,
         "from":             base_table,
         "joins":            active_joins,
-        "group_by":         dim_col_refs if dim_col_refs else [],
+        "group_by":         group_by,
         "filters":          valid_filters,
         "compute_where":    compute_where,
         "having_threshold": data.get("having_threshold"),
@@ -159,6 +191,42 @@ def rag_plus_plus_resolver(raw_intent: dict) -> dict:
         "limit":            data.get("limit"),
         "mode":             mode,
     }
+
+    if mode == "set_difference":
+        # Construct the set difference plan
+        # Primary set plan
+        primary_filters = list(plan.get("filters", []))
+        if data.get("_include_store"):
+            primary_filters.append({
+                "col_key": "store_store_id",
+                "val": data["_include_store"],
+                "op": "equals",
+                "is_aggregate": False
+            })
+        
+        plan["filters"] = primary_filters
+        
+        # Subquery for exclusion
+        exclude_filters = []
+        if data.get("_exclude_store"):
+            exclude_filters.append({
+                "col_key": "store_store_id",
+                "val": data["_exclude_store"],
+                "op": "equals",
+                "is_aggregate": False
+            })
+        
+        # Determine subquery table and column
+        # For "films in store 1 but not 2", we want film_id in inventory
+        exclude_subquery = {
+            "from": "inventory",
+            "select": ["inventory.film_id"],
+            "joins": ["LEFT JOIN store ON inventory.store_id = store.store_id"],
+            "filters": exclude_filters
+        }
+        plan["exclude_subquery"] = exclude_subquery
+        plan["exclude_col"] = "film.film_id"
+        plan["subquery_col"] = "film_id"
 
     # rank_per_group: add partition info for the window CTE in sql_compiler
     if mode == "rank_per_group" and dim_col_refs:

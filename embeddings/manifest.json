@@ -1,6 +1,8 @@
 {
   "model": "all-MiniLM-L6-v2",
   "csm_file": "csm_enterprise.yaml",
-  "metrics_entries": 158,
-  "pattern_entries": 75
+  "metrics_entries": 181,
+  "pattern_entries": 696,
+  "built_at": 1778667707.9145422,
+  "bgo_built_at": 1778668153.635589
 }

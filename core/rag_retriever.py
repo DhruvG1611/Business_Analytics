@@ -60,8 +60,8 @@ except ImportError as e:
 _EMBEDDINGS_DIR   = Path(os.getenv("RAG_EMBEDDINGS_DIR",  "./embeddings"))
 _MODEL_OVERRIDE   = os.getenv("RAG_MODEL_OVERRIDE",       "")          # empty = use manifest
 _TOP_K            = int(os.getenv("RAG_TOP_K",            "5"))
-_PATTERN_THRESH   = float(os.getenv("RAG_PATTERN_THRESH", "0.72"))
-_METRIC_THRESH    = float(os.getenv("RAG_METRIC_THRESH",  "0.40"))
+_PATTERN_THRESH   = float(os.getenv("RAG_PATTERN_THRESH", "0.65"))
+_METRIC_THRESH    = float(os.getenv("RAG_METRIC_THRESH",  "0.65"))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -100,6 +100,7 @@ class RetrievalResult:
     top_metrics:  list[MetricHit]      = field(default_factory=list)
     best_pattern: Optional[PatternHit] = None
     top_patterns: list[PatternHit]     = field(default_factory=list)
+    metric_confidence: str = "none"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -172,7 +173,7 @@ class _IndexStore:
 
         self._loaded = True
         print(
-            f"[rag_retriever] ✓ Loaded — "
+            f"[rag_retriever] [OK] Loaded - "
             f"{self._metrics_idx.ntotal} metric/dim vectors, "
             f"{self._patterns_idx.ntotal} pattern vectors."
         )
@@ -269,9 +270,16 @@ def retrieve(question: str) -> RetrievalResult:
     retrieved = bool(best_metric or best_pattern)
 
     if best_metric:
-        print(f"  [RAG] best_metric  → {best_metric.key!r}  (score={best_metric.score:.3f})")
+        print(f"  [RAG] best_metric  -> {best_metric.key!r}  (score={best_metric.score:.3f})")
     if best_pattern:
-        print(f"  [RAG] best_pattern → {best_pattern.pattern!r}  (score={best_pattern.score:.3f})")
+        print(f"  [RAG] best_pattern -> {best_pattern.pattern!r}  (score={best_pattern.score:.3f})")
+
+    confidence = "none"
+    if best_metric:
+        if best_metric.score >= 0.75:
+            confidence = "high"
+        else:
+            confidence = "low"
 
     return RetrievalResult(
         retrieved    = retrieved,
@@ -279,6 +287,7 @@ def retrieve(question: str) -> RetrievalResult:
         top_metrics  = top_metrics,
         best_pattern = best_pattern,
         top_patterns = top_patterns,
+        metric_confidence = confidence,
     )
 
 
@@ -303,7 +312,7 @@ def build_retrieved_context(result: RetrievalResult) -> str:
                 f"  label: {h.label}\n"
                 f"  compute: `{h.compute}`\n"
                 f"  sources: {', '.join(h.sources)}"
-                + (f"\n  → {h.description}" if h.description else "")
+                + (f"\n  -> {h.description}" if h.description else "")
             )
         lines.append("")
 
@@ -329,7 +338,7 @@ def build_retrieved_context(result: RetrievalResult) -> str:
     if runners:
         lines.append("### Other candidate patterns")
         for p in runners:
-            lines.append(f"  - [{p.score:.2f}] {p.pattern!r}  →  metric={p.metric}")
+            lines.append(f"  - [{p.score:.2f}] {p.pattern!r}  ->  metric={p.metric}")
         lines.append("")
 
     return "\n".join(lines)

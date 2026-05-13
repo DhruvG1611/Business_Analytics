@@ -166,17 +166,6 @@
   },
   {
     "type": "metric",
-    "key": "store_row_count",
-    "label": "Total Stores",
-    "compute": "COUNT(*)",
-    "sources": [
-      "store"
-    ],
-    "join_path": null,
-    "description": ""
-  },
-  {
-    "type": "metric",
     "key": "never_rented_film_count",
     "label": "Films Never Rented",
     "compute": "COUNT(DISTINCT film.film_id)",
@@ -295,18 +284,15 @@
   {
     "type": "metric",
     "key": "revenue_by_store",
-    "label": "Revenue by Store",
+    "label": "Revenue By Store",
     "compute": "SUM(payment.amount)",
     "sources": [
       "payment",
-      "rental",
-      "inventory",
       "store"
     ],
     "join_path": [
       "payment",
-      "rental",
-      "inventory",
+      "customer",
       "store"
     ],
     "description": ""
@@ -314,14 +300,10 @@
   {
     "type": "metric",
     "key": "revenue_by_category",
-    "label": "Revenue by Film Category",
+    "label": "Revenue By Category",
     "compute": "SUM(payment.amount)",
     "sources": [
       "payment",
-      "rental",
-      "inventory",
-      "film",
-      "film_category",
       "category"
     ],
     "join_path": [
@@ -337,12 +319,10 @@
   {
     "type": "metric",
     "key": "revenue_by_film",
-    "label": "Revenue by Film",
+    "label": "Revenue By Film",
     "compute": "SUM(payment.amount)",
     "sources": [
       "payment",
-      "rental",
-      "inventory",
       "film"
     ],
     "join_path": [
@@ -356,28 +336,22 @@
   {
     "type": "metric",
     "key": "revenue_by_customer",
-    "label": "Revenue by Customer (CLV)",
+    "label": "Revenue By Customer",
     "compute": "SUM(payment.amount)",
     "sources": [
       "payment",
-      "customer",
-      "address",
-      "city",
-      "country"
+      "customer"
     ],
     "join_path": [
       "payment",
-      "customer",
-      "address",
-      "city",
-      "country"
+      "customer"
     ],
-    "description": "Total spend per customer partitioned by geography"
+    "description": ""
   },
   {
     "type": "metric",
     "key": "revenue_by_staff",
-    "label": "Revenue Processed by Staff Member",
+    "label": "Revenue By Staff",
     "compute": "SUM(payment.amount)",
     "sources": [
       "payment",
@@ -589,7 +563,18 @@
       "film"
     ],
     "join_path": null,
-    "description": ""
+    "description": "Aggregate metric. Use only for single-value questions like 'what is the highest replacement cost'. Do NOT use for ranking individual films \u2014 use replacement_cost instead.\n"
+  },
+  {
+    "type": "metric",
+    "key": "replacement_cost",
+    "label": "Film Replacement Cost",
+    "compute": "film.replacement_cost",
+    "sources": [
+      "film"
+    ],
+    "join_path": null,
+    "description": "The replacement cost of an individual film. Use for ranking or listing, not aggregation.\n"
   },
   {
     "type": "metric",
@@ -648,6 +633,34 @@
     ],
     "join_path": [
       "film_actor_self_join"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "actors_never_in_action",
+    "label": "Actors Who Never Acted in Action Movies",
+    "compute": "COUNT(DISTINCT actor.actor_id)",
+    "sources": [
+      "actor"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "actors_in_all_categories",
+    "label": "Actors Working in All Categories",
+    "compute": "COUNT(DISTINCT film_category.category_id)",
+    "sources": [
+      "actor",
+      "film_actor",
+      "film_category"
+    ],
+    "join_path": [
+      "actor",
+      "film_actor",
+      "film_category"
     ],
     "description": ""
   },
@@ -719,6 +732,46 @@
   },
   {
     "type": "metric",
+    "key": "rentals_by_month",
+    "label": "Rentals by Month",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_by_category_and_country",
+    "label": "Rentals by Category and Country",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category",
+      "customer",
+      "address",
+      "city",
+      "country"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category",
+      "customer",
+      "address",
+      "city",
+      "country"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
     "key": "rentals_per_staff",
     "label": "Rentals Processed per Staff Member",
     "compute": "COUNT(DISTINCT rental.rental_id)",
@@ -762,6 +815,27 @@
       "rental"
     ],
     "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "avg_rental_duration_per_category",
+    "label": "Average Rental Duration per Category",
+    "compute": "AVG(DATEDIFF(rental.return_date, rental.rental_date))",
+    "sources": [
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
     "description": ""
   },
   {
@@ -827,6 +901,23 @@
       "rental",
       "payment",
       "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "films_rented_by_all_customers",
+    "label": "Films Rented by All Customers",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "film",
+      "inventory",
+      "rental"
+    ],
+    "join_path": [
+      "film",
+      "inventory",
+      "rental"
     ],
     "description": ""
   },
@@ -1007,6 +1098,51 @@
   },
   {
     "type": "metric",
+    "key": "customers_with_no_rentals",
+    "label": "Customers With No Rentals",
+    "compute": "COUNT(DISTINCT customer.customer_id)",
+    "sources": [
+      "customer"
+    ],
+    "join_path": null,
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "customers_above_avg_spend",
+    "label": "Customers Spending Above Average",
+    "compute": "SUM(payment.amount)",
+    "sources": [
+      "payment",
+      "customer"
+    ],
+    "join_path": [
+      "payment",
+      "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "customers_rented_all_categories",
+    "label": "Customers Who Rented From All Categories",
+    "compute": "COUNT(DISTINCT rental.rental_id)",
+    "sources": [
+      "customer",
+      "rental",
+      "inventory",
+      "film_category"
+    ],
+    "join_path": [
+      "customer",
+      "rental",
+      "inventory",
+      "film_category"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
     "key": "payments_processed_per_staff",
     "label": "Payments Processed per Staff Member",
     "compute": "COUNT(DISTINCT payment.payment_id)",
@@ -1017,6 +1153,214 @@
     "join_path": [
       "payment",
       "staff"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_by_film",
+    "label": "Rentals By Film",
+    "compute": "COUNT(rental.rental_id)",
+    "sources": [
+      "rental",
+      "film"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_revenue_by_film",
+    "label": "Average Revenue By Film",
+    "compute": "AVG(payment.amount)",
+    "sources": [
+      "payment",
+      "film"
+    ],
+    "join_path": [
+      "payment",
+      "rental",
+      "inventory",
+      "film"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_by_store",
+    "label": "Rentals By Store",
+    "compute": "COUNT(rental.rental_id)",
+    "sources": [
+      "rental",
+      "store"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_revenue_by_store",
+    "label": "Average Revenue By Store",
+    "compute": "AVG(payment.amount)",
+    "sources": [
+      "payment",
+      "store"
+    ],
+    "join_path": [
+      "payment",
+      "customer",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_by_staff",
+    "label": "Rentals By Staff",
+    "compute": "COUNT(rental.rental_id)",
+    "sources": [
+      "rental",
+      "staff"
+    ],
+    "join_path": [
+      "rental",
+      "staff"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_revenue_by_staff",
+    "label": "Average Revenue By Staff",
+    "compute": "AVG(payment.amount)",
+    "sources": [
+      "payment",
+      "staff"
+    ],
+    "join_path": [
+      "payment",
+      "staff"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_by_category",
+    "label": "Rentals By Category",
+    "compute": "COUNT(rental.rental_id)",
+    "sources": [
+      "rental",
+      "category"
+    ],
+    "join_path": [
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "rentals_by_customer",
+    "label": "Rentals By Customer",
+    "compute": "COUNT(rental.rental_id)",
+    "sources": [
+      "rental",
+      "customer"
+    ],
+    "join_path": [
+      "rental",
+      "customer"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "film_count_by_category",
+    "label": "Film Count By Category",
+    "compute": "COUNT(film_category.film_id)",
+    "sources": [
+      "film_category",
+      "category"
+    ],
+    "join_path": [
+      "film_category",
+      "category"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "inventory_count_by_store",
+    "label": "Inventory Count By Store",
+    "compute": "COUNT(inventory.inventory_id)",
+    "sources": [
+      "inventory",
+      "store"
+    ],
+    "join_path": [
+      "inventory",
+      "store"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "customer_count_by_city",
+    "label": "Customer Count By City",
+    "compute": "COUNT(customer.customer_id)",
+    "sources": [
+      "customer",
+      "city"
+    ],
+    "join_path": [
+      "customer",
+      "address",
+      "city"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_revenue_by_category",
+    "label": "Average Revenue By Category",
+    "compute": "AVG(payment.amount)",
+    "sources": [
+      "payment",
+      "category"
+    ],
+    "join_path": [
+      "payment",
+      "rental",
+      "inventory",
+      "film",
+      "film_category",
+      "category"
+    ],
+    "description": ""
+  },
+  {
+    "type": "metric",
+    "key": "average_revenue_by_customer",
+    "label": "Average Revenue By Customer",
+    "compute": "AVG(payment.amount)",
+    "sources": [
+      "payment",
+      "customer"
+    ],
+    "join_path": [
+      "payment",
+      "customer"
     ],
     "description": ""
   },
@@ -1603,6 +1947,14 @@
     "source": "rental",
     "column": "return_date",
     "col_type": "time"
+  },
+  {
+    "type": "dimension",
+    "key": "rental_rental_month",
+    "label": "Rental Month",
+    "source": "rental",
+    "column": "DATE_FORMAT(rental_date, '%Y-%m')",
+    "col_type": "string"
   },
   {
     "type": "dimension",
